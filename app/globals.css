@@ -28,3 +28,37 @@ body {
 .otp-input {
   @apply w-12 h-12 text-center text-xl font-semibold border-2 border-gray-200 rounded-lg focus:border-[#2bbdc5] focus:outline-none transition-colors;
 }
+
+/* Login page animations */
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(200%) skewX(-12deg); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shimmer-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  transform: translateX(-100%) skewX(-12deg);
+}
+
+.shimmer-btn:hover::after {
+  animation: shimmer 0.65s ease forwards;
+}
+
+.fade-in-up-1 { animation: fadeInUp 0.5s ease both; animation-delay: 0.05s; }
+.fade-in-up-2 { animation: fadeInUp 0.5s ease both; animation-delay: 0.12s; }
+.fade-in-up-3 { animation: fadeInUp 0.5s ease both; animation-delay: 0.19s; }
+.fade-in-up-4 { animation: fadeInUp 0.5s ease both; animation-delay: 0.26s; }
+.fade-in-up-5 { animation: fadeInUp 0.5s ease both; animation-delay: 0.33s; }
+.fade-in-up-6 { animation: fadeInUp 0.5s ease both; animation-delay: 0.40s; }
+.fade-in-up-7 { animation: fadeInUp 0.5s ease both; animation-delay: 0.47s; }
