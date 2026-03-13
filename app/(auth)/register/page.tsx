@@ -24,7 +24,7 @@ const teacherSchema = z.object({
   experience: z.string().min(1, "Please select experience level"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
-  terms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
+  terms: z.literal(true, { message: "You must accept the terms" }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -40,7 +40,7 @@ const schoolSchema = z.object({
   schoolType: z.string().min(1, "Please select school type"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
-  terms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
+  terms: z.literal(true, { message: "You must accept the terms" }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
