@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   ShieldCheck,
   Zap,
@@ -7,62 +8,68 @@ import {
   LineChart,
   Users2,
   Lock,
+  ArrowRight,
 } from "lucide-react";
 
+/* One hero feature shown large on the left */
+const heroFeature = {
+  icon: ShieldCheck,
+  title: "Every profile is verified",
+  desc: "Before any teacher or school appears on Abjad, they go through a thorough identity and credential check. No fake listings. No unqualified candidates. Just real opportunities with real people.",
+  color: "#0ABFBC",
+  bg: "rgba(10,191,188,0.08)",
+  stat: "100%",
+  statLabel: "verified accounts",
+};
+
+/* Remaining 7 features in the right panel */
 const features = [
-  {
-    icon: ShieldCheck,
-    title: "Verified profiles",
-    desc: "Every teacher and school goes through identity and credential verification before joining.",
-    color: "#2bbdc5",
-    bg: "#e0f7f8",
-  },
   {
     icon: Zap,
     title: "Smart matching",
-    desc: "Our algorithm pairs teachers with jobs based on subject, experience, location, and preferences.",
+    desc: "Algorithm pairs you by subject, grade, location, and contract type.",
     color: "#f59e0b",
     bg: "#fef3c7",
   },
   {
     icon: Globe2,
     title: "Region-wide reach",
-    desc: "Opportunities across the Gulf region — Saudi Arabia, UAE, Kuwait, and beyond.",
+    desc: "Saudi Arabia, UAE, Kuwait and across the GCC.",
     color: "#6366f1",
     bg: "#eef2ff",
   },
   {
     icon: BellRing,
     title: "Instant notifications",
-    desc: "Get real-time alerts when new matching jobs are posted or schools view your profile.",
+    desc: "Real-time alerts for new jobs and profile views.",
     color: "#ec4899",
     bg: "#fdf2f8",
   },
   {
     icon: LineChart,
     title: "Analytics dashboard",
-    desc: "Schools see how their listings perform. Teachers track application statuses live.",
+    desc: "Track listing performance and application statuses live.",
     color: "#0e7a81",
     bg: "#f0fdfe",
   },
   {
     icon: Users2,
     title: "Collaboration tools",
-    desc: "Built-in messaging, interview scheduling, and document sharing — no extra tools needed.",
+    desc: "Messaging, scheduling, and document sharing — built in.",
     color: "#8b5cf6",
     bg: "#f5f3ff",
   },
   {
     icon: Star,
     title: "Ratings & reviews",
-    desc: "Transparent feedback system so the best teachers and schools naturally stand out.",
+    desc: "Transparent feedback so the best naturally stand out.",
     color: "#f97316",
     bg: "#fff7ed",
   },
   {
     icon: Lock,
     title: "Privacy first",
-    desc: "Your data is yours. Full GDPR compliance and granular privacy controls built in.",
+    desc: "Full GDPR compliance and granular data controls.",
     color: "#10b981",
     bg: "#ecfdf5",
   },
@@ -70,41 +77,103 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="py-28 bg-gray-50">
+    <section className="py-28 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
-        {/* Heading */}
-        <div className="text-center mb-16">
+
+        {/* ── Section label + headline ── */}
+        <div className="mb-16 max-w-2xl">
           <span
-            className="inline-block text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
-            style={{ backgroundColor: "#e0f7f8", color: "#2bbdc5" }}
+            className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-5"
+            style={{ backgroundColor: "rgba(10,191,188,0.1)", color: "#0ABFBC" }}
           >
             Why Abjad
           </span>
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight mb-4">
-            Everything you need. Nothing you don&apos;t.
+          <h2
+            className="font-extrabold text-gray-950 tracking-tight mb-4"
+            style={{ fontSize: "clamp(1.9rem, 4vw, 3.2rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}
+          >
+            Everything you need.{" "}
+            <span className="text-gray-400 font-extrabold">Nothing you don&apos;t.</span>
           </h2>
-          <p className="text-gray-500 text-lg max-w-xl mx-auto">
+          <p className="text-gray-500 text-lg leading-relaxed">
             Built specifically for the education sector — not a generic job board bolted on.
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {features.map((f) => (
+        {/* ── Asymmetric layout ── */}
+        <div className="grid lg:grid-cols-5 gap-8 items-start">
+
+          {/* Left — hero feature panel */}
+          <div
+            className="lg:col-span-2 rounded-3xl p-8 relative overflow-hidden"
+            style={{ background: "linear-gradient(145deg, #f0fdfe 0%, #e6fafb 100%)", border: "1px solid rgba(10,191,188,0.15)" }}
+          >
+            {/* Large faint icon watermark */}
+            <heroFeature.icon
+              size={160}
+              className="absolute -bottom-6 -right-6 opacity-[0.05] pointer-events-none"
+              style={{ color: "#0ABFBC" }}
+            />
+
             <div
-              key={f.title}
-              className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+              style={{ backgroundColor: "rgba(10,191,188,0.15)" }}
             >
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                style={{ backgroundColor: f.bg }}
-              >
-                <f.icon size={20} style={{ color: f.color }} />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">{f.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+              <heroFeature.icon size={26} style={{ color: "#0ABFBC" }} strokeWidth={1.8} />
             </div>
-          ))}
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3 leading-snug">
+              {heroFeature.title}
+            </h3>
+            <p className="text-gray-500 text-sm leading-relaxed mb-8">
+              {heroFeature.desc}
+            </p>
+
+            {/* Stat callout */}
+            <div className="flex items-end gap-3 mb-8">
+              <span
+                className="text-5xl font-black leading-none"
+                style={{ color: "#0ABFBC" }}
+              >
+                {heroFeature.stat}
+              </span>
+              <span className="text-sm font-semibold text-gray-500 pb-1.5 leading-tight">
+                {heroFeature.statLabel}
+              </span>
+            </div>
+
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3"
+              style={{ color: "#0ABFBC" }}
+            >
+              Get started free <ArrowRight size={15} />
+            </Link>
+          </div>
+
+          {/* Right — compact feature grid */}
+          <div className="lg:col-span-3 grid sm:grid-cols-2 gap-px bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
+            {features.map((f, i) => (
+              <div
+                key={f.title}
+                className={`group bg-white hover:bg-gray-50 transition-colors duration-150 p-6 flex items-start gap-4 ${
+                  i === features.length - 1 ? "sm:col-span-2" : ""
+                }`}
+              >
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-transform duration-200 group-hover:scale-110"
+                  style={{ backgroundColor: f.bg }}
+                >
+                  <f.icon size={16} style={{ color: f.color }} strokeWidth={2} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 mb-1">{f.title}</h4>
+                  <p className="text-xs text-gray-500 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
     </section>

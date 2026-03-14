@@ -107,16 +107,16 @@ export default function HowItWorksSection() {
       {/* Decorative blobs */}
       <div
         className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(10,191,188,0.07) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(10,191,188,0.06) 0%, transparent 70%)" }}
       />
       <div
         className="absolute -bottom-32 -right-32 w-[420px] h-[420px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(10,191,188,0.06) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(10,191,188,0.05) 0%, transparent 70%)" }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-10">
 
-        {/* Section header */}
+        {/* ── Section header ── */}
         <div className="text-center mb-14">
           <span
             className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-5"
@@ -142,8 +142,8 @@ export default function HowItWorksSection() {
           </p>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex justify-center mb-14">
+        {/* ── Tab switcher ── */}
+        <div className="flex justify-center mb-16">
           <div className="inline-flex items-center gap-1 p-1.5 rounded-2xl bg-white border border-gray-200 shadow-sm">
             {(["teachers", "schools"] as Tab[]).map((t) => (
               <button
@@ -178,76 +178,97 @@ export default function HowItWorksSection() {
           </div>
         </div>
 
-        {/* Step cards grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
-          {steps.map((s, i) => (
-            <div
-              key={s.step}
-              className="group relative bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 overflow-hidden"
-            >
-              {/* Faint watermark step number */}
-              <span
-                className="absolute -top-3 -right-1 text-8xl font-black select-none pointer-events-none leading-none"
-                style={{ color: "rgba(10,191,188,0.06)" }}
-              >
-                {s.step}
-              </span>
+        {/* ── Timeline stepper ── */}
+        <div className="relative">
+          {/* Vertical spine — desktop only */}
+          <div
+            className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 hidden lg:block"
+            style={{ background: "linear-gradient(to bottom, transparent, rgba(10,191,188,0.25) 10%, rgba(10,191,188,0.25) 90%, transparent)" }}
+          />
 
-              {/* Icon */}
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-all duration-200 group-hover:scale-105"
-                style={{ backgroundColor: "rgba(10,191,188,0.1)" }}
-              >
-                <s.icon size={22} style={{ color: "#0ABFBC" }} strokeWidth={2} />
-              </div>
-
-              <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#0ABFBC" }}>
-                Step {s.step}
-              </span>
-
-              <h3 className="text-base font-bold text-gray-900 mt-1 mb-2 leading-snug">{s.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed mb-4">{s.desc}</p>
-
-              {/* Pill tags */}
-              <div className="flex flex-wrap gap-1.5">
-                {s.pills.map((pill) => (
-                  <span
-                    key={pill}
-                    className="text-xs font-medium px-2.5 py-0.5 rounded-full border"
-                    style={{ borderColor: "rgba(10,191,188,0.2)", color: "#089E9B", backgroundColor: "rgba(10,191,188,0.05)" }}
-                  >
-                    {pill}
-                  </span>
-                ))}
-              </div>
-
-              {/* Connector arrow — desktop only, not on last card */}
-              {i < steps.length - 1 && (
+          <div className="space-y-16 lg:space-y-0">
+            {steps.map((s, i) => {
+              const isEven = i % 2 === 0;
+              return (
                 <div
-                  className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border-2 bg-white hidden lg:flex items-center justify-center z-10"
-                  style={{ borderColor: "rgba(10,191,188,0.3)" }}
+                  key={s.step}
+                  className={`relative flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-0 lg:mb-20 ${
+                    isEven ? "lg:flex-row" : "lg:flex-row-reverse"
+                  }`}
                 >
-                  <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="#0ABFBC" strokeWidth="1.5">
-                    <path d="M2 5h6M5 2l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  {/* Content side */}
+                  <div className={`flex-1 ${isEven ? "lg:pr-16 lg:text-right" : "lg:pl-16"}`}>
+                    <span
+                      className="inline-block text-xs font-bold tracking-widest uppercase mb-2"
+                      style={{ color: "#0ABFBC" }}
+                    >
+                      Step {s.step}
+                    </span>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{s.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed mb-4 max-w-sm lg:max-w-none">
+                      {s.desc}
+                    </p>
+                    <div className={`flex flex-wrap gap-1.5 ${isEven ? "lg:justify-end" : ""}`}>
+                      {s.pills.map((pill) => (
+                        <span
+                          key={pill}
+                          className="text-xs font-medium px-2.5 py-1 rounded-full"
+                          style={{
+                            color: "#089E9B",
+                            backgroundColor: "rgba(10,191,188,0.08)",
+                          }}
+                        >
+                          {pill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Centre node */}
+                  <div className="hidden lg:flex flex-col items-center shrink-0 relative z-10">
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md"
+                      style={{ backgroundColor: "#0ABFBC" }}
+                    >
+                      <s.icon size={24} color="white" strokeWidth={1.8} />
+                    </div>
+                    {/* Big faint step number behind node */}
+                    <span
+                      className="absolute -z-10 text-7xl font-black select-none leading-none"
+                      style={{ color: "rgba(10,191,188,0.07)", top: "-18px" }}
+                    >
+                      {s.step}
+                    </span>
+                  </div>
+
+                  {/* Mobile: icon inline */}
+                  <div className="flex lg:hidden items-start gap-4">
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm mt-0.5"
+                      style={{ backgroundColor: "#0ABFBC" }}
+                    >
+                      <s.icon size={20} color="white" strokeWidth={1.8} />
+                    </div>
+                    <div className="-mt-0.5 lg:hidden">
+                      {/* content rendered above already; this div intentionally empty on mobile to avoid duplication */}
+                    </div>
+                  </div>
+
+                  {/* Empty flex-1 for the other side (desktop only) */}
+                  <div className="hidden lg:block flex-1" />
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
 
-        {/* Highlights strip */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
+        {/* ── Highlights strip ── */}
+        <div className="mt-16 pt-10 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-8">
             {highlights.map((h) => (
-              <div key={h.label} className="flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: "rgba(10,191,188,0.1)" }}
-                >
-                  <h.icon size={18} style={{ color: "#0ABFBC" }} strokeWidth={2} />
-                </div>
-                <span className="text-sm font-semibold text-gray-700">{h.label}</span>
+              <div key={h.label} className="flex items-center gap-2.5">
+                <h.icon size={16} style={{ color: "#0ABFBC" }} strokeWidth={2} />
+                <span className="text-sm font-semibold text-gray-600">{h.label}</span>
               </div>
             ))}
           </div>
@@ -263,7 +284,7 @@ export default function HowItWorksSection() {
 
       </div>
 
-      {/* Wave into next section */}
+      {/* ── Wave into next section ── */}
       <div className="relative z-10 -mb-px mt-6">
         <svg
           viewBox="0 0 1440 60"
