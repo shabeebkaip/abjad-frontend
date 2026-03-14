@@ -106,7 +106,7 @@ export default function HowItWorksSection() {
 
       {/* Decorative blobs */}
       <div
-        className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full pointer-events-none"
+        className="absolute -top-40 -left-40 w-130 h-130 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(10,191,188,0.06) 0%, transparent 70%)" }}
       />
       <div
