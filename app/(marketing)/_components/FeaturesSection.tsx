@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -10,72 +12,52 @@ import {
   Lock,
   ArrowRight,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-/* One hero feature shown large on the left */
-const heroFeature = {
+/* ── Bilingual hero feature ── */
+const heroFeatureEn = {
   icon: ShieldCheck,
   title: "Every profile is verified",
   desc: "Before any teacher or school appears on Abjad, they go through a thorough identity and credential check. No fake listings. No unqualified candidates. Just real opportunities with real people.",
-  color: "#0ABFBC",
-  bg: "rgba(10,191,188,0.08)",
   stat: "100%",
   statLabel: "verified accounts",
+  cta: "Get started free",
+};
+const heroFeatureAr = {
+  icon: ShieldCheck,
+  title: "كل ملف شخصي موثّق",
+  desc: "قبل أن يظهر أي معلم أو مدرسة على أبجد، يمرّون بفحص شامل للهوية والمؤهلات. لا إعلانات مزيّفة، لا مرشحون غير مؤهلين. فقط فرص حقيقية مع أشخاص حقيقيين.",
+  stat: "100%",
+  statLabel: "حسابات موثّقة",
+  cta: "ابدأ مجاناً",
 };
 
-/* Remaining 7 features in the right panel */
-const features = [
-  {
-    icon: Zap,
-    title: "Smart matching",
-    desc: "Algorithm pairs you by subject, grade, location, and contract type.",
-    color: "#f59e0b",
-    bg: "#fef3c7",
-  },
-  {
-    icon: Globe2,
-    title: "Region-wide reach",
-    desc: "Saudi Arabia, UAE, Kuwait and across the GCC.",
-    color: "#6366f1",
-    bg: "#eef2ff",
-  },
-  {
-    icon: BellRing,
-    title: "Instant notifications",
-    desc: "Real-time alerts for new jobs and profile views.",
-    color: "#ec4899",
-    bg: "#fdf2f8",
-  },
-  {
-    icon: LineChart,
-    title: "Analytics dashboard",
-    desc: "Track listing performance and application statuses live.",
-    color: "#0e7a81",
-    bg: "#f0fdfe",
-  },
-  {
-    icon: Users2,
-    title: "Collaboration tools",
-    desc: "Messaging, scheduling, and document sharing — built in.",
-    color: "#8b5cf6",
-    bg: "#f5f3ff",
-  },
-  {
-    icon: Star,
-    title: "Ratings & reviews",
-    desc: "Transparent feedback so the best naturally stand out.",
-    color: "#f97316",
-    bg: "#fff7ed",
-  },
-  {
-    icon: Lock,
-    title: "Privacy first",
-    desc: "Full GDPR compliance and granular data controls.",
-    color: "#10b981",
-    bg: "#ecfdf5",
-  },
+/* ── Bilingual feature grid ── */
+const featuresEn = [
+  { icon: Zap,       title: "Smart matching",        desc: "Algorithm pairs you by subject, grade, location, and contract type.",    color: "#f59e0b", bg: "#fef3c7" },
+  { icon: Globe2,    title: "Region-wide reach",      desc: "Saudi Arabia, UAE, Kuwait and across the GCC.",                          color: "#6366f1", bg: "#eef2ff" },
+  { icon: BellRing,  title: "Instant notifications",  desc: "Real-time alerts for new jobs and profile views.",                       color: "#ec4899", bg: "#fdf2f8" },
+  { icon: LineChart, title: "Analytics dashboard",    desc: "Track listing performance and application statuses live.",               color: "#0e7a81", bg: "#f0fdfe" },
+  { icon: Users2,    title: "Collaboration tools",    desc: "Messaging, scheduling, and document sharing — built in.",                color: "#8b5cf6", bg: "#f5f3ff" },
+  { icon: Star,      title: "Ratings & reviews",      desc: "Transparent feedback so the best naturally stand out.",                  color: "#f97316", bg: "#fff7ed" },
+  { icon: Lock,      title: "Privacy first",          desc: "Full GDPR compliance and granular data controls.",                       color: "#10b981", bg: "#ecfdf5" },
+];
+const featuresAr = [
+  { icon: Zap,       title: "مطابقة ذكية",             desc: "خوارزمية تجمع بينك وبين الفرص حسب التخصص والمرحلة والموقع ونوع العقد.",  color: "#f59e0b", bg: "#fef3c7" },
+  { icon: Globe2,    title: "تغطية إقليمية واسعة",     desc: "المملكة العربية السعودية والإمارات والكويت وسائر دول الخليج.",             color: "#6366f1", bg: "#eef2ff" },
+  { icon: BellRing,  title: "إشعارات فورية",           desc: "تنبيهات لحظية للوظائف الجديدة ومشاهدات ملفك الشخصي.",                   color: "#ec4899", bg: "#fdf2f8" },
+  { icon: LineChart, title: "لوحة تحليلات",            desc: "تابع أداء إعلاناتك وحالة الطلبات مباشرةً.",                             color: "#0e7a81", bg: "#f0fdfe" },
+  { icon: Users2,    title: "أدوات التعاون",           desc: "مراسلة وجدولة ومشاركة وثائق — كلها مدمجة.",                            color: "#8b5cf6", bg: "#f5f3ff" },
+  { icon: Star,      title: "التقييمات والمراجعات",    desc: "نظام تغذية راجعة شفّاف يبرز الأفضل بشكل طبيعي.",                       color: "#f97316", bg: "#fff7ed" },
+  { icon: Lock,      title: "الخصوصية أولاً",         desc: "امتثال كامل لـ GDPR وضوابط خصوصية دقيقة.",                             color: "#10b981", bg: "#ecfdf5" },
 ];
 
 export default function FeaturesSection() {
+  const { isRTL } = useTranslation();
+
+  const heroFeature = isRTL ? heroFeatureAr : heroFeatureEn;
+  const features    = isRTL ? featuresAr    : featuresEn;
+
   return (
     <section className="py-28 bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
@@ -86,17 +68,22 @@ export default function FeaturesSection() {
             className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-5"
             style={{ backgroundColor: "rgba(10,191,188,0.1)", color: "#0ABFBC" }}
           >
-            Why Abjad
+            {isRTL ? "لماذا أبجد" : "Why Abjad"}
           </span>
           <h2
             className="font-extrabold text-gray-950 tracking-tight mb-4"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 3.2rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}
+            style={{ fontSize: "clamp(1.9rem, 4vw, 3.2rem)", letterSpacing: isRTL ? "0" : "-0.03em", lineHeight: 1.1 }}
           >
-            Everything you need.{" "}
-            <span className="text-gray-400 font-extrabold">Nothing you don&apos;t.</span>
+            {isRTL ? (
+              <>{"كل ما تحتاجه."}{" "}<span className="text-gray-400 font-extrabold">{"لا شيء زائد."}</span></>
+            ) : (
+              <>{"Everything you need."}{" "}<span className="text-gray-400 font-extrabold">{"Nothing you don\u2019t."}</span></>
+            )}
           </h2>
           <p className="text-gray-500 text-lg leading-relaxed">
-            Built specifically for the education sector — not a generic job board bolted on.
+            {isRTL
+              ? "مبنيٌّ خصيصاً للقطاع التعليمي — لا لوحة وظائف عامة مُعاد تدويرها."
+              : "Built specifically for the education sector — not a generic job board bolted on."}
           </p>
         </div>
 
@@ -147,7 +134,7 @@ export default function FeaturesSection() {
               className="inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3"
               style={{ color: "#0ABFBC" }}
             >
-              Get started free <ArrowRight size={15} />
+              {heroFeature.cta} <ArrowRight size={15} />
             </Link>
           </div>
 
