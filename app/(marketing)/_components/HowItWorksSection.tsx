@@ -17,91 +17,157 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const teacherSteps = [
+/* ── Bilingual step data ─────────────────────────────── */
+const teacherStepsEn = [
   {
-    icon: UserCircle2,
-    step: "01",
+    icon: UserCircle2, step: "01",
     title: "Build your profile",
     desc: "Add your qualifications, subjects, teaching experience, and certifications. Your profile is your CV — no uploads or formatting needed.",
     pills: ["Subjects & grades", "Location preferences", "Salary range"],
   },
   {
-    icon: Search,
-    step: "02",
+    icon: Search, step: "02",
     title: "Discover matched roles",
     desc: "Browse roles curated for your profile. Filter by city, school type, curriculum, and contract type. Save searches and get instant alerts.",
     pills: ["Smart filters", "Saved searches", "Job alerts"],
   },
   {
-    icon: Bell,
-    step: "03",
+    icon: Bell, step: "03",
     title: "Apply in one click",
     desc: "Your profile is always ready. Hit apply and your details go straight to the school — no cover letters, no forms to fill ever again.",
     pills: ["Instant apply", "Track applications", "Interview scheduling"],
   },
   {
-    icon: Handshake,
-    step: "04",
+    icon: Handshake, step: "04",
     title: "Get hired & start",
     desc: "Chat with the school, accept an offer, and onboard — all inside Abjad. Most teachers hear back within 72 hours of applying.",
     pills: ["In-app messaging", "Offer management", "Avg. 72h response"],
   },
 ];
 
-const schoolSteps = [
+const teacherStepsAr = [
   {
-    icon: BriefcaseBusiness,
-    step: "01",
+    icon: UserCircle2, step: "٠١",
+    title: "أنشئ ملفك الشخصي",
+    desc: "أضف مؤهلاتك ومواد تخصصك وخبرتك التدريسية وشهاداتك. ملفك الشخصي هو سيرتك الذاتية — لا حاجة لرفع ملفات أو تنسيق.",
+    pills: ["المواد والمراحل الدراسية", "تفضيلات الموقع", "الراتب المتوقع"],
+  },
+  {
+    icon: Search, step: "٠٢",
+    title: "اكتشف الوظائف المناسبة",
+    desc: "تصفّح الوظائف المُختارة لك بناءً على ملفك. صفّها حسب المدينة ونوع المدرسة والمنهج ونوع العقد. احفظ بحثك واحصل على تنبيهات فورية.",
+    pills: ["فلاتر ذكية", "بحوث محفوظة", "تنبيهات وظيفية"],
+  },
+  {
+    icon: Bell, step: "٠٣",
+    title: "قدّم بنقرة واحدة",
+    desc: "ملفك جاهز دائماً. اضغط تقدّم وستصل بياناتك إلى المدرسة مباشرةً — بدون خطابات تغطية أو نماذج لتعبئتها.",
+    pills: ["تقديم فوري", "متابعة الطلبات", "جدولة المقابلات"],
+  },
+  {
+    icon: Handshake, step: "٠٤",
+    title: "احصل على وظيفة وابدأ",
+    desc: "تواصل مع المدرسة واقبل العرض وابدأ الإلحاق — كل ذلك داخل أبجد. معظم المعلمين يتلقون رداً خلال 72 ساعة من التقديم.",
+    pills: ["مراسلة داخل المنصة", "إدارة العروض", "متوسط الرد 72 ساعة"],
+  },
+];
+
+const schoolStepsEn = [
+  {
+    icon: BriefcaseBusiness, step: "01",
     title: "Post your vacancy",
     desc: "Create a detailed job listing in under 5 minutes. Set the curriculum, grade level, location, and contract terms — and go live instantly.",
     pills: ["5-min setup", "Multiple vacancies", "Draft & schedule"],
   },
   {
-    icon: SlidersHorizontal,
-    step: "02",
+    icon: SlidersHorizontal, step: "02",
     title: "Get AI-ranked candidates",
     desc: "Our matching engine surfaces the most relevant teacher profiles for your role — ranked by subject fit, location, and years of experience.",
     pills: ["AI matching", "Relevance ranking", "Shortlist tools"],
   },
   {
-    icon: Users,
-    step: "03",
+    icon: Users, step: "03",
     title: "Review & interview",
     desc: "Browse candidate profiles, review qualifications, and schedule interviews directly in the platform. No back-and-forth emails required.",
     pills: ["Profile deep-dives", "Integrated scheduling", "Panel notes"],
   },
   {
-    icon: BadgeCheck,
-    step: "04",
+    icon: BadgeCheck, step: "04",
     title: "Hire with confidence",
     desc: "Extend offers, finalise contracts, and onboard your new hire — all from one dashboard. Every candidate on Abjad is verified.",
     pills: ["Verified candidates", "Offer letters", "Onboarding checklist"],
   },
 ];
 
-const teacherHighlights = [
+const schoolStepsAr = [
+  {
+    icon: BriefcaseBusiness, step: "٠١",
+    title: "انشر وظيفتك الشاغرة",
+    desc: "أنشئ إعلان وظيفة مفصّلاً في أقل من 5 دقائق. حدّد المنهج والمرحلة الدراسية والموقع وشروط العقد — وانشر فوراً.",
+    pills: ["إعداد في 5 دقائق", "وظائف متعددة", "حفظ ونشر لاحق"],
+  },
+  {
+    icon: SlidersHorizontal, step: "٠٢",
+    title: "احصل على مرشّحين مصنّفين بالذكاء الاصطناعي",
+    desc: "يُحضر محرك المطابقة لدينا أكثر ملفات المعلمين ملاءمةً لوظيفتك — مرتّبة حسب التخصص والموقع وسنوات الخبرة.",
+    pills: ["مطابقة ذكية", "ترتيب حسب الملاءمة", "أدوات القائمة المختصرة"],
+  },
+  {
+    icon: Users, step: "٠٣",
+    title: "راجع وأجرِ المقابلات",
+    desc: "تصفّح الملفات الشخصية وراجع المؤهلات وجدوِل المقابلات مباشرةً داخل المنصة. لا مراسلات بريد إلكتروني ذهاباً وإياباً.",
+    pills: ["استعراض الملفات", "جدولة مدمجة", "ملاحظات اللجنة"],
+  },
+  {
+    icon: BadgeCheck, step: "٠٤",
+    title: "وظّف بثقة",
+    desc: "أرسل العروض وأتمّ العقود وأدخل موظفك الجديد إلى العمل — كل ذلك من لوحة تحكم واحدة. كل مرشح على أبجد موثّق.",
+    pills: ["مرشحون موثّقون", "خطابات العروض", "قائمة الإلحاق"],
+  },
+];
+
+const teacherHighlightsEn = [
   { icon: Clock3,  label: "Avg. 3 days to first interview" },
   { icon: Star,    label: "4.9 / 5 teacher satisfaction" },
   { icon: MapPin,  label: "Roles across all Saudi cities" },
 ];
+const teacherHighlightsAr = [
+  { icon: Clock3,  label: "متوسط 3 أيام للمقابلة الأولى" },
+  { icon: Star,    label: "4.9 / 5 رضا المعلمين" },
+  { icon: MapPin,  label: "وظائف في جميع مدن المملكة" },
+];
 
-const schoolHighlights = [
+const schoolHighlightsEn = [
   { icon: Clock3,     label: "Fill a role in under 2 weeks" },
   { icon: Sparkles,   label: "AI-ranked candidate lists" },
   { icon: BadgeCheck, label: "100% verified teacher profiles" },
+];
+const schoolHighlightsAr = [
+  { icon: Clock3,     label: "شغل وظيفة في أقل من أسبوعين" },
+  { icon: Sparkles,   label: "قوائم مرشحين مصنّفة بالذكاء الاصطناعي" },
+  { icon: BadgeCheck, label: "100% ملفات معلمين موثّقة" },
 ];
 
 type Tab = "teachers" | "schools";
 
 export default function HowItWorksSection() {
+  const { isRTL } = useTranslation();
   const [tab, setTab]       = useState<Tab>("teachers");
   const [active, setActive] = useState(0);
+
+  const teacherSteps = isRTL ? teacherStepsAr : teacherStepsEn;
+  const schoolSteps  = isRTL ? schoolStepsAr  : schoolStepsEn;
+  const teacherHighlights = isRTL ? teacherHighlightsAr : teacherHighlightsEn;
+  const schoolHighlights  = isRTL ? schoolHighlightsAr  : schoolHighlightsEn;
 
   const steps      = tab === "teachers" ? teacherSteps      : schoolSteps;
   const highlights = tab === "teachers" ? teacherHighlights : schoolHighlights;
   const ctaHref    = tab === "teachers" ? "/register?role=teacher" : "/register?role=school";
-  const ctaLabel   = tab === "teachers" ? "Find teaching jobs" : "Post a vacancy";
+  const ctaLabel   = tab === "teachers"
+    ? (isRTL ? "ابحث عن وظيفة تدريس" : "Find teaching jobs")
+    : (isRTL ? "انشر وظيفة شاغرة" : "Post a vacancy");
 
   const current = steps[active];
 
@@ -114,9 +180,9 @@ export default function HowItWorksSection() {
     <section id="how-it-works" className="relative overflow-hidden bg-[#f8fafc] py-24">
 
       {/* Subtle blobs */}
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full pointer-events-none"
+      <div className="absolute -top-40 -left-40 w-125 h-125 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(10,191,188,0.06) 0%, transparent 70%)" }} />
-      <div className="absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full pointer-events-none"
+      <div className="absolute -bottom-32 -right-32 w-100 h-100 rounded-full pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(10,191,188,0.05) 0%, transparent 70%)" }} />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
@@ -132,14 +198,14 @@ export default function HowItWorksSection() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "#0ABFBC" }} />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: "#0ABFBC" }} />
               </span>
-              How it works
+              {isRTL ? "كيف يعمل" : "How it works"}
             </span>
             <h2
               className="font-extrabold text-gray-950 tracking-tight"
-              style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.1 }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: isRTL ? "0" : "-0.03em", lineHeight: 1.1 }}
             >
-              Up and running{" "}
-              <span style={{ color: "#0ABFBC" }}>in four steps</span>
+              {isRTL ? "جاهز للعمل" : "Up and running"}{" "}
+              <span style={{ color: "#0ABFBC" }}>{isRTL ? "في أربع خطوات" : "in four steps"}</span>
             </h2>
           </div>
 
@@ -156,7 +222,9 @@ export default function HowItWorksSection() {
                     : { color: "#6b7280" }
                 }
               >
-                {t === "teachers" ? "For Teachers" : "For Schools"}
+                {t === "teachers"
+                  ? (isRTL ? "للمعلمين" : "For Teachers")
+                  : (isRTL ? "للمدارس" : "For Schools")}
               </button>
             ))}
           </div>
@@ -251,7 +319,7 @@ export default function HowItWorksSection() {
                   <current.icon size={22} style={{ color: "#0ABFBC" }} strokeWidth={1.8} />
                 </div>
                 <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#0ABFBC" }}>
-                  Step {current.step} of {steps.length}
+                  {isRTL ? `الخطوة ${current.step} من ${steps.length}` : `Step ${current.step} of ${steps.length}`}
                 </span>
               </div>
 
