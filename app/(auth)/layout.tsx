@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { Sparkles, BadgeCheck, MousePointerClick, type LucideIcon } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
@@ -82,7 +83,7 @@ export default function AuthLayout({
         {/* Content */}
         <div className="relative z-10 flex flex-col h-full px-14 py-14">
           {/* Logo */}
-          <div>
+          <Link href="/" className="w-fit">
             <Image
               src="/ABJAD.png"
               alt="Abjad"
@@ -92,7 +93,7 @@ export default function AuthLayout({
               style={{ filter: "brightness(0) invert(1)" }}
               priority
             />
-          </div>
+          </Link>
 
           {/* Centre copy */}
           <div className="flex-1 flex flex-col justify-center max-w-sm">
@@ -171,14 +172,16 @@ export default function AuthLayout({
 
         {/* Mobile top bar */}
         <div className="lg:hidden flex items-center justify-between px-6 pt-6 pb-2 relative z-10">
-          <Image
-            src="/ABJAD.png"
-            alt="Abjad"
-            width={100}
-            height={30}
-            className="h-8 w-auto object-contain"
-            priority
-          />
+          <Link href="/">
+            <Image
+              src="/ABJAD.png"
+              alt="Abjad"
+              width={100}
+              height={30}
+              className="h-8 w-auto object-contain"
+              priority
+            />
+          </Link>
         </div>
 
         {/* Form centred */}

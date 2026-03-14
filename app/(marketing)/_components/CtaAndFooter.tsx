@@ -15,9 +15,14 @@ export function CtaBanner() {
           <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
 
           <div className="relative z-10">
-            <span className="inline-block bg-white/20 text-white text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
-              Ready to get started?
-            </span>
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <span className="inline-block bg-white/20 text-white text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full">
+                Ready to get started?
+              </span>
+              <span className="inline-flex items-center gap-1.5 bg-white/15 border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                🇸🇦 Made in Saudi Arabia
+              </span>
+            </div>
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-5 tracking-tight">
               Your next chapter starts here
             </h2>
@@ -102,7 +107,7 @@ export function Footer() {
             </Link>
 
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs mb-6">
-              The premier education hiring platform connecting talented teachers with exceptional schools across Saudi Arabia and the GCC.
+              Built in Saudi Arabia 🇸🇦 — the education hiring platform connecting talented teachers with exceptional schools across the Kingdom and the GCC.
             </p>
 
             {/* Contact */}
