@@ -8,7 +8,7 @@
   --abjad-cyan: #2bbdc5;
   --abjad-cyan-dark: #1e9aa1;
   --abjad-cyan-light: #e0f7f8;
-  --background: oklch(1 0 0);
+  --background: oklch(0.975 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -152,6 +152,12 @@
 .fade-in-up-5 { animation: fadeInUp 0.5s ease both; animation-delay: 0.33s; }
 .fade-in-up-6 { animation: fadeInUp 0.5s ease both; animation-delay: 0.40s; }
 .fade-in-up-7 { animation: fadeInUp 0.5s ease both; animation-delay: 0.47s; }
+
+@keyframes fadeInCard {
+  from { opacity: 0; transform: scale(0.97) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.fade-in-card { animation: fadeInCard 0.55s ease both; animation-delay: 0.2s; }
 
 .dark {
   --background: oklch(0.145 0 0);

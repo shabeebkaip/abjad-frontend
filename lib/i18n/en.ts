@@ -1,6 +1,19 @@
 export interface Translations {
   nav: { signIn: string; register: string };
-  hero: { badge: string; headline: string; sub: string };
+  hero: {
+    badge: string; headline: string; sub: string;
+    line1: string; line2: string; line3: string;
+    cta_primary: string; cta_secondary: string; trusted_by: string;
+  };
+  stats: { teachers: string; schools: string; hires: string };
+  card: {
+    teacher_headline: string; teacher_sub: string;
+    school_headline: string; school_sub: string;
+    teacher_cta: string; school_cta: string;
+    teacher_tab: string; school_tab: string;
+    teacher_b1: string; teacher_b2: string; teacher_b3: string;
+    school_b1: string; school_b2: string; school_b3: string;
+  };
   features: {
     smart: { title: string; desc: string };
     schools: { title: string; desc: string };
@@ -33,9 +46,36 @@ export const en: Translations = {
     register: "Create Account",
   },
   hero: {
-    badge: "Saudi Arabia's #1 Education Hiring Platform",
+    badge: "Schools hiring now — 48 new listings this week",
     headline: "Where Great\nTeachers Meet\nGreat Schools",
-    sub: "Join thousands of educators building meaningful careers across the Kingdom.",
+    sub: "Stop sending CVs into the void. Abjad matches you directly with schools looking for your exact skills — in days, not months.",
+    line1: "Where Great",
+    line2: "Teachers Meet",
+    line3: "Great Schools",
+    cta_primary: "Find teaching jobs",
+    cta_secondary: "Watch 60-sec demo",
+    trusted_by: "Trusted by schools across the Kingdom",
+  },
+  stats: {
+    teachers: "Teachers placed",
+    schools: "Verified schools",
+    hires: "Successful hires",
+  },
+  card: {
+    teacher_headline: "Your next teaching job is here",
+    teacher_sub: "2,000+ teachers found their school through Abjad",
+    school_headline: "Find your ideal teacher fast",
+    school_sub: "Most schools make a hire within 2 weeks",
+    teacher_cta: "Start job hunting →",
+    school_cta: "Start hiring →",
+    teacher_tab: "I'm a Teacher",
+    school_tab: "I'm a School",
+    teacher_b1: "Browse hundreds of verified school listings",
+    teacher_b2: "Set your availability & preferred subjects",
+    teacher_b3: "Get matched with schools that suit you",
+    school_b1: "Post jobs and receive matched candidates",
+    school_b2: "Filter by subject, experience & availability",
+    school_b3: "Interview and hire — all in one place",
   },
   features: {
     smart: { title: "Smart Matching", desc: "AI-powered job recommendations tailored to your skills" },

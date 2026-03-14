@@ -3,8 +3,177 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X, GraduationCap, School } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+
+const NAV_LINKS = [
+  { label: "How It Works", labelAr: "كيف يعمل",   href: "#how-it-works" },
+  { label: "For Schools",  labelAr: "للمدارس",     href: "#schools" },
+  { label: "Testimonials", labelAr: "آراء العملاء", href: "#testimonials" },
+];
+
+export default function Navbar() {
+  const [scrolled, setScrolled]   = useState(false);
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const { lang, switchLang }      = useLanguage();
+  const isAr                      = lang === "ar";
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <>
+      {/* ── Floating island navbar ── */}
+      <header className="fixed top-0 inset-x-0 z-50 flex justify-center pointer-events-none pt-4 px-4">
+        <div
+          className={`pointer-events-auto w-full max-w-5xl flex items-center justify-between px-4 py-2.5 rounded-2xl transition-all duration-300 ${
+            scrolled
+              ? "bg-white/90 backdrop-blur-xl shadow-lg shadow-black/[0.08] border border-black/[0.06]"
+              : "bg-white/75 backdrop-blur-md border border-black/[0.07] shadow-md shadow-black/[0.05]"
+          }`}
+        >
+          {/* Logo */}
+          <Link href="/" className="flex items-center shrink-0">
+            <Image
+              src="/ABJAD.png"
+              alt="Abjad"
+              width={88}
+              height={28}
+              className="h-7 w-auto object-contain"
+              priority
+            />
+          </Link>
+
+          {/* Desktop — center links */}
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3.5 py-2 rounded-xl hover:bg-gray-50 transition-all"
+              >
+                {isAr ? l.labelAr : l.label}
+              </a>
+            ))}
+          </nav>
+
+          {/* Desktop — right side */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Language toggle */}
+            <div className="flex items-center bg-gray-100 rounded-full p-0.5">
+              <button
+                onClick={() => switchLang("en")}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  lang === "en" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                onClick={() => switchLang("ar")}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  lang === "ar" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                }`}
+                style={{ fontFamily: "var(--font-almarai)" }}
+              >
+                عربي
+              </button>
+            </div>
+
+            <div className="w-px h-4 bg-gray-200" />
+
+            {/* Sign in */}
+            <Link
+              href="/login"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all"
+            >
+              {isAr ? "تسجيل الدخول" : "Sign in"}
+            </Link>
+
+            {/* Primary CTA */}
+            <Link
+              href="/register"
+              className="text-sm font-bold text-white px-4 py-2 rounded-xl transition-all hover:opacity-90 hover:scale-[1.03] shadow-sm"
+              style={{ backgroundColor: "#0ABFBC" }}
+            >
+              {isAr ? "ابدأ مجاناً" : "Get started"}
+            </Link>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <X size={20} className="text-gray-700" /> : <Menu size={20} className="text-gray-700" />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile drawer */}
+      {menuOpen && (
+        <div className="fixed inset-x-0 top-0 z-40 pt-20 px-4 pointer-events-auto md:hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
+            <nav className="p-3">
+              {NAV_LINKS.map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center text-sm font-medium text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 hover:text-[#0ABFBC] transition-colors"
+                >
+                  {isAr ? l.labelAr : l.label}
+                </a>
+              ))}
+            </nav>
+            <div className="px-3 pb-3 pt-1 border-t border-gray-100 flex flex-col gap-2">
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:border-[#0ABFBC] hover:text-[#0ABFBC] transition-colors"
+              >
+                {isAr ? "تسجيل الدخول" : "Sign in"}
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setMenuOpen(false)}
+                className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
+                style={{ backgroundColor: "#0ABFBC" }}
+              >
+                {isAr ? "ابدأ مجاناً" : "Get started"}
+              </Link>
+              {/* Language toggle */}
+              <div className="flex items-center justify-center bg-gray-100 rounded-full p-0.5 mt-1">
+                <button
+                  onClick={() => switchLang("en")}
+                  className={`flex-1 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    lang === "en" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400"
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => switchLang("ar")}
+                  className={`flex-1 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    lang === "ar" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400"
+                  }`}
+                  style={{ fontFamily: "var(--font-almarai)" }}
+                >
+                  عربي
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 
 const navLinks = [
   { label: "For Teachers", href: "#teachers" },
@@ -12,186 +181,3 @@ const navLinks = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Testimonials", href: "#testimonials" },
 ];
-
-export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { lang, switchLang } = useLanguage();
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  return (
-    <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100"
-          : "bg-linear-to-b from-black/30 to-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-between py-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center group">
-          <Image
-            src="/Abjad Logo.png"
-            alt="Abjad"
-            width={120}
-            height={100}
-            className="h-16 w-auto object-contain transition-all duration-300 group-hover:scale-105"
-            style={{ filter: scrolled ? "none" : "brightness(0) invert(1)" }}
-            priority
-          />
-        </Link>
-
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {navLinks.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className={`text-sm font-medium px-3.5 py-2 rounded-xl transition-all hover:text-[#2bbdc5] ${
-                scrolled
-                  ? "text-slate-600 hover:bg-slate-50"
-                  : "text-white/90 hover:bg-white/10"
-              }`}
-            >
-              {l.label}
-            </a>
-          ))}
-        </nav>
-
-        {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-2.5">
-          <Link
-            href="/login"
-            className={`text-sm font-medium px-4 py-2 rounded-xl transition-all ${
-              scrolled
-                ? "text-slate-700 hover:bg-slate-100"
-                : "text-white/90 hover:bg-white/10"
-            }`}
-          >
-            Sign in
-          </Link>
-          {/* Language toggle */}
-          <div className={`flex rounded-full border p-0.5 transition-all ${
-            scrolled ? "border-slate-200 bg-white" : "border-white/40 bg-white/15"
-          }`}>
-            <button
-              onClick={() => switchLang("en")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
-                lang === "en"
-                  ? scrolled ? "bg-[#2bbdc5] text-white" : "bg-white text-[#1a9aa1]"
-                  : scrolled ? "text-slate-500 hover:text-slate-800" : "text-white/80 hover:text-white"
-              }`}
-            >
-              EN
-            </button>
-            <button
-              onClick={() => switchLang("ar")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
-                lang === "ar"
-                  ? scrolled ? "bg-[#2bbdc5] text-white" : "bg-white text-[#1a9aa1]"
-                  : scrolled ? "text-slate-500 hover:text-slate-800" : "text-white/80 hover:text-white"
-              }`}
-              style={{ fontFamily: "var(--font-almarai)" }}
-            >
-              عربي
-            </button>
-          </div>
-          <div className={`w-px h-4 ${scrolled ? "bg-slate-200" : "bg-white/25"}`} />
-          <Link
-            href="/register?role=teacher"
-            className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all hover:shadow-lg hover:-translate-y-px ${
-              scrolled
-                ? "bg-[#2bbdc5] text-white"
-                : "bg-white text-[#1a9aa1]"
-            }`}
-          >
-            <GraduationCap size={15} />
-            For Teachers
-          </Link>
-          <Link
-            href="/register?role=school"
-            className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl border transition-all hover:-translate-y-px ${
-              scrolled
-                ? "border-[#2bbdc5] text-[#2bbdc5] hover:bg-[#2bbdc5]/5"
-                : "border-white/50 text-white hover:bg-white/10"
-            }`}
-          >
-            <School size={15} />
-            For Schools
-          </Link>
-        </div>
-
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden p-2 rounded-xl"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          {menuOpen ? (
-            <X size={22} color={scrolled ? "#111" : "#fff"} />
-          ) : (
-            <Menu size={22} color={scrolled ? "#111" : "#fff"} />
-          )}
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 px-6 pt-4 pb-6">
-          <nav className="space-y-1 mb-4">
-            {navLinks.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center text-sm font-medium text-slate-700 px-3 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#2bbdc5] transition-colors"
-              >
-                {l.label}
-              </a>
-            ))}
-          </nav>
-          <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-2">
-            <Link
-              href="/login"
-              className="text-center text-sm font-medium text-slate-700 py-2.5 rounded-xl border border-slate-200 hover:border-[#2bbdc5] hover:text-[#2bbdc5] transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register?role=teacher"
-              className="flex items-center justify-center gap-1.5 text-sm font-semibold text-white py-2.5 rounded-xl transition-colors"
-              style={{ backgroundColor: "#2bbdc5" }}
-            >
-              <GraduationCap size={14} /> Get Started
-            </Link>
-          </div>
-          {/* Language toggle */}
-          <div className="mt-3 flex rounded-full border border-slate-200 p-0.5 w-fit mx-auto">
-            <button
-              onClick={() => switchLang("en")}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                lang === "en" ? "bg-[#2bbdc5] text-white" : "text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              EN
-            </button>
-            <button
-              onClick={() => switchLang("ar")}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                lang === "ar" ? "bg-[#2bbdc5] text-white" : "text-slate-500 hover:text-slate-800"
-              }`}
-              style={{ fontFamily: "var(--font-almarai)" }}
-            >
-              عربي
-            </button>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}

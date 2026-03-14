@@ -1,200 +1,219 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowRight, GraduationCap, School, Sparkles, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Zap, BadgeCheck, SlidersHorizontal } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const teacherBullets = [
-  "Browse hundreds of verified school listings",
-  "Set your availability & preferred subjects",
-  "Get matched with schools that suit you",
+/* Floating tags that drift slowly in the background */
+const TAGS_EN = [
+  "Math Teacher", "Science", "Riyadh", "Jeddah", "English Teacher",
+  "Primary School", "Secondary", "Arabic", "Physics", "Biology",
+  "Special Needs", "Dammam", "PE Teacher", "Art", "Music",
+  "Full-Time", "Part-Time", "International", "STEM", "IGCSE",
+  "IB Curriculum", "Khobar", "History", "Chemistry", "Kindergarten",
+];
+const TAGS_AR = [
+  "معلم رياضيات", "علوم", "الرياض", "جدة", "معلم لغة إنجليزية",
+  "مرحلة ابتدائية", "مرحلة ثانوية", "لغة عربية", "فيزياء", "أحياء",
+  "تربية خاصة", "الدمام", "معلم تربية بدنية", "فنون", "موسيقى",
+  "دوام كامل", "دوام جزئي", "مدارس دولية", "STEM", "IGCSE",
+  "مناهج IB", "الخبر", "تاريخ", "كيمياء", "رياض أطفال",
 ];
 
-const schoolBullets = [
-  "Post jobs and reach qualified teachers fast",
-  "Filter by subject, experience & location",
-  "Hire with confidence through verified profiles",
-];
+interface TagProps { label: string; style: React.CSSProperties }
+
+function FloatingTag({ label, style }: TagProps) {
+  return (
+    <span
+      className="absolute px-3.5 py-1.5 rounded-full text-sm font-medium border select-none pointer-events-none whitespace-nowrap"
+      style={{
+        color: "#0ABFBC",
+        borderColor: "rgba(10,191,188,0.25)",
+        backgroundColor: "rgba(10,191,188,0.06)",
+        ...style,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
 
 export default function HeroSection() {
-  const [activeTab, setActiveTab] = useState<"teacher" | "school">("teacher");
+  const { t, isRTL } = useTranslation();
+  const tags = isRTL ? TAGS_AR : TAGS_EN;
+
+  /* Subtle parallax on mouse move */
+  const bgRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!bgRef.current) return;
+      const { innerWidth: W, innerHeight: H } = window;
+      const dx = (e.clientX / W - 0.5) * 18;
+      const dy = (e.clientY / H - 0.5) * 12;
+      bgRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
+    };
+    window.addEventListener("mousemove", onMove);
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  /* Tag positions — deterministic so SSR matches client */
+  const tagPositions: React.CSSProperties[] = [
+    { top: "8%",  left: "4%" },
+    { top: "14%", left: "62%" },
+    { top: "6%",  left: "78%" },
+    { top: "22%", left: "88%" },
+    { top: "34%", left: "2%" },
+    { top: "28%", left: "72%" },
+    { top: "48%", left: "90%" },
+    { top: "55%", left: "5%" },
+    { top: "62%", left: "68%" },
+    { top: "70%", left: "18%" },
+    { top: "76%", left: "82%" },
+    { top: "82%", left: "38%" },
+    { top: "88%", left: "60%" },
+    { top: "18%", left: "28%" },
+    { top: "42%", left: "78%" },
+    { top: "58%", left: "44%" },
+    { top: "72%", left: "3%"  },
+    { top: "10%", left: "44%" },
+    { top: "36%", left: "52%" },
+    { top: "64%", left: "84%" },
+    { top: "80%", left: "12%" },
+    { top: "90%", left: "72%" },
+    { top: "46%", left: "20%" },
+    { top: "26%", left: "8%"  },
+    { top: "50%", left: "56%" },
+  ];
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background */}
+    <section className="relative min-h-screen flex flex-col overflow-hidden bg-background">
+
+      {/* ── Floating tags layer ── */}
       <div
-        className="absolute inset-0"
+        ref={bgRef}
+        className="absolute inset-0 will-change-transform transition-transform duration-120 ease-out"
+        aria-hidden="true"
+      >
+        {tags.map((label, i) => (
+          <FloatingTag key={i} label={label} style={tagPositions[i] ?? { top: "50%", left: "50%" }} />
+        ))}
+      </div>
+
+      {/* Radial vignette — fades tags toward center so headline reads clean */}
+      <div
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: "linear-gradient(135deg, #1a9aa1 0%, #2bbdc5 45%, #0e7a81 100%)",
+          background: "radial-gradient(ellipse 65% 70% at 50% 46%, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.82) 55%, transparent 100%)",
         }}
       />
 
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
+      {/* ── Main content — centered ── */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 pt-32 pb-12">
 
-      {/* Decorative blobs */}
-      <div
-        className="absolute top-20 -right-20 w-96 h-96 rounded-full opacity-20 blur-3xl"
-        style={{ backgroundColor: "#ffffff" }}
-      />
-      <div
-        className="absolute bottom-10 -left-15 w-72 h-72 rounded-full opacity-15 blur-3xl"
-        style={{ backgroundColor: "#0a5c62" }}
-      />
+        {/* Live badge */}
+        <div className="fade-in-up-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-8"
+          style={{ borderColor: "rgba(10,191,188,0.3)", color: "#089E9B", backgroundColor: "rgba(10,191,188,0.06)" }}>
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+          </span>
+          {t.hero.badge}
+        </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pt-28 pb-20 w-full">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left – Copy */}
-          <div>
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 text-white text-xs font-semibold px-4 py-2 rounded-full mb-8">
-              <Sparkles size={13} />
-              The #1 Education Hiring Platform
+        {/* Headline */}
+        <h1
+          className="fade-in-up-2 font-extrabold text-gray-950 leading-[1.06] mb-6 max-w-4xl"
+          style={{
+            fontSize: "clamp(3rem, 7vw, 5.5rem)",
+            letterSpacing: isRTL ? "0" : "-0.03em",
+          }}
+        >
+          {t.hero.line1}{" "}
+          <span style={{ color: "#0ABFBC" }}>{t.hero.line2}</span>{" "}
+          <br className="hidden sm:block" />
+          <span className="relative inline-block">
+            {t.hero.line3}
+            <svg
+              className="absolute -bottom-2 start-0 w-full"
+              viewBox="0 0 300 12"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 8 Q75 2 150 7 Q225 12 298 5"
+                stroke="#0ABFBC"
+                strokeWidth="3.5"
+                fill="none"
+                strokeLinecap="round"
+                opacity="0.5"
+              />
+            </svg>
+          </span>
+        </h1>
+
+        {/* Subtext */}
+        <p
+          className="fade-in-up-3 text-gray-500 text-lg leading-relaxed mb-10"
+          style={{ maxWidth: "46ch" }}
+        >
+          {t.hero.sub}
+        </p>
+
+        {/* CTA buttons */}
+        <div className="fade-in-up-4 flex items-center gap-4 flex-wrap justify-center mb-16">
+          <Link
+            href="/register?role=teacher"
+            className="px-8 py-3.5 rounded-full font-bold text-base text-white transition-all duration-200 hover:scale-105 hover:shadow-xl shadow-lg"
+            style={{ backgroundColor: "#0ABFBC", boxShadow: "0 8px 24px rgba(10,191,188,0.35)" }}
+          >
+            {isRTL ? "ابحث عن وظيفة تدريس" : "Find teaching jobs"}
+          </Link>
+          <Link
+            href="/register?role=school"
+            className="px-8 py-3.5 rounded-full font-bold text-base border-2 transition-all duration-200 hover:scale-105 bg-white"
+            style={{ borderColor: "#0ABFBC", color: "#0ABFBC" }}
+          >
+            {isRTL ? "وظّف معلمين" : "Hire teachers"}
+          </Link>
+        </div>
+
+        {/* Value props */}
+        <div className="fade-in-up-5 flex items-center gap-px rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white">
+          {(isRTL ? [
+            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "توظيف في أيام",      sub: "لا أشهر من الانتظار" },
+            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "مدارس موثّقة فقط", sub: "كل مدرسة تمر بمراجعتنا" },
+            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "توافق دقيق",    sub: "حسب مادتك ومدينتك" },
+          ] : [
+            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "Hired in days",         sub: "Not months of waiting" },
+            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "Verified schools",  sub: "Every school is reviewed" },
+            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "Precise matching", sub: "By subject, grade & city" },
+          ]).map((p, i) => (
+            <div
+              key={i}
+              className={`flex flex-col items-center text-center px-7 py-5 ${
+                i < 2 ? "border-e border-gray-100" : ""
+              }`}
+            >
+              <div className="mb-2">{p.icon}</div>
+              <span className="text-sm font-bold text-gray-800 whitespace-nowrap">{p.title}</span>
+              <span className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">{p.sub}</span>
             </div>
-
-            <h1 className="text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight mb-6">
-              Where Great{" "}
-              <span className="relative inline-block">
-                Teachers
-                <svg
-                  className="absolute -bottom-1 left-0 w-full"
-                  viewBox="0 0 200 8"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M2 6 C40 2, 100 2, 198 6"
-                    stroke="rgba(255,255,255,0.6)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
-              {" "}Meet{" "}
-              <span className="text-white/80">Great Schools</span>
-            </h1>
-
-            <p className="text-white/80 text-lg leading-relaxed mb-10 max-w-lg">
-              Abjad connects passionate educators with forward-thinking schools
-              across the region — making every hire count.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-14">
-              <Link
-                href="/register"
-                className="flex items-center justify-center gap-2 bg-white text-gray-900 font-semibold text-sm px-7 py-4 rounded-2xl hover:shadow-xl hover:shadow-black/20 transition-all hover:-translate-y-0.5"
-                style={{ color: "#1a9aa1" }}
-              >
-                Get started free
-                <ArrowRight size={16} />
-              </Link>
-              <a
-                href="#how-it-works"
-                className="flex items-center justify-center gap-2 bg-white/10 border border-white/30 text-white font-semibold text-sm px-7 py-4 rounded-2xl hover:bg-white/20 transition-all"
-              >
-                See how it works
-              </a>
-            </div>
-
-            {/* Mini stats */}
-            <div className="flex gap-8">
-              {[
-                { value: "2,000+", label: "Teachers" },
-                { value: "500+", label: "Schools" },
-                { value: "1,200+", label: "Successful hires" },
-              ].map((s) => (
-                <div key={s.label}>
-                  <p className="text-white text-2xl font-bold">{s.value}</p>
-                  <p className="text-white/60 text-xs mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right – Interactive card */}
-          <div className="hidden lg:block">
-            <div className="bg-white rounded-3xl shadow-2xl shadow-black/20 p-8 max-w-md ml-auto">
-              {/* Tab switcher */}
-              <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">
-                <button
-                  onClick={() => setActiveTab("teacher")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    activeTab === "teacher"
-                      ? "bg-white shadow text-gray-900"
-                      : "text-gray-500"
-                  }`}
-                >
-                  <GraduationCap size={15} />
-                  I&apos;m a Teacher
-                </button>
-                <button
-                  onClick={() => setActiveTab("school")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    activeTab === "school"
-                      ? "bg-white shadow text-gray-900"
-                      : "text-gray-500"
-                  }`}
-                >
-                  <School size={15} />
-                  I&apos;m a School
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="mb-6">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-                  style={{ backgroundColor: "#e0f7f8" }}
-                >
-                  {activeTab === "teacher" ? (
-                    <GraduationCap size={24} style={{ color: "#2bbdc5" }} />
-                  ) : (
-                    <School size={24} style={{ color: "#2bbdc5" }} />
-                  )}
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {activeTab === "teacher"
-                    ? "Find your perfect role"
-                    : "Find your perfect teacher"}
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  {activeTab === "teacher"
-                    ? "Join thousands of teachers growing their careers"
-                    : "Access a vetted pool of qualified educators"}
-                </p>
-              </div>
-
-              <ul className="space-y-3 mb-7">
-                {(activeTab === "teacher" ? teacherBullets : schoolBullets).map((b) => (
-                  <li key={b} className="flex items-start gap-2.5">
-                    <CheckCircle2 size={16} style={{ color: "#2bbdc5" }} className="mt-0.5 shrink-0" />
-                    <span className="text-sm text-gray-600">{b}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href="/register"
-                className="block text-center text-white text-sm font-semibold py-3.5 rounded-xl transition-all hover:opacity-90"
-                style={{ backgroundColor: "#2bbdc5" }}
-              >
-                {activeTab === "teacher" ? "Start job hunting →" : "Post a job free →"}
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Bottom wave */}
-      <div className="absolute bottom-0 inset-x-0">
-        <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <path d="M0 80V40C240 0 480 80 720 40C960 0 1200 80 1440 40V80H0Z" fill="white" />
+      {/* ── Wave into next section ── */}
+      <div className="relative z-10 -mb-px">
+        <svg
+          viewBox="0 0 1440 60"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          className="w-full block"
+          style={{ height: "60px" }}
+        >
+          <path d="M0 60V30C360 0 720 60 1080 30C1260 15 1380 30 1440 30V60H0Z" fill="#f8fafc" />
         </svg>
       </div>
     </section>
