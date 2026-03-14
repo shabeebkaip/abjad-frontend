@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Sparkles, BadgeCheck, MousePointerClick, type LucideIcon } from "lucide-react";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export const metadata: Metadata = {
   title: "Abjad – Auth",
@@ -32,7 +33,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 relative">
+      <LanguageToggle />
       {/* ── Left brand panel ─────────────────────────────── */}
       <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-col">
         {/* Base gradient */}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Menu, X, GraduationCap, School } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 const navLinks = [
   { label: "For Teachers", href: "#teachers" },
@@ -15,6 +16,7 @@ const navLinks = [
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { lang, switchLang } = useLanguage();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -73,6 +75,32 @@ function Navbar() {
           >
             Sign in
           </Link>
+          {/* Language toggle */}
+          <div className={`flex rounded-full border p-0.5 transition-all ${
+            scrolled ? "border-slate-200 bg-white" : "border-white/30 bg-white/10"
+          }`}>
+            <button
+              onClick={() => switchLang("en")}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
+                lang === "en"
+                  ? scrolled ? "bg-[#2bbdc5] text-white" : "bg-white text-[#1a9aa1]"
+                  : scrolled ? "text-slate-500 hover:text-slate-800" : "text-white/70 hover:text-white"
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => switchLang("ar")}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
+                lang === "ar"
+                  ? scrolled ? "bg-[#2bbdc5] text-white" : "bg-white text-[#1a9aa1]"
+                  : scrolled ? "text-slate-500 hover:text-slate-800" : "text-white/70 hover:text-white"
+              }`}
+              style={{ fontFamily: "var(--font-almarai)" }}
+            >
+              عربي
+            </button>
+          </div>
           <div className={`w-px h-4 ${ scrolled ? "bg-slate-200" : "bg-white/20"}`} />
           <Link
             href="/register?role=teacher"
@@ -140,6 +168,26 @@ function Navbar() {
             >
               <GraduationCap size={14} /> Get Started
             </Link>
+          </div>
+          {/* Language toggle */}
+          <div className="mt-3 flex rounded-full border border-slate-200 bg-white p-0.5 w-fit mx-auto">
+            <button
+              onClick={() => switchLang("en")}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                lang === "en" ? "bg-[#2bbdc5] text-white" : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => switchLang("ar")}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                lang === "ar" ? "bg-[#2bbdc5] text-white" : "text-slate-500 hover:text-slate-800"
+              }`}
+              style={{ fontFamily: "var(--font-almarai)" }}
+            >
+              عربي
+            </button>
           </div>
         </div>
       )}

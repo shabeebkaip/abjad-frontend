@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Almarai, Bricolage_Grotesque } from "next/font/google";
+import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const almarai = Almarai({
+  weight: ["300", "400", "700", "800"],
+  subsets: ["arabic"],
+  variable: "--font-almarai",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
+  variable: "--font-bricolage",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -23,11 +27,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        {/* Runs BEFORE paint — prevents flash of wrong direction/font */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var l=localStorage.getItem('abjad_lang')||'en';document.documentElement.lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr';document.documentElement.setAttribute('data-lang',l);}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className={`${almarai.variable} ${bricolage.variable} antialiased`}>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );
