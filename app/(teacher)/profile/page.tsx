@@ -72,9 +72,9 @@ function FormField({
 }
 
 const inputCls =
-  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-abjad-cyan/30 focus:border-abjad-cyan transition-colors bg-white";
+  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors bg-white";
 const selectCls =
-  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-abjad-cyan/30 focus:border-abjad-cyan transition-colors bg-white appearance-none cursor-pointer";
+  "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors bg-white appearance-none cursor-pointer";
 
 // ─── Section header ───────────────────────────────────────────────────────────
 
@@ -121,10 +121,10 @@ export default function ProfilePage() {
           <p className="text-sm text-gray-500 mt-0.5">Manage your information visible to schools</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-abjad-cyan border border-abjad-cyan/40 rounded-lg hover:bg-abjad-cyan-light transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-primary border border-brand-primary/40 rounded-lg hover:bg-brand-primary-light transition-colors">
             <Eye size={15} /> Preview
           </button>
-          <div className="text-sm font-semibold text-abjad-cyan bg-abjad-cyan-light px-3 py-1.5 rounded-lg">
+          <div className="text-sm font-semibold text-brand-primary bg-brand-primary-light px-3 py-1.5 rounded-lg">
             {completeness}% Complete
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function ProfilePage() {
           {/* Avatar card */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
             <div className="relative inline-block mb-3">
-              <div className="w-20 h-20 rounded-full bg-linear-to-br from-abjad-cyan to-abjad-cyan-dark flex items-center justify-center text-white text-2xl font-bold mx-auto">
+              <div className="w-20 h-20 rounded-full bg-linear-to-br from-brand-primary to-brand-primary-dark flex items-center justify-center text-white text-2xl font-bold mx-auto">
                 AH
               </div>
               <button className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors">
@@ -154,12 +154,12 @@ export default function ProfilePage() {
             <div className="mt-4">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
                 <span>Profile strength</span>
-                <span className="font-medium text-abjad-cyan">{completeness}%</span>
+                <span className="font-medium text-brand-primary">{completeness}%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
                 <div
                   className="h-1.5 rounded-full"
-                  style={{ width: `${completeness}%`, background: "linear-gradient(90deg, #2bbdc5, #1e9aa1)" }}
+                  style={{ width: `${completeness}%`, background: "var(--brand-gradient)" }}
                 />
               </div>
             </div>
@@ -173,11 +173,11 @@ export default function ProfilePage() {
                 onClick={() => setActiveSection(id)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left mb-0.5
                   ${activeSection === id
-                    ? "bg-abjad-cyan-light text-abjad-cyan-dark"
+                    ? "bg-brand-primary-light text-brand-primary-dark"
                     : "text-gray-600 hover:bg-gray-50"
                   }`}
               >
-                <Icon size={15} className={activeSection === id ? "text-abjad-cyan" : "text-gray-400"} />
+                <Icon size={15} className={activeSection === id ? "text-brand-primary" : "text-gray-400"} />
                 <span className="flex-1">{label}</span>
                 {done
                   ? <CheckCircle2 size={13} className="text-green-500 shrink-0" />
@@ -257,8 +257,8 @@ export default function ProfilePage() {
                           onClick={() => toggleItem(selectedSubjects, setSelectedSubjects, s)}
                           className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors
                             ${selectedSubjects.includes(s)
-                              ? "bg-abjad-cyan text-white border-abjad-cyan"
-                              : "bg-white text-gray-600 border-gray-200 hover:border-abjad-cyan/50"
+                              ? "bg-brand-primary text-white border-brand-primary"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-brand-primary/50"
                             }`}
                         >
                           {s}
@@ -275,8 +275,8 @@ export default function ProfilePage() {
                           onClick={() => toggleItem(selectedGrades, setSelectedGrades, g)}
                           className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors
                             ${selectedGrades.includes(g)
-                              ? "bg-abjad-cyan text-white border-abjad-cyan"
-                              : "bg-white text-gray-600 border-gray-200 hover:border-abjad-cyan/50"
+                              ? "bg-brand-primary text-white border-brand-primary"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-brand-primary/50"
                             }`}
                         >
                           {g}
@@ -327,9 +327,9 @@ export default function ProfilePage() {
                     <input defaultValue="Saudi Arabia" className={inputCls} />
                   </FormField>
                   <FormField label="Degree Certificate (PDF, max 10MB)">
-                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center hover:border-abjad-cyan/40 transition-colors cursor-pointer">
+                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center hover:border-brand-primary/40 transition-colors cursor-pointer">
                       <p className="text-xs text-gray-500">
-                        <span className="text-abjad-cyan font-medium">Click to upload</span> or drag & drop
+                        <span className="text-brand-primary font-medium">Click to upload</span> or drag & drop
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">degree_certificate.pdf · Uploaded</p>
                     </div>
@@ -364,9 +364,9 @@ export default function ProfilePage() {
                           </div>
                           <div className="mt-3">
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">Certificate File (PDF, max 5MB)</label>
-                            <div className="border-2 border-dashed border-gray-200 rounded-lg p-2.5 text-center hover:border-abjad-cyan/40 transition-colors cursor-pointer">
+                            <div className="border-2 border-dashed border-gray-200 rounded-lg p-2.5 text-center hover:border-brand-primary/40 transition-colors cursor-pointer">
                               <p className="text-xs text-gray-500">
-                                <span className="text-abjad-cyan font-medium">Upload file</span>
+                                <span className="text-brand-primary font-medium">Upload file</span>
                                 <span className="text-gray-400 ml-1">or drag & drop</span>
                               </p>
                             </div>
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                 </div>
                 <button
                   onClick={() => setCertifications([...certifications, { id: Date.now(), name: "", org: "", issueDate: "", expiryDate: "" }])}
-                  className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-abjad-cyan/30 rounded-xl text-sm text-abjad-cyan hover:border-abjad-cyan/60 hover:bg-abjad-cyan-light transition-colors w-full justify-center"
+                  className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-brand-primary/30 rounded-xl text-sm text-brand-primary hover:border-brand-primary/60 hover:bg-brand-primary-light transition-colors w-full justify-center"
                 >
                   <Plus size={15} /> Add Certification
                 </button>
@@ -396,13 +396,13 @@ export default function ProfilePage() {
             {activeSection === "resume" && (
               <div>
                 <SectionHeader title="Resume / CV" subtitle="Upload your latest CV for schools to download" />
-                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center hover:border-abjad-cyan/40 transition-colors cursor-pointer mb-4">
-                  <div className="w-14 h-14 bg-abjad-cyan-light rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <FileText size={24} className="text-abjad-cyan" />
+                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center hover:border-brand-primary/40 transition-colors cursor-pointer mb-4">
+                  <div className="w-14 h-14 bg-brand-primary-light rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <FileText size={24} className="text-brand-primary" />
                   </div>
                   <p className="text-sm font-medium text-gray-700">Drop your CV here</p>
                   <p className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX — max 10MB</p>
-                  <button className="mt-4 px-5 py-2 text-sm font-medium text-abjad-cyan border border-abjad-cyan/40 rounded-lg hover:bg-abjad-cyan-light transition-colors">
+                  <button className="mt-4 px-5 py-2 text-sm font-medium text-brand-primary border border-brand-primary/40 rounded-lg hover:bg-brand-primary-light transition-colors">
                     Browse Files
                   </button>
                 </div>
@@ -434,12 +434,12 @@ export default function ProfilePage() {
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">{lang}</p>
                       </div>
-                      <select className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-abjad-cyan/30 bg-white" defaultValue={defaultLevel}>
+                      <select className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white" defaultValue={defaultLevel}>
                         {proficiencyLevels.map(l => <option key={l}>{l}</option>)}
                       </select>
                     </div>
                   ))}
-                  <button className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-abjad-cyan/30 rounded-xl text-sm text-abjad-cyan hover:border-abjad-cyan/60 hover:bg-abjad-cyan-light transition-colors w-full justify-center">
+                  <button className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-brand-primary/30 rounded-xl text-sm text-brand-primary hover:border-brand-primary/60 hover:bg-brand-primary-light transition-colors w-full justify-center">
                     <Plus size={15} /> Add Language
                   </button>
                 </div>
@@ -460,8 +460,8 @@ export default function ProfilePage() {
                           onClick={() => toggleItem(selectedCities, setSelectedCities, c)}
                           className={`px-3 py-1.5 text-xs rounded-full border font-medium transition-colors
                             ${selectedCities.includes(c)
-                              ? "bg-abjad-cyan text-white border-abjad-cyan"
-                              : "bg-white text-gray-600 border-gray-200 hover:border-abjad-cyan/50"
+                              ? "bg-brand-primary text-white border-brand-primary"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-brand-primary/50"
                             }`}
                         >
                           {c}
@@ -487,9 +487,9 @@ export default function ProfilePage() {
                     </FormField>
                   </div>
 
-                  <div className="bg-abjad-cyan-light border border-abjad-cyan/20 rounded-xl p-3 flex items-start gap-2.5">
-                    <DollarSign size={15} className="text-abjad-cyan mt-0.5 shrink-0" />
-                    <p className="text-xs text-abjad-cyan-dark">
+                  <div className="bg-brand-primary-light border border-brand-primary/20 rounded-xl p-3 flex items-start gap-2.5">
+                    <DollarSign size={15} className="text-brand-primary mt-0.5 shrink-0" />
+                    <p className="text-xs text-brand-primary-dark">
                       Salary is negotiated directly between you and the school. Abjad does not interfere in salary terms.
                     </p>
                   </div>
@@ -517,7 +517,7 @@ export default function ProfilePage() {
                 const idx = sections.findIndex(s => s.id === activeSection);
                 if (idx < sections.length - 1) setActiveSection(sections[idx + 1].id);
               }}
-              className="flex items-center gap-1.5 text-sm text-abjad-cyan hover:text-abjad-cyan-dark px-3 py-2 rounded-lg hover:bg-abjad-cyan-light border border-abjad-cyan/30 transition-colors disabled:opacity-40"
+              className="flex items-center gap-1.5 text-sm text-brand-primary hover:text-brand-primary-dark px-3 py-2 rounded-lg hover:bg-brand-primary-light border border-brand-primary/30 transition-colors disabled:opacity-40"
               disabled={activeSection === sections[sections.length - 1].id}
             >
               Next <ChevronRight size={14} />
@@ -534,7 +534,7 @@ function SaveButton() {
     <div className="mt-6 pt-5 border-t border-gray-100 flex justify-end">
       <button
         className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white rounded-lg transition-colors"
-        style={{ background: "linear-gradient(135deg, #2bbdc5, #1e9aa1)" }}
+        style={{ background: "var(--brand-gradient)" }}
       >
         <Save size={14} /> Save Changes
       </button>

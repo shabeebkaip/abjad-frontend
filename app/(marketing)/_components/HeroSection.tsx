@@ -28,9 +28,9 @@ function FloatingTag({ label, style }: TagProps) {
     <span
       className="absolute px-3.5 py-1.5 rounded-full text-sm font-medium border select-none pointer-events-none whitespace-nowrap"
       style={{
-        color: "#0ABFBC",
-        borderColor: "rgba(10,191,188,0.25)",
-        backgroundColor: "rgba(10,191,188,0.06)",
+        color: "var(--brand-primary)",
+        borderColor: "rgba(0,172,211,0.25)",
+        backgroundColor: "rgba(0,172,211,0.06)",
         ...style,
       }}
     >
@@ -113,7 +113,7 @@ export default function HeroSection() {
 
         {/* Live badge */}
         <div className="fade-in-up-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-8"
-          style={{ borderColor: "rgba(10,191,188,0.3)", color: "#089E9B", backgroundColor: "rgba(10,191,188,0.06)" }}>
+          style={{ borderColor: "rgba(13,37,66,0.25)", color: "var(--brand-primary)", backgroundColor: "rgba(13,37,66,0.06)" }}>
           <span className="relative flex h-2 w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
@@ -130,7 +130,7 @@ export default function HeroSection() {
           }}
         >
           {t.hero.line1}{" "}
-          <span style={{ color: "#0ABFBC" }}>{t.hero.line2}</span>{" "}
+          <span style={{ color: "var(--brand-accent)" }}>{t.hero.line2}</span>{" "}
           <br className="hidden sm:block" />
           <span className="relative inline-block">
             {t.hero.line3}
@@ -142,7 +142,7 @@ export default function HeroSection() {
             >
               <path
                 d="M2 8 Q75 2 150 7 Q225 12 298 5"
-                stroke="#0ABFBC"
+                stroke="var(--brand-accent)"
                 strokeWidth="3.5"
                 fill="none"
                 strokeLinecap="round"
@@ -165,14 +165,14 @@ export default function HeroSection() {
           <Link
             href="/register?role=teacher"
             className="px-8 py-3.5 rounded-full font-bold text-base text-white transition-all duration-200 hover:scale-105 hover:shadow-xl shadow-lg"
-            style={{ backgroundColor: "#0ABFBC", boxShadow: "0 8px 24px rgba(10,191,188,0.35)" }}
+            style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 8px 24px var(--brand-primary-glow)" }}
           >
             {isRTL ? "ابحث عن وظيفة تدريس" : "Find teaching jobs"}
           </Link>
           <Link
             href="/register?role=school"
             className="px-8 py-3.5 rounded-full font-bold text-base border-2 transition-all duration-200 hover:scale-105 bg-white"
-            style={{ borderColor: "#0ABFBC", color: "#0ABFBC" }}
+            style={{ borderColor: "var(--brand-accent)", color: "var(--brand-accent)" }}
           >
             {isRTL ? "وظّف معلمين" : "Hire teachers"}
           </Link>
@@ -181,13 +181,13 @@ export default function HeroSection() {
         {/* Value props */}
         <div className="fade-in-up-5 flex items-center gap-px rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white">
           {(isRTL ? [
-            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "توظيف في أيام",      sub: "لا أشهر من الانتظار" },
-            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "مدارس موثّقة فقط", sub: "كل مدرسة تمر بمراجعتنا" },
-            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "توافق دقيق",    sub: "حسب مادتك ومدينتك" },
+            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "توظيف في أيام",      sub: "لا أشهر من الانتظار" },
+            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "مدارس موثّقة فقط", sub: "كل مدرسة تمر بمراجعتنا" },
+            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "توافق دقيق",    sub: "حسب مادتك ومدينتك" },
           ] : [
-            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "Hired in days",         sub: "Not months of waiting" },
-            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "Verified schools",  sub: "Every school is reviewed" },
-            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "#0ABFBC" }} />, title: "Precise matching", sub: "By subject, grade & city" },
+            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Hired in days",         sub: "Not months of waiting" },
+            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Verified schools",  sub: "Every school is reviewed" },
+            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Precise matching", sub: "By subject, grade & city" },
           ]).map((p, i) => (
             <div
               key={i}

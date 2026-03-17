@@ -40,9 +40,9 @@ export default function ForgotPasswordPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
-          style={{ backgroundColor: "#e0f7f8" }}
+          style={{ backgroundColor: "var(--brand-primary-light)" }}
         >
-          <CheckCircle2 size={30} style={{ color: "#2bbdc5" }} />
+          <CheckCircle2 size={30} style={{ color: "var(--brand-primary)" }} />
         </div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-2">Check your inbox</h2>
         <p className="text-gray-500 text-sm leading-relaxed">
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
           <Link
             href="/login"
             className="block w-full py-3 rounded-xl text-white text-sm font-semibold text-center transition-all hover:opacity-90"
-            style={{ backgroundColor: "#2bbdc5" }}
+            style={{ backgroundColor: "var(--brand-primary)" }}
           >
             Back to sign in
           </Link>
@@ -80,9 +80,9 @@ export default function ForgotPasswordPage() {
       {/* Icon */}
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-        style={{ backgroundColor: "#e0f7f8" }}
+        style={{ backgroundColor: "var(--brand-accent-light)" }}
       >
-        <Mail size={26} style={{ color: "#2bbdc5" }} />
+        <Mail size={26} style={{ color: "var(--brand-accent)" }} />
       </div>
 
       {/* Header */}
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
             {...register("email")}
             type="email"
             placeholder="you@example.com"
-            className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none focus:ring-2 focus:ring-[#2bbdc5]/20 focus:border-[#2bbdc5] ${
+            className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary ${
               errors.email ? "border-red-400 bg-red-50" : "border-gray-200 bg-white"
             }`}
           />
@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
           type="submit"
           disabled={isLoading}
           className="w-full py-3 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-          style={{ backgroundColor: "#2bbdc5" }}
+          style={{ backgroundColor: "var(--brand-primary)" }}
         >
           {isLoading ? (
             <><Loader2 size={16} className="animate-spin" /> Sending…</>

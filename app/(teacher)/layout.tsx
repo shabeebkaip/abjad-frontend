@@ -55,7 +55,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ background: "linear-gradient(135deg, #2bbdc5, #1e9aa1)" }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ background: "var(--brand-gradient)" }}>
               أ
             </div>
             <span className="font-semibold text-gray-900 text-lg tracking-tight">Abjad</span>
@@ -67,7 +67,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
         {/* Role badge */}
         <div className="px-6 py-3 border-b border-gray-100">
-          <span className="text-xs font-medium text-abjad-cyan bg-abjad-cyan-light px-2.5 py-1 rounded-full">
+          <span className="text-xs font-medium text-brand-primary bg-brand-primary-light px-2.5 py-1 rounded-full">
             Teacher Account
           </span>
         </div>
@@ -83,11 +83,11 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-colors relative
                   ${active
-                    ? "bg-abjad-cyan-light text-abjad-cyan-dark"
+                    ? "bg-brand-primary-light text-brand-primary-dark"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
               >
-                <Icon size={18} className={active ? "text-abjad-cyan" : "text-gray-400"} />
+                <Icon size={18} className={active ? "text-brand-primary" : "text-gray-400"} />
                 {label}
                 {label === "Notifications" && notificationCount > 0 && (
                   <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -95,7 +95,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                   </span>
                 )}
                 {active && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-abjad-cyan rounded-r-full" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-brand-primary rounded-r-full" />
                 )}
               </Link>
             );
@@ -105,7 +105,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         {/* Bottom user section */}
         <div className="border-t border-gray-100 p-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-linear-to-br from-abjad-cyan to-abjad-cyan-dark flex items-center justify-center text-white text-sm font-semibold shrink-0">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-brand-primary to-brand-primary-dark flex items-center justify-center text-white text-sm font-semibold shrink-0">
               AH
             </div>
             <div className="flex-1 min-w-0">
@@ -142,7 +142,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
           <div className="flex items-center gap-2">
             {/* Notification bell */}
-            <Link href="/notifications" className="relative p-2 text-gray-500 hover:text-abjad-cyan hover:bg-abjad-cyan-light rounded-lg transition-colors">
+            <Link href="/notifications" className="relative p-2 text-gray-500 hover:text-brand-primary hover:bg-brand-primary-light rounded-lg transition-colors">
               <Bell size={20} />
               {notificationCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
@@ -155,7 +155,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <div className="w-7 h-7 rounded-full bg-linear-to-br from-abjad-cyan to-abjad-cyan-dark flex items-center justify-center text-white text-xs font-semibold">
+                <div className="w-7 h-7 rounded-full bg-linear-to-br from-brand-primary to-brand-primary-dark flex items-center justify-center text-white text-xs font-semibold">
                   AH
                 </div>
                 <span className="text-sm font-medium text-gray-700 hidden sm:block">Ahmed Hassan</span>

@@ -170,7 +170,7 @@ export default function RegisterPage() {
             type="button"
             onClick={() => setStep(2)}
             className="w-full h-11 rounded-xl text-sm font-bold"
-            style={{ background: "linear-gradient(135deg, #2bbdc5 0%, #1a9aa1 100%)" }}
+            style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%)" }}
           >
             {role === "teacher" ? t.register.continueAsTeacher : t.register.continueAsSchool}
             <ChevronRight size={16} className="ltr:ml-1 rtl:mr-1 rtl:rotate-180" />
@@ -267,7 +267,7 @@ export default function RegisterPage() {
             <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-11 rounded-xl px-4">
               <ChevronLeft size={16} className="rtl:rotate-180" /> {t.register.back}
             </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1 h-11 rounded-xl text-sm font-bold" style={{ background: "linear-gradient(135deg, #2bbdc5 0%, #1a9aa1 100%)" }}>
+            <Button type="submit" disabled={isLoading} className="flex-1 h-11 rounded-xl text-sm font-bold" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%)" }}>
               {isLoading ? <><Loader2 size={16} className="animate-spin" /> {t.register.creating}</> : t.register.createAccountBtn}
             </Button>
           </div>
@@ -356,7 +356,7 @@ export default function RegisterPage() {
             <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-11 rounded-xl px-4">
               <ChevronLeft size={16} className="rtl:rotate-180" /> {t.register.back}
             </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1 h-11 rounded-xl text-sm font-bold" style={{ background: "linear-gradient(135deg, #2bbdc5 0%, #1a9aa1 100%)" }}>
+            <Button type="submit" disabled={isLoading} className="flex-1 h-11 rounded-xl text-sm font-bold" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%)" }}>
               {isLoading ? <><Loader2 size={16} className="animate-spin" /> {t.register.creating}</> : t.register.createAccountBtn}
             </Button>
           </div>

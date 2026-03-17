@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Almarai, Bricolage_Grotesque } from "next/font/google";
+import { Almarai, Bricolage_Grotesque, Cinzel } from "next/font/google";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 
 const almarai = Almarai({
@@ -14,6 +14,17 @@ const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-bricolage",
   display: "swap",
+});
+
+/**
+ * Cinzel is the closest freely available Google Font to Trajan Pro Regular.
+ * It is used for brand headings per Abjad brand guidelines.
+ */
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
+  display: "swap",
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -36,7 +47,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${almarai.variable} ${bricolage.variable} antialiased`}>
+      <body className={`${almarai.variable} ${bricolage.variable} ${cinzel.variable} antialiased`}>
         <LanguageProvider>
           {children}
         </LanguageProvider>

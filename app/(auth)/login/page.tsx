@@ -129,7 +129,7 @@ export default function LoginPage() {
             type="submit"
             disabled={isLoading}
             className="shimmer-btn w-full h-11 rounded-xl text-sm font-bold shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 transition-transform"
-            style={{ background: "linear-gradient(135deg, #2bbdc5 0%, #1a9aa1 100%)" }}
+            style={{ background: "var(--brand-gradient)" }}
           >
             {isLoading ? (
               <>

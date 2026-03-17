@@ -52,7 +52,7 @@ function Navbar() {
             <a
               key={l.href}
               href={l.href}
-              className={`text-sm font-medium px-3.5 py-2 rounded-xl transition-all hover:text-[#2bbdc5] ${
+              className={`text-sm font-medium px-3.5 py-2 rounded-xl transition-all hover:text-brand-primary ${
                 scrolled
                   ? "text-slate-600 hover:bg-slate-50"
                   : "text-white/85 hover:bg-white/10"
@@ -83,7 +83,7 @@ function Navbar() {
               onClick={() => switchLang("en")}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
                 lang === "en"
-                  ? scrolled ? "bg-[#2bbdc5] text-white" : "bg-white text-[#1a9aa1]"
+                  ? scrolled ? "bg-brand-primary text-white" : "bg-white text-brand-primary-dark"
                   : scrolled ? "text-slate-500 hover:text-slate-800" : "text-white/70 hover:text-white"
               }`}
             >
@@ -93,7 +93,7 @@ function Navbar() {
               onClick={() => switchLang("ar")}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
                 lang === "ar"
-                  ? scrolled ? "bg-[#2bbdc5] text-white" : "bg-white text-[#1a9aa1]"
+                  ? scrolled ? "bg-brand-primary text-white" : "bg-white text-brand-primary-dark"
                   : scrolled ? "text-slate-500 hover:text-slate-800" : "text-white/70 hover:text-white"
               }`}
               style={{ fontFamily: "var(--font-almarai)" }}
@@ -106,8 +106,8 @@ function Navbar() {
             href="/register?role=teacher"
             className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl transition-all hover:shadow-lg hover:-translate-y-px ${
               scrolled
-                ? "bg-[#2bbdc5] text-white"
-                : "bg-white text-[#1a9aa1]"
+                ? "bg-brand-primary text-white"
+                : "bg-white text-brand-primary-dark"
             }`}
           >
             <GraduationCap size={15} />
@@ -117,7 +117,7 @@ function Navbar() {
             href="/register?role=school"
             className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl border transition-all hover:-translate-y-px ${
               scrolled
-                ? "border-[#2bbdc5] text-[#2bbdc5] hover:bg-[#2bbdc5]/5"
+                ? "border-brand-primary text-brand-primary hover:bg-(--brand-primary)/5"
                 : "border-white/50 text-white hover:bg-white/10"
             }`}
           >
@@ -148,7 +148,7 @@ function Navbar() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center text-sm font-medium text-slate-700 px-3 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#2bbdc5] transition-colors"
+                className="flex items-center text-sm font-medium text-slate-700 px-3 py-2.5 rounded-xl hover:bg-slate-50 hover:text-brand-primary transition-colors"
               >
                 {l.label}
               </a>
@@ -157,14 +157,14 @@ function Navbar() {
           <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-2">
             <Link
               href="/login"
-              className="text-center text-sm font-medium text-slate-700 py-2.5 rounded-xl border border-slate-200 hover:border-[#2bbdc5] hover:text-[#2bbdc5] transition-colors"
+              className="text-center text-sm font-medium text-slate-700 py-2.5 rounded-xl border border-slate-200 hover:border-brand-primary hover:text-brand-primary transition-colors"
             >
               Sign in
             </Link>
             <Link
               href="/register?role=teacher"
               className="flex items-center justify-center gap-1.5 text-center text-sm font-semibold text-white py-2.5 rounded-xl transition-colors"
-              style={{ backgroundColor: "#2bbdc5" }}
+              style={{ backgroundColor: "var(--brand-primary)" }}
             >
               <GraduationCap size={14} /> Get Started
             </Link>
@@ -174,7 +174,7 @@ function Navbar() {
             <button
               onClick={() => switchLang("en")}
               className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                lang === "en" ? "bg-[#2bbdc5] text-white" : "text-slate-500 hover:text-slate-800"
+                lang === "en" ? "bg-brand-primary text-white" : "text-slate-500 hover:text-slate-800"
               }`}
             >
               EN
@@ -182,7 +182,7 @@ function Navbar() {
             <button
               onClick={() => switchLang("ar")}
               className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                lang === "ar" ? "bg-[#2bbdc5] text-white" : "text-slate-500 hover:text-slate-800"
+                lang === "ar" ? "bg-brand-primary text-white" : "text-slate-500 hover:text-slate-800"
               }`}
               style={{ fontFamily: "var(--font-almarai)" }}
             >

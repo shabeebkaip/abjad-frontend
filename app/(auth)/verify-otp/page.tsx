@@ -81,9 +81,9 @@ export default function VerifyOtpPage() {
       {/* Icon */}
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-        style={{ backgroundColor: "#e0f7f8" }}
+        style={{ backgroundColor: "var(--brand-accent-light)" }}
       >
-        <MailCheck size={26} style={{ color: "#2bbdc5" }} />
+        <MailCheck size={26} style={{ color: "var(--brand-accent)" }} />
       </div>
 
       {/* Header */}
@@ -100,7 +100,7 @@ export default function VerifyOtpPage() {
           <div
             key={i}
             className="h-1 flex-1 rounded-full transition-all duration-300"
-            style={{ backgroundColor: i < filled ? "#2bbdc5" : "#e5e7eb" }}
+            style={{ backgroundColor: i < filled ? "var(--brand-primary)" : "#e5e7eb" }}
           />
         ))}
       </div>
@@ -122,8 +122,8 @@ export default function VerifyOtpPage() {
                 error
                   ? "border-red-400 bg-red-50 text-red-600"
                   : digit
-                  ? "border-[#2bbdc5] bg-[#e0f7f8] text-[#2bbdc5]"
-                  : "border-gray-200 bg-gray-50 text-gray-900 focus:border-[#2bbdc5] focus:bg-white"
+                  ? "border-brand-primary bg-brand-primary-light text-brand-primary"
+                  : "border-gray-200 bg-gray-50 text-gray-900 focus:border-brand-primary focus:bg-white"
               }`}
             />
           ))}
@@ -137,7 +137,7 @@ export default function VerifyOtpPage() {
           type="submit"
           disabled={isLoading || filled < OTP_LENGTH}
           className="w-full py-3 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: "#2bbdc5" }}
+          style={{ backgroundColor: "var(--brand-primary)" }}
         >
           {isLoading ? (
             <><Loader2 size={16} className="animate-spin" /> Verifying…</>
@@ -152,7 +152,7 @@ export default function VerifyOtpPage() {
         {countdown > 0 ? (
           <p className="text-sm text-gray-500">
             Resend code in{" "}
-            <span className="font-semibold" style={{ color: "#2bbdc5" }}>
+            <span className="font-semibold" style={{ color: "var(--brand-primary)" }}>
               {countdown}s
             </span>
           </p>
@@ -162,7 +162,7 @@ export default function VerifyOtpPage() {
             onClick={handleResend}
             disabled={isResending}
             className="text-sm font-semibold flex items-center gap-1.5 mx-auto transition-opacity hover:opacity-70 disabled:opacity-50"
-            style={{ color: "#2bbdc5" }}
+            style={{ color: "var(--brand-primary)" }}
           >
             <RefreshCw size={14} className={isResending ? "animate-spin" : ""} />
             {isResending ? "Sending…" : "Resend code"}

@@ -184,7 +184,7 @@ export default function DashboardPage() {
         <Link
           href="/jobs"
           className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
-          style={{ background: "linear-gradient(135deg, #2bbdc5, #1e9aa1)" }}
+          style={{ background: "var(--brand-gradient)" }}
         >
           <Briefcase size={15} />
           Browse Jobs
@@ -202,12 +202,12 @@ export default function DashboardPage() {
               </p>
             </div>
             <p className="text-xs text-gray-500 mb-2">
-              Schools with 100% profiles get <span className="font-medium text-abjad-cyan-dark">3x more views</span>. You&apos;re {profileCompleteness}% there.
+              Schools with 100% profiles get <span className="font-medium text-brand-primary-dark">3x more views</span>. You&apos;re {profileCompleteness}% there.
             </p>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
                 className="h-2 rounded-full transition-all"
-                style={{ width: `${profileCompleteness}%`, background: "linear-gradient(90deg, #2bbdc5, #1e9aa1)" }}
+                style={{ width: `${profileCompleteness}%`, background: "var(--brand-gradient)" }}
               />
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">Based on your profile • Updated today</p>
               </div>
-              <Link href="/jobs" className="text-xs text-abjad-cyan font-medium hover:underline flex items-center gap-1">
+              <Link href="/jobs" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
                 View all <ChevronRight size={13} />
               </Link>
             </div>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-gray-900 group-hover:text-abjad-cyan-dark transition-colors">
+                        <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-primary-dark transition-colors">
                           {job.role}
                         </span>
                         <MatchBadge score={job.matchScore} />
@@ -290,7 +290,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex flex-col gap-1.5 shrink-0">
                       <button className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors"
-                        style={{ background: "linear-gradient(135deg, #2bbdc5, #1e9aa1)" }}>
+                        style={{ background: "var(--brand-gradient)" }}>
                         Quick Apply
                       </button>
                       <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium">
@@ -310,7 +310,7 @@ export default function DashboardPage() {
                 <FileText size={16} className="text-blue-500" />
                 Recent Applications
               </h2>
-              <Link href="/applications" className="text-xs text-abjad-cyan font-medium hover:underline flex items-center gap-1">
+              <Link href="/applications" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
                 View all <ChevronRight size={13} />
               </Link>
             </div>
@@ -337,7 +337,7 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="px-5 py-3 border-t border-gray-50">
-              <Link href="/applications" className="text-xs text-abjad-cyan font-medium hover:underline flex items-center gap-1">
+              <Link href="/applications" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
                 <TrendingUp size={12} /> Track all 8 applications
               </Link>
             </div>
@@ -353,13 +353,13 @@ export default function DashboardPage() {
                 <Calendar size={16} className="text-purple-500" />
                 Upcoming Interviews
               </h2>
-              <Link href="/interviews" className="text-xs text-abjad-cyan font-medium hover:underline flex items-center gap-1">
+              <Link href="/interviews" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
                 All <ChevronRight size={13} />
               </Link>
             </div>
             <div className="p-4 space-y-3">
               {upcomingInterviews.map((interview) => (
-                <div key={interview.id} className="rounded-xl border border-gray-100 p-3.5 hover:border-abjad-cyan/30 transition-colors">
+                <div key={interview.id} className="rounded-xl border border-gray-100 p-3.5 hover:border-brand-primary/30 transition-colors">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <p className="text-sm font-medium text-gray-900 leading-tight">{interview.role}</p>
                     <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -374,12 +374,12 @@ export default function DashboardPage() {
                     <Building2 size={10} /> {interview.school}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
-                    <Clock size={11} className="text-abjad-cyan shrink-0" />
+                    <Clock size={11} className="text-brand-primary shrink-0" />
                     <span>{interview.date} · {interview.time}</span>
-                    <span className="ml-auto text-abjad-cyan font-medium">{interview.type}</span>
+                    <span className="ml-auto text-brand-primary font-medium">{interview.type}</span>
                   </div>
                   <div className="flex gap-2 mt-2.5">
-                    <button className="flex-1 text-xs py-1.5 rounded-lg bg-abjad-cyan-light text-abjad-cyan-dark font-medium hover:bg-abjad-cyan/20 transition-colors">
+                    <button className="flex-1 text-xs py-1.5 rounded-lg bg-brand-primary-light text-brand-primary-dark font-medium hover:bg-brand-primary/20 transition-colors">
                       View Details
                     </button>
                     {interview.status === "pending" && (
@@ -404,7 +404,7 @@ export default function DashboardPage() {
                 Notifications
                 <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">3</span>
               </h2>
-              <Link href="/notifications" className="text-xs text-abjad-cyan font-medium hover:underline flex items-center gap-1">
+              <Link href="/notifications" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
                 All <ChevronRight size={13} />
               </Link>
             </div>
@@ -431,7 +431,7 @@ export default function DashboardPage() {
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
                     </div>
-                    {n.unread && <div className="shrink-0 w-1.5 h-1.5 bg-abjad-cyan rounded-full mt-1.5" />}
+                    {n.unread && <div className="shrink-0 w-1.5 h-1.5 bg-brand-primary rounded-full mt-1.5" />}
                   </div>
                 );
               })}
@@ -444,14 +444,14 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-2">
               {[
                 { label: "Update Resume", icon: Upload, href: "/profile#cv", color: "bg-blue-50 text-blue-600" },
-                { label: "Browse Jobs", icon: Search, href: "/jobs", color: "bg-abjad-cyan-light text-abjad-cyan-dark" },
+                { label: "Browse Jobs", icon: Search, href: "/jobs", color: "bg-brand-primary-light text-brand-primary-dark" },
                 { label: "View Offers", icon: Award, href: "/applications?tab=offers", color: "bg-green-50 text-green-600" },
                 { label: "Edit Profile", icon: User, href: "/profile", color: "bg-purple-50 text-purple-600" },
               ].map(({ label, icon: Icon, href, color }) => (
                 <Link
                   key={label}
                   href={href}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-abjad-cyan/30 hover:shadow-sm transition-all text-center"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 hover:border-brand-primary/30 hover:shadow-sm transition-all text-center"
                 >
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
                     <Icon size={16} />
@@ -466,15 +466,15 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
-                <ArrowUpRight size={15} className="text-abjad-cyan" />
+                <ArrowUpRight size={15} className="text-brand-primary" />
                 Profile Strength
               </h2>
-              <span className="text-sm font-bold text-abjad-cyan">{profileCompleteness}%</span>
+              <span className="text-sm font-bold text-brand-primary">{profileCompleteness}%</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
               <div
                 className="h-2 rounded-full"
-                style={{ width: `${profileCompleteness}%`, background: "linear-gradient(90deg, #2bbdc5, #1e9aa1)" }}
+                style={{ width: `${profileCompleteness}%`, background: "var(--brand-gradient)" }}
               />
             </div>
             <div className="space-y-1.5">
@@ -486,7 +486,7 @@ export default function DashboardPage() {
                   }
                   <span className={s.done ? "text-gray-600" : "text-gray-400"}>{s.label}</span>
                   {!s.done && (
-                    <Link href="/profile" className="ml-auto text-abjad-cyan hover:underline">Add</Link>
+                    <Link href="/profile" className="ml-auto text-brand-primary hover:underline">Add</Link>
                   )}
                 </div>
               ))}

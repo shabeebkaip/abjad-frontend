@@ -37,7 +37,7 @@ const featuresEn = [
   { icon: Zap,       title: "Smart matching",        desc: "Algorithm pairs you by subject, grade, location, and contract type.",    color: "#f59e0b", bg: "#fef3c7" },
   { icon: Globe2,    title: "Region-wide reach",      desc: "Saudi Arabia, UAE, Kuwait and across the GCC.",                          color: "#6366f1", bg: "#eef2ff" },
   { icon: BellRing,  title: "Instant notifications",  desc: "Real-time alerts for new jobs and profile views.",                       color: "#ec4899", bg: "#fdf2f8" },
-  { icon: LineChart, title: "Analytics dashboard",    desc: "Track listing performance and application statuses live.",               color: "#0e7a81", bg: "#f0fdfe" },
+  { icon: LineChart, title: "Analytics dashboard",    desc: "Track listing performance and application statuses live.",               color: "var(--brand-primary-dark)", bg: "#f0fdfe" },
   { icon: Users2,    title: "Collaboration tools",    desc: "Messaging, scheduling, and document sharing — built in.",                color: "#8b5cf6", bg: "#f5f3ff" },
   { icon: Star,      title: "Ratings & reviews",      desc: "Transparent feedback so the best naturally stand out.",                  color: "#f97316", bg: "#fff7ed" },
   { icon: Lock,      title: "Privacy first",          desc: "Full GDPR compliance and granular data controls.",                       color: "#10b981", bg: "#ecfdf5" },
@@ -46,7 +46,7 @@ const featuresAr = [
   { icon: Zap,       title: "مطابقة ذكية",             desc: "خوارزمية تجمع بينك وبين الفرص حسب التخصص والمرحلة والموقع ونوع العقد.",  color: "#f59e0b", bg: "#fef3c7" },
   { icon: Globe2,    title: "تغطية إقليمية واسعة",     desc: "المملكة العربية السعودية والإمارات والكويت وسائر دول الخليج.",             color: "#6366f1", bg: "#eef2ff" },
   { icon: BellRing,  title: "إشعارات فورية",           desc: "تنبيهات لحظية للوظائف الجديدة ومشاهدات ملفك الشخصي.",                   color: "#ec4899", bg: "#fdf2f8" },
-  { icon: LineChart, title: "لوحة تحليلات",            desc: "تابع أداء إعلاناتك وحالة الطلبات مباشرةً.",                             color: "#0e7a81", bg: "#f0fdfe" },
+  { icon: LineChart, title: "لوحة تحليلات",            desc: "تابع أداء إعلاناتك وحالة الطلبات مباشرةً.",                             color: "var(--brand-primary-dark)", bg: "#f0fdfe" },
   { icon: Users2,    title: "أدوات التعاون",           desc: "مراسلة وجدولة ومشاركة وثائق — كلها مدمجة.",                            color: "#8b5cf6", bg: "#f5f3ff" },
   { icon: Star,      title: "التقييمات والمراجعات",    desc: "نظام تغذية راجعة شفّاف يبرز الأفضل بشكل طبيعي.",                       color: "#f97316", bg: "#fff7ed" },
   { icon: Lock,      title: "الخصوصية أولاً",         desc: "امتثال كامل لـ GDPR وضوابط خصوصية دقيقة.",                             color: "#10b981", bg: "#ecfdf5" },
@@ -66,7 +66,7 @@ export default function FeaturesSection() {
         <div className="mb-16 max-w-2xl">
           <span
             className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-5"
-            style={{ backgroundColor: "rgba(10,191,188,0.1)", color: "#0ABFBC" }}
+            style={{ backgroundColor: "var(--brand-accent-light)", color: "var(--brand-accent)" }}
           >
             {isRTL ? "لماذا أبجد" : "Why Abjad"}
           </span>
@@ -93,26 +93,26 @@ export default function FeaturesSection() {
           {/* Left — hero feature panel */}
           <div
             className="lg:col-span-2 rounded-3xl p-8 relative overflow-hidden"
-            style={{ background: "linear-gradient(145deg, #f0fdfe 0%, #e6fafb 100%)", border: "1px solid rgba(10,191,188,0.15)" }}
+            style={{ background: "var(--brand-gradient)", border: "none" }}
           >
             {/* Large faint icon watermark */}
             <heroFeature.icon
               size={160}
-              className="absolute -bottom-6 -right-6 opacity-[0.05] pointer-events-none"
-              style={{ color: "#0ABFBC" }}
+              className="absolute -bottom-6 -right-6 opacity-[0.07] pointer-events-none"
+              style={{ color: "rgba(255,255,255,0.07)" }}
             />
 
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-              style={{ backgroundColor: "rgba(10,191,188,0.15)" }}
+              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
             >
-              <heroFeature.icon size={26} style={{ color: "#0ABFBC" }} strokeWidth={1.8} />
+              <heroFeature.icon size={26} style={{ color: "white" }} strokeWidth={1.8} />
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3 leading-snug">
+            <h3 className="text-xl font-bold text-white mb-3 leading-snug">
               {heroFeature.title}
             </h3>
-            <p className="text-gray-500 text-sm leading-relaxed mb-8">
+            <p className="text-white/70 text-sm leading-relaxed mb-8">
               {heroFeature.desc}
             </p>
 
@@ -120,11 +120,11 @@ export default function FeaturesSection() {
             <div className="flex items-end gap-3 mb-8">
               <span
                 className="text-5xl font-black leading-none"
-                style={{ color: "#0ABFBC" }}
+                style={{ color: "white" }}
               >
                 {heroFeature.stat}
               </span>
-              <span className="text-sm font-semibold text-gray-500 pb-1.5 leading-tight">
+              <span className="text-sm font-semibold text-white/60 pb-1.5 leading-tight">
                 {heroFeature.statLabel}
               </span>
             </div>
@@ -132,7 +132,7 @@ export default function FeaturesSection() {
             <Link
               href="/register"
               className="inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3"
-              style={{ color: "#0ABFBC" }}
+              style={{ color: "white" }}
             >
               {heroFeature.cta} <ArrowRight size={15} />
             </Link>

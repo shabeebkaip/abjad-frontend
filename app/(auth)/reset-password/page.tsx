@@ -32,7 +32,7 @@ function StrengthBar({ password }: { password: string }) {
   ];
   const score = checks.filter(Boolean).length;
   const labels = ["", "Weak", "Fair", "Good", "Strong"];
-  const colors = ["", "#ef4444", "#f59e0b", "#3b82f6", "#2bbdc5"];
+  const colors = ["", "#ef4444", "#f59e0b", "#3b82f6", "var(--brand-primary)"];
 
   if (!password) return null;
 
@@ -85,9 +85,9 @@ export default function ResetPasswordPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
-          style={{ backgroundColor: "#e0f7f8" }}
+          style={{ backgroundColor: "var(--brand-accent-light)" }}
         >
-          <CheckCircle2 size={30} style={{ color: "#2bbdc5" }} />
+          <CheckCircle2 size={30} style={{ color: "var(--brand-accent)" }} />
         </div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-2">Password updated!</h2>
         <p className="text-gray-500 text-sm leading-relaxed mb-8">
@@ -96,7 +96,7 @@ export default function ResetPasswordPage() {
         <Link
           href="/login"
           className="block w-full py-3 rounded-xl text-white text-sm font-semibold text-center transition-all hover:opacity-90"
-          style={{ backgroundColor: "#2bbdc5" }}
+          style={{ backgroundColor: "var(--brand-primary)" }}
         >
           Sign in now
         </Link>
@@ -109,9 +109,9 @@ export default function ResetPasswordPage() {
       {/* Icon */}
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-        style={{ backgroundColor: "#e0f7f8" }}
+        style={{ backgroundColor: "var(--brand-accent-light)" }}
       >
-        <KeyRound size={26} style={{ color: "#2bbdc5" }} />
+        <KeyRound size={26} style={{ color: "var(--brand-accent)" }} />
       </div>
 
       {/* Header */}
@@ -134,9 +134,9 @@ export default function ResetPasswordPage() {
           <div key={label} className="flex items-center gap-2">
             <div
               className="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
-              style={{ backgroundColor: met ? "#e0f7f8" : "#f3f4f6" }}
+              style={{ backgroundColor: met ? "var(--brand-accent-light)" : "#f3f4f6" }}
             >
-              <CheckCircle2 size={10} style={{ color: met ? "#2bbdc5" : "#9ca3af" }} />
+              <CheckCircle2 size={10} style={{ color: met ? "var(--brand-accent)" : "#9ca3af" }} />
             </div>
             <span className={`text-xs ${met ? "text-gray-700" : "text-gray-400"}`}>{label}</span>
           </div>
@@ -154,7 +154,7 @@ export default function ResetPasswordPage() {
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Enter new password"
-              className={`w-full px-4 py-3 rounded-xl border text-sm pr-11 transition-colors outline-none focus:ring-2 focus:ring-[#2bbdc5]/20 focus:border-[#2bbdc5] ${
+              className={`w-full px-4 py-3 rounded-xl border text-sm pr-11 transition-colors outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary ${
                 errors.password ? "border-red-400 bg-red-50" : "border-gray-200 bg-white"
               }`}
             />
@@ -181,7 +181,7 @@ export default function ResetPasswordPage() {
               {...register("confirmPassword")}
               type={showConfirm ? "text" : "password"}
               placeholder="Repeat new password"
-              className={`w-full px-4 py-3 rounded-xl border text-sm pr-11 transition-colors outline-none focus:ring-2 focus:ring-[#2bbdc5]/20 focus:border-[#2bbdc5] ${
+              className={`w-full px-4 py-3 rounded-xl border text-sm pr-11 transition-colors outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary ${
                 errors.confirmPassword ? "border-red-400 bg-red-50" : "border-gray-200 bg-white"
               }`}
             />
@@ -202,7 +202,7 @@ export default function ResetPasswordPage() {
           type="submit"
           disabled={isLoading}
           className="w-full py-3 rounded-xl text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-          style={{ backgroundColor: "#2bbdc5" }}
+          style={{ backgroundColor: "var(--brand-primary)" }}
         >
           {isLoading ? (
             <><Loader2 size={16} className="animate-spin" /> Updating…</>

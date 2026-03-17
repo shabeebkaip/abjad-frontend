@@ -181,9 +181,9 @@ export default function HowItWorksSection() {
 
       {/* Subtle blobs */}
       <div className="absolute -top-40 -left-40 w-125 h-125 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(10,191,188,0.06) 0%, transparent 70%)" }} />
+        style={{ background: "radial-gradient(circle, rgba(0,172,211,0.06) 0%, transparent 70%)" }} />
       <div className="absolute -bottom-32 -right-32 w-100 h-100 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(10,191,188,0.05) 0%, transparent 70%)" }} />
+        style={{ background: "radial-gradient(circle, rgba(0,172,211,0.05) 0%, transparent 70%)" }} />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
 
@@ -192,11 +192,11 @@ export default function HowItWorksSection() {
           <div>
             <span
               className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
-              style={{ backgroundColor: "rgba(10,191,188,0.1)", color: "#0ABFBC" }}
+              style={{ backgroundColor: "var(--brand-accent-light)", color: "var(--brand-accent)" }}
             >
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "#0ABFBC" }} />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: "#0ABFBC" }} />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "var(--brand-accent)" }} />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ backgroundColor: "var(--brand-accent)" }} />
               </span>
               {isRTL ? "كيف يعمل" : "How it works"}
             </span>
@@ -205,7 +205,7 @@ export default function HowItWorksSection() {
               style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: isRTL ? "0" : "-0.03em", lineHeight: 1.1 }}
             >
               {isRTL ? "جاهز للعمل" : "Up and running"}{" "}
-              <span style={{ color: "#0ABFBC" }}>{isRTL ? "في أربع خطوات" : "in four steps"}</span>
+              <span style={{ color: "var(--brand-accent)" }}>{isRTL ? "في أربع خطوات" : "in four steps"}</span>
             </h2>
           </div>
 
@@ -218,7 +218,7 @@ export default function HowItWorksSection() {
                 className="px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
                 style={
                   tab === t
-                    ? { backgroundColor: "#0ABFBC", color: "#fff", boxShadow: "0 4px 14px rgba(10,191,188,0.35)" }
+                    ? { backgroundColor: "var(--brand-primary)", color: "#fff", boxShadow: "0 4px 14px var(--brand-primary-glow)" }
                     : { color: "#6b7280" }
                 }
               >
@@ -244,7 +244,7 @@ export default function HowItWorksSection() {
                   className="group w-full text-left flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200"
                   style={
                     isActive
-                      ? { backgroundColor: "#0ABFBC", boxShadow: "0 6px 20px rgba(10,191,188,0.3)" }
+                      ? { backgroundColor: "var(--brand-primary)", boxShadow: "0 6px 20px var(--brand-primary-glow)" }
                       : { backgroundColor: "white", border: "1px solid #f0f0f0" }
                   }
                 >
@@ -254,7 +254,7 @@ export default function HowItWorksSection() {
                     style={
                       isActive
                         ? { backgroundColor: "rgba(255,255,255,0.2)", color: "white" }
-                        : { backgroundColor: "rgba(10,191,188,0.08)", color: "#0ABFBC" }
+                        : { backgroundColor: "var(--brand-accent-light)", color: "var(--brand-accent)" }
                     }
                   >
                     {s.step}
@@ -273,7 +273,7 @@ export default function HowItWorksSection() {
                     size={15}
                     className="shrink-0 transition-all duration-200"
                     style={{
-                      color: isActive ? "rgba(255,255,255,0.7)" : "rgba(10,191,188,0)",
+                      color: isActive ? "rgba(255,255,255,0.7)" : "rgba(0,172,211,0)",
                       transform: isActive ? "translateX(0)" : "translateX(-4px)",
                     }}
                   />
@@ -285,7 +285,7 @@ export default function HowItWorksSection() {
             <div className="mt-2 pt-5 border-t border-gray-200 flex flex-col gap-3">
               {highlights.map((h) => (
                 <div key={h.label} className="flex items-center gap-2.5">
-                  <h.icon size={14} style={{ color: "#0ABFBC" }} strokeWidth={2} />
+                  <h.icon size={14} style={{ color: "var(--brand-accent)" }} strokeWidth={2} />
                   <span className="text-xs font-semibold text-gray-500">{h.label}</span>
                 </div>
               ))}
@@ -297,14 +297,14 @@ export default function HowItWorksSection() {
             className="lg:col-span-3 rounded-3xl p-8 lg:p-10 relative overflow-hidden flex flex-col justify-between"
             style={{
               background: "linear-gradient(145deg, white 0%, #f8fffe 100%)",
-              border: "1px solid rgba(10,191,188,0.12)",
+              border: "1px solid rgba(0,172,211,0.12)",
               minHeight: "360px",
             }}
           >
             {/* Large faint step number watermark */}
             <span
               className="absolute -bottom-4 -right-2 font-black select-none pointer-events-none leading-none"
-              style={{ fontSize: "clamp(7rem,18vw,14rem)", color: "rgba(10,191,188,0.05)", lineHeight: 1 }}
+              style={{ fontSize: "clamp(7rem,18vw,14rem)", color: "rgba(0,172,211,0.05)", lineHeight: 1 }}
             >
               {current.step}
             </span>
@@ -314,11 +314,11 @@ export default function HowItWorksSection() {
               <div className="flex items-center gap-3 mb-6">
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                  style={{ backgroundColor: "rgba(10,191,188,0.1)" }}
+                  style={{ backgroundColor: "var(--brand-accent-light)" }}
                 >
-                  <current.icon size={22} style={{ color: "#0ABFBC" }} strokeWidth={1.8} />
+                  <current.icon size={22} style={{ color: "var(--brand-accent)" }} strokeWidth={1.8} />
                 </div>
-                <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#0ABFBC" }}>
+                <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "var(--brand-accent)" }}>
                   {isRTL ? `الخطوة ${current.step} من ${steps.length}` : `Step ${current.step} of ${steps.length}`}
                 </span>
               </div>
@@ -342,7 +342,7 @@ export default function HowItWorksSection() {
                   <span
                     key={pill}
                     className="text-xs font-semibold px-3 py-1.5 rounded-full"
-                    style={{ color: "#089E9B", backgroundColor: "rgba(10,191,188,0.08)" }}
+                    style={{ color: "var(--brand-accent-dark)", backgroundColor: "var(--brand-accent-light)" }}
                   >
                     {pill}
                   </span>
@@ -362,7 +362,7 @@ export default function HowItWorksSection() {
                     style={{
                       width:  i === active ? "24px" : "8px",
                       height: "8px",
-                      backgroundColor: i === active ? "#0ABFBC" : "rgba(10,191,188,0.2)",
+                      backgroundColor: i === active ? "var(--brand-accent)" : "var(--brand-accent-glow)",
                     }}
                   />
                 ))}
@@ -371,7 +371,7 @@ export default function HowItWorksSection() {
               <Link
                 href={ctaHref}
                 className="inline-flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-full text-white transition-all duration-200 hover:scale-105 hover:shadow-lg"
-                style={{ backgroundColor: "#0ABFBC", boxShadow: "0 4px 14px rgba(10,191,188,0.3)" }}
+                style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 4px 14px var(--brand-primary-glow)" }}
               >
                 {ctaLabel} <ArrowRight size={14} />
               </Link>

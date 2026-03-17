@@ -8,7 +8,7 @@ export function CtaBanner() {
       <div className="max-w-5xl mx-auto px-6 lg:px-10">
         <div
           className="rounded-3xl p-12 lg:p-16 text-center relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #1a9aa1 0%, #2bbdc5 100%)" }}
+          style={{ background: "var(--brand-gradient)" }}
         >
           {/* Decorative circles */}
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10" />
@@ -34,7 +34,7 @@ export function CtaBanner() {
               <Link
                 href="/register?role=teacher"
                 className="flex items-center justify-center gap-2 bg-white font-semibold text-sm px-7 py-4 rounded-2xl hover:shadow-xl hover:shadow-black/20 transition-all hover:-translate-y-0.5"
-                style={{ color: "#1a9aa1" }}
+                style={{ color: "var(--brand-primary-dark)" }}
               >
                 <GraduationCap size={17} />
                 I&apos;m a Teacher
@@ -88,7 +88,7 @@ export function Footer() {
   return (
     <footer className="bg-slate-950 text-white">
       {/* Top gradient accent line */}
-      <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, #2bbdc5, transparent)" }} />
+      <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--brand-accent), transparent)" }} />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-10 pt-16 pb-10">
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-10 pb-12 border-b border-white/8">
@@ -112,8 +112,8 @@ export function Footer() {
 
             {/* Contact */}
             <div className="space-y-2.5">
-              <a href="mailto:hello@abjad.sa" className="flex items-center gap-2.5 text-slate-400 hover:text-[#2bbdc5] text-xs transition-colors group">
-                <div className="w-6 h-6 rounded-lg bg-white/5 group-hover:bg-[#2bbdc5]/15 flex items-center justify-center transition-colors">
+              <a href="mailto:hello@abjad.sa" className="flex items-center gap-2.5 text-slate-400 hover:text-(--brand-accent) text-xs transition-colors group">
+                <div className="w-6 h-6 rounded-lg bg-white/5 group-hover:bg-(--brand-accent)/15 flex items-center justify-center transition-colors">
                   <Mail size={12} />
                 </div>
                 hello@abjad.sa
@@ -139,7 +139,7 @@ export function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-8 h-8 rounded-xl bg-white/5 hover:bg-[#2bbdc5]/20 hover:text-[#2bbdc5] text-slate-400 flex items-center justify-center transition-all hover:scale-110"
+                  className="w-8 h-8 rounded-xl bg-white/5 hover:bg-(--brand-accent)/20 hover:text-(--brand-accent) text-slate-400 flex items-center justify-center transition-all hover:scale-110"
                 >
                   <Icon size={14} />
                 </a>
@@ -158,7 +158,7 @@ export function Footer() {
                       href={l.href}
                       className="text-sm text-slate-400 hover:text-white transition-colors hover:translate-x-0.5 inline-flex items-center gap-1 group"
                     >
-                      <span className="w-0 group-hover:w-1.5 h-px bg-[#2bbdc5] transition-all duration-200 rounded-full" />
+                      <span className="w-0 group-hover:w-1.5 h-px bg-(--brand-accent) transition-all duration-200 rounded-full" />
                       {l.label}
                     </Link>
                   </li>
@@ -177,11 +177,11 @@ export function Footer() {
               <input
                 type="email"
                 placeholder="Your email address"
-                className="w-full px-3 py-2.5 text-xs bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-[#2bbdc5]/50 focus:bg-white/8 transition-colors"
+                className="w-full px-3 py-2.5 text-xs bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-(--brand-accent)/50 focus:bg-white/8 transition-colors"
               />
               <button
-                className="w-full py-2.5 text-xs font-semibold rounded-xl text-white transition-all hover:opacity-90 hover:shadow-lg hover:shadow-[#2bbdc5]/20"
-                style={{ backgroundColor: "#2bbdc5" }}
+                className="w-full py-2.5 text-xs font-semibold rounded-xl text-white transition-all hover:opacity-90 hover:shadow-lg hover:shadow-(--brand-accent)/20"
+                style={{ backgroundColor: "var(--brand-accent)" }}
               >
                 Subscribe
               </button>

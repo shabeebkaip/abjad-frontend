@@ -8,7 +8,7 @@ const testimonials = [
     quote:
       "I uploaded my profile on a Monday and had three interview requests by Thursday. Abjad is genuinely different — schools here are serious about finding quality teachers.",
     avatar: "FA",
-    color: "#2bbdc5",
+    color: "var(--brand-primary)",
   },
   {
     name: "Omar Hassan",
@@ -17,7 +17,7 @@ const testimonials = [
     quote:
       "We used to spend weeks sifting through applications. With Abjad, we get pre-filtered candidates that actually match our requirements. It cut our hiring time in half.",
     avatar: "OH",
-    color: "#0e7a81",
+    color: "var(--brand-primary-dark)",
   },
   {
     name: "Sara Al-Mutairi",
@@ -65,7 +65,7 @@ export default function TestimonialsSection() {
         <div className="text-center mb-16">
           <span
             className="inline-block text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
-            style={{ backgroundColor: "#e0f7f8", color: "#2bbdc5" }}
+            style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}
           >
             Testimonials
           </span>
@@ -84,7 +84,7 @@ export default function TestimonialsSection() {
               key={t.name}
               className="break-inside-avoid bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-shadow"
             >
-              <Quote size={20} style={{ color: "#2bbdc5" }} className="mb-4 opacity-50" />
+              <Quote size={20} style={{ color: "var(--brand-primary)" }} className="mb-4 opacity-50" />
               <p className="text-gray-700 text-sm leading-relaxed mb-5">&ldquo;{t.quote}&rdquo;</p>
               <div className="flex items-center gap-3">
                 <div

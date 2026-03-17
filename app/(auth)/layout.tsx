@@ -1,29 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, BadgeCheck, MousePointerClick, type LucideIcon } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
 export const metadata: Metadata = {
   title: "Abjad – Auth",
 };
 
-const FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
-  {
-    icon: Sparkles,
-    title: "Smart Matching",
-    desc: "Tell us your subject, grade level, and location — we surface roles that genuinely fit you.",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Verified Schools",
-    desc: "Every institution on Abjad is reviewed and approved before posting a single vacancy.",
-  },
-  {
-    icon: MousePointerClick,
-    title: "One-Click Apply",
-    desc: "Your profile is your CV. Apply to any job in seconds, track every application in one place.",
-  },
+const STATS = [
+  { value: "12k+", label: "Teachers placed" },
+  { value: "800+", label: "Partner schools" },
+  { value: "72h",  label: "Avg. time to offer" },
 ];
 
 
@@ -38,47 +25,41 @@ export default function AuthLayout({
       <LanguageToggle />
       {/* ── Left brand panel ─────────────────────────────── */}
       <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden flex-col">
-        {/* Base gradient */}
+        {/* Base gradient — deep navy to dark indigo */}
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(145deg, #0e8f96 0%, #2bbdc5 45%, #1aa6ae 100%)" }}
+          style={{ background: "linear-gradient(145deg, #071729 0%, #0D2542 40%, #1a1f4e 100%)" }}
         />
 
-        {/* Subtle dot grid overlay */}
+        {/* Fine dot grid — accent-tinted, very subtle */}
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle, #ffffff 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle, rgba(0,172,211,0.18) 1px, transparent 1px)`,
             backgroundSize: "28px 28px",
+            opacity: 0.5,
           }}
         />
 
-        {/* Cross/plus grid overlay — matches hero */}
+        {/* Sky-blue accent glow — top left */}
         <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
+          className="absolute -top-32 -left-32 w-125 h-125 rounded-full blur-[120px] pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(0,172,211,0.18) 0%, transparent 65%)" }}
+        />
+        {/* Indigo glow — bottom right */}
+        <div
+          className="absolute -bottom-40 -right-20 w-105 h-105 rounded-full blur-[100px] pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(68,72,130,0.45) 0%, transparent 65%)" }}
+        />
+        {/* Soft sky glow — mid panel */}
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-75 h-75 rounded-full blur-[80px] pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(0,172,211,0.06) 0%, transparent 70%)" }}
         />
 
-        {/* Blur blobs */}
-        <div className="absolute -top-40 -left-40 w-125 h-125 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-20 w-100 h-100 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-75 h-75 rounded-full bg-white/5 blur-2xl" />
-        <div className="absolute top-20 -right-20 w-96 h-96 rounded-full opacity-20 blur-3xl" style={{ backgroundColor: "#ffffff" }} />
-        <div className="absolute bottom-10 -left-10 w-72 h-72 rounded-full opacity-15 blur-3xl" style={{ backgroundColor: "#0a5c62" }} />
-
-        {/* Floating rings */}
-        <div className="absolute top-16 right-16 w-32 h-32 rounded-full border border-white/15" />
-        <div className="absolute top-24 right-24 w-16 h-16 rounded-full border border-white/10" />
-        <div className="absolute bottom-28 left-10 w-24 h-24 rounded-full border border-white/10" />
-        <div className="absolute bottom-36 left-16 w-10 h-10 rounded-full border border-white/15" />
-
-        {/* Small scattered dots */}
-        <div className="absolute top-1/3 right-8 w-2 h-2 rounded-full bg-white/25" />
-        <div className="absolute top-1/3 right-14 w-1.5 h-1.5 rounded-full bg-white/20" />
-        <div className="absolute top-2/3 left-8 w-2 h-2 rounded-full bg-white/25" />
-        <div className="absolute top-2/3 left-16 w-1 h-1 rounded-full bg-white/20" />
+        {/* Floating rings — accent-tinted */}
+        <div className="absolute top-16 right-16 w-36 h-36 rounded-full" style={{ border: "1px solid rgba(0,172,211,0.12)" }} />
+        <div className="absolute top-24 right-24 w-18 h-18 rounded-full" style={{ border: "1px solid rgba(0,172,211,0.08)" }} />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col h-full px-14 py-14">
@@ -96,57 +77,55 @@ export default function AuthLayout({
           </Link>
 
           {/* Centre copy */}
-          <div className="flex-1 flex flex-col justify-center max-w-sm">
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full mb-8 w-fit">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-              Saudi Arabia&apos;s #1 Education Hiring Platform
-            </div>
+          <div className="flex-1 flex flex-col justify-center max-w-xs">
 
-            <h1 className="text-4xl font-bold text-white leading-tight tracking-tight mb-4">
+            <h1 className="text-[2.6rem] font-bold text-white leading-[1.1] tracking-tight mb-5">
               Where Great<br />
-              <span className="text-white/75">Teachers Meet</span><br />
-              Great Schools
+              <span style={{ color: "var(--brand-accent)" }}>Teachers</span><br />
+              Meet Schools
             </h1>
 
-            <p className="text-white/70 text-base leading-relaxed">
-              Join thousands of educators building meaningful careers across the Kingdom.
+            <p className="text-sm leading-relaxed mb-12" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Saudi Arabia&apos;s education hiring platform — built for teachers and schools across the Kingdom.
             </p>
 
-            {/* Feature cards */}
-            <div className="mt-10 space-y-3">
-              {FEATURES.map((f) => (
-                <div
-                  key={f.title}
-                  className="flex items-start gap-3.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-4 py-3.5 hover:bg-white/15 transition-colors"
-                >
-                  <div className="mt-0.5 p-1.5 rounded-lg bg-white/15 shrink-0">
-                    <f.icon size={15} className="text-white" strokeWidth={2} />
-                  </div>
-                  <div>
-                    <p className="text-white font-semibold text-sm">{f.title}</p>
-                    <p className="text-white/60 text-xs mt-0.5 leading-relaxed">{f.desc}</p>
-                  </div>
+            {/* Minimal stat row */}
+            <div className="flex items-center gap-8">
+              {STATS.map((s, i) => (
+                <div key={s.label}>
+                  <p className="text-2xl font-bold text-white tracking-tight">{s.value}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.40)" }}>{s.label}</p>
+                  {i < STATS.length - 1 && (
+                    <div className="hidden" />
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Bottom testimonial */}
-          <div className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-5">
-            <p className="text-white/90 text-sm leading-relaxed italic mb-3">
-              &ldquo;I found my ideal teaching position at an international school in Riyadh within two weeks of joining Abjad.&rdquo;
+          {/* Bottom testimonial — minimal */}
+          <div className="pb-2">
+            <div
+              className="h-px mb-6"
+              style={{ background: "linear-gradient(90deg, rgba(0,172,211,0.20), transparent)" }}
+            />
+            <p className="text-sm leading-relaxed italic mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>
+              &ldquo;Found my ideal role in Riyadh within two weeks.&rdquo;
             </p>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
+                style={{ backgroundColor: "rgba(0,172,211,0.20)", border: "1px solid rgba(0,172,211,0.30)" }}
+              >
                 S
               </div>
               <div>
-                <p className="text-white font-medium text-xs">Sara Al-Harbi</p>
-                <p className="text-white/50 text-xs">Mathematics Teacher · Riyadh</p>
+                <p className="text-white text-xs font-medium">Sara Al-Harbi</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Mathematics Teacher · Riyadh</p>
               </div>
-              <div className="ml-auto flex gap-0.5">
+              <div className="ml-auto flex gap-px">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-amber-300 text-sm">★</span>
+                  <span key={i} className="text-amber-400 text-xs">★</span>
                 ))}
               </div>
             </div>
@@ -158,16 +137,16 @@ export default function AuthLayout({
       <div className="flex-1 flex flex-col bg-white overflow-y-auto relative">
         {/* Subtle background texture */}
         <div
-          className="absolute inset-0 opacity-[0.025] pointer-events-none"
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
-            backgroundImage: `radial-gradient(circle, #2bbdc5 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle, var(--brand-accent) 1px, transparent 1px)`,
             backgroundSize: "32px 32px",
           }}
         />
-        {/* Top-right cyan accent blob */}
+        {/* Top-right brand accent blob */}
         <div
           className="absolute -top-24 -right-24 w-72 h-72 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, #2bbdc525 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, var(--brand-accent-glow) 0%, transparent 70%)" }}
         />
 
         {/* Mobile top bar */}

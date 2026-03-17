@@ -95,7 +95,7 @@ export default function StatsSection() {
           {/* After */}
           <div
             className="rounded-2xl p-8 relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, #0e7a81 0%, #2bbdc5 100%)" }}
+            style={{ background: "var(--brand-gradient)" }}
           >
             {/* Subtle dot texture */}
             <div

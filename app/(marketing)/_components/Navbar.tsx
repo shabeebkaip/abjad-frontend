@@ -97,7 +97,7 @@ export default function Navbar() {
             <Link
               href="/register"
               className="text-sm font-bold text-white px-4 py-2 rounded-xl transition-all hover:opacity-90 hover:scale-[1.03] shadow-sm"
-              style={{ backgroundColor: "#0ABFBC" }}
+              style={{ backgroundColor: "var(--brand-primary)" }}
             >
               {isAr ? "ابدأ مجاناً" : "Get started"}
             </Link>
@@ -124,7 +124,7 @@ export default function Navbar() {
                   key={l.href}
                   href={l.href}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center text-sm font-medium text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 hover:text-[#0ABFBC] transition-colors"
+                  className="flex items-center text-sm font-medium text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 hover:text-brand-primary transition-colors"
                 >
                   {isAr ? l.labelAr : l.label}
                 </a>
@@ -134,15 +134,15 @@ export default function Navbar() {
               <Link
                 href="/login"
                 onClick={() => setMenuOpen(false)}
-                className="text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:border-[#0ABFBC] hover:text-[#0ABFBC] transition-colors"
+                className="text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:border-brand-primary hover:text-brand-primary transition-colors"
               >
                 {isAr ? "تسجيل الدخول" : "Sign in"}
               </Link>
               <Link
                 href="/register"
                 onClick={() => setMenuOpen(false)}
-                className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
-                style={{ backgroundColor: "#0ABFBC" }}
+              className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
+              style={{ backgroundColor: "var(--brand-primary)" }}
               >
                 {isAr ? "ابدأ مجاناً" : "Get started"}
               </Link>
