@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, GraduationCap, School, Mail, Phone, MapPin, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
+import { ArrowRight, Mail, Phone, MapPin, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
 
 export function CtaBanner() {
   return (
@@ -13,42 +13,33 @@ export function CtaBanner() {
           {/* Decorative circles */}
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10" />
           <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/10" />
+          <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-white/5" />
 
           <div className="relative z-10">
             <div className="flex items-center justify-center gap-3 mb-6">
               <span className="inline-block bg-white/20 text-white text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full">
-                Ready to get started?
+                Ready to Join Abjad?
               </span>
               <span className="inline-flex items-center gap-1.5 bg-white/15 border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
                 🇸🇦 Made in Saudi Arabia
               </span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-5 tracking-tight">
-              Your next chapter starts here
+              Your Next Opportunity Awaits
             </h2>
             <p className="text-white/80 text-lg max-w-xl mx-auto mb-10">
-              Join thousands of teachers and schools already using Abjad to build better careers and better classrooms.
+              Join a vast network of teachers, educators, and schools already using Abjad to make
+              hiring and job searching effortless.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/register?role=teacher"
-                className="flex items-center justify-center gap-2 bg-white font-semibold text-sm px-7 py-4 rounded-2xl hover:shadow-xl hover:shadow-black/20 transition-all hover:-translate-y-0.5"
-                style={{ color: "var(--brand-primary-dark)" }}
-              >
-                <GraduationCap size={17} />
-                I&apos;m a Teacher
-                <ArrowRight size={15} />
-              </Link>
-              <Link
-                href="/register?role=school"
-                className="flex items-center justify-center gap-2 bg-white/15 border border-white/40 text-white font-semibold text-sm px-7 py-4 rounded-2xl hover:bg-white/25 transition-all"
-              >
-                <School size={17} />
-                I&apos;m a School
-                <ArrowRight size={15} />
-              </Link>
-            </div>
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center gap-2 bg-white font-bold text-sm px-10 py-4 rounded-2xl hover:shadow-xl hover:shadow-black/20 transition-all hover:-translate-y-0.5"
+              style={{ color: "var(--brand-primary-dark)" }}
+            >
+              Register
+              <ArrowRight size={15} />
+            </Link>
           </div>
         </div>
       </div>
@@ -198,10 +189,6 @@ export function Footer() {
             <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms</Link>
             <Link href="/cookies" className="hover:text-slate-300 transition-colors">Cookies</Link>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-emerald-400 font-medium">All systems normal</span>
-            </div>
           </div>
         </div>
       </div>

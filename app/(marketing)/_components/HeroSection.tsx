@@ -118,24 +118,24 @@ export default function HeroSection() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
           </span>
-          {t.hero.badge}
+          Empower Schools, Empower Educators
         </div>
 
         {/* Headline */}
         <h1
           className="fade-in-up-2 font-extrabold text-gray-950 leading-[1.06] mb-6 max-w-4xl"
           style={{
-            fontSize: "clamp(3rem, 7vw, 5.5rem)",
+            fontSize: "clamp(2.6rem, 6vw, 5rem)",
             letterSpacing: isRTL ? "0" : "-0.03em",
           }}
         >
-          {t.hero.line1}{" "}
-          <span style={{ color: "var(--brand-accent)" }}>{t.hero.line2}</span>{" "}
+          Connect with the{" "}
+          <span style={{ color: "var(--brand-accent)" }}>Best Teachers</span>{" "}
           <br className="hidden sm:block" />
           <span className="relative inline-block">
-            {t.hero.line3}
+            and Schools in Saudi Arabia
             <svg
-              className="absolute -bottom-2 start-0 w-full"
+              className="absolute -bottom-2 inset-s-0 w-full"
               viewBox="0 0 300 12"
               preserveAspectRatio="none"
               aria-hidden="true"
@@ -155,26 +155,19 @@ export default function HeroSection() {
         {/* Subtext */}
         <p
           className="fade-in-up-3 text-gray-500 text-lg leading-relaxed mb-10"
-          style={{ maxWidth: "46ch" }}
+          style={{ maxWidth: "52ch" }}
         >
-          {t.hero.sub}
+          Whether you are an educator or an international school in Riyadh, Jeddah, or Dammam, Abjad helps you find the perfect match instantly.
         </p>
 
         {/* CTA buttons */}
         <div className="fade-in-up-4 flex items-center gap-4 flex-wrap justify-center mb-16">
           <Link
-            href="/register?role=teacher"
+            href="/register"
             className="px-8 py-3.5 rounded-full font-bold text-base text-white transition-all duration-200 hover:scale-105 hover:shadow-xl shadow-lg"
             style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 8px 24px var(--brand-primary-glow)" }}
           >
-            {isRTL ? "ابحث عن وظيفة تدريس" : "Find teaching jobs"}
-          </Link>
-          <Link
-            href="/register?role=school"
-            className="px-8 py-3.5 rounded-full font-bold text-base border-2 transition-all duration-200 hover:scale-105 bg-white"
-            style={{ borderColor: "var(--brand-accent)", color: "var(--brand-accent)" }}
-          >
-            {isRTL ? "وظّف معلمين" : "Hire teachers"}
+            Join Now
           </Link>
         </div>
 
