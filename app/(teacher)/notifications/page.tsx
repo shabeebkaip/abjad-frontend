@@ -60,8 +60,8 @@ const TYPE_CONFIG: Record<
   offer: {
     label: "Offer",
     icon: <Award className="w-4 h-4" />,
-    color: "text-cyan-600",
-    bg: "bg-cyan-100",
+    color: "text-[#0D2542]",
+    bg: "bg-[rgba(13,37,66,0.08)]",
   },
   system: {
     label: "System",
@@ -218,7 +218,7 @@ export default function NotificationsPage() {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-slate-800">Notifications</h1>
               {unreadCount > 0 && (
-                <span className="bg-cyan-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                <span className="text-white text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }}>
                   {unreadCount} new
                 </span>
               )}
@@ -228,7 +228,7 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="flex items-center gap-1.5 text-sm text-cyan-600 hover:text-cyan-700 font-medium px-3 py-1.5 rounded-xl hover:bg-cyan-50 transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors hover:bg-brand-primary-light" style={{ color: "var(--brand-primary)" }}
             >
               <Check className="w-4 h-4" /> Mark all as read
             </button>
@@ -256,12 +256,13 @@ export default function NotificationsPage() {
                     onClick={() => setFilter(opt.value)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl border transition-colors ${
                       filter === opt.value
-                        ? "bg-cyan-500 text-white border-cyan-500"
+                        ? "text-white border-transparent"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
+                    style={filter === opt.value ? { backgroundColor: "var(--brand-primary)" } : {}}
                   >
                     {opt.label}
-                    <span className={`text-xs ${filter === opt.value ? "text-cyan-100" : "text-slate-400"}`}>
+                    <span className={`text-xs ${filter === opt.value ? "text-white/70" : "text-slate-400"}`}>
                       {count}
                     </span>
                   </button>
@@ -274,7 +275,7 @@ export default function NotificationsPage() {
                   type="checkbox"
                   checked={showUnreadOnly}
                   onChange={(e) => setShowUnreadOnly(e.target.checked)}
-                  className="accent-cyan-500 w-4 h-4 rounded"
+                  className="w-4 h-4 rounded" style={{ accentColor: "var(--brand-primary)" }}
                 />
                 Unread only
               </label>
@@ -296,7 +297,7 @@ export default function NotificationsPage() {
               {showUnreadOnly && (
                 <button
                   onClick={() => setShowUnreadOnly(false)}
-                  className="mt-3 text-sm text-cyan-600 hover:text-cyan-700 font-medium"
+                  className="mt-3 text-sm font-medium" style={{ color: "var(--brand-primary)" }}
                 >
                   Show all notifications
                 </button>
@@ -329,7 +330,7 @@ export default function NotificationsPage() {
               </p>
             </div>
           </div>
-          <button className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-xl transition-colors shrink-0">
+          <button className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors hover:opacity-90 shrink-0" style={{ background: "var(--brand-gradient)" }}>
             Manage
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -355,13 +356,13 @@ function NotificationItem({
   return (
     <div
       className={`flex items-start gap-4 p-4 hover:bg-slate-50/50 transition-colors cursor-pointer group relative ${
-        !n.read ? "bg-cyan-50/20" : ""
+        !n.read ? "bg-(--brand-primary-light)/30" : ""
       }`}
       onClick={() => onRead(n.id)}
     >
       {/* Unread dot */}
       {!n.read && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 rounded-full" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }} />
       )}
 
       {/* Icon */}
@@ -400,7 +401,7 @@ function NotificationItem({
           {n.actionLabel && (
             <button
               onClick={(e) => e.stopPropagation()}
-              className="text-xs text-cyan-600 hover:text-cyan-700 font-medium flex items-center gap-1"
+              className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--brand-primary)" }}
             >
               {n.actionLabel} <ChevronRight className="w-3 h-3" />
             </button>

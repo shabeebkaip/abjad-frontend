@@ -200,15 +200,15 @@ export default function InterviewsPage() {
       <div className="p-6 space-y-6">
         {/* Next Interview Banner */}
         {nextInterview && (
-          <div className="bg-linear-to-r from-cyan-500 to-cyan-600 rounded-2xl p-5 text-white">
+          <div className="rounded-2xl p-5 text-white" style={{ background: "var(--brand-gradient)" }}>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-cyan-100 text-xs font-medium uppercase tracking-wide mb-1">
+                <p className="text-white/70 text-xs font-medium uppercase tracking-wide mb-1">
                   Next Interview
                 </p>
                 <h2 className="text-xl font-bold">{nextInterview.jobTitle}</h2>
-                <p className="text-cyan-100 mt-0.5">{nextInterview.school}</p>
-                <div className="flex items-center gap-4 mt-3 text-sm text-cyan-50 flex-wrap">
+                <p className="text-white/70 mt-0.5">{nextInterview.school}</p>
+                <div className="flex items-center gap-4 mt-3 text-sm text-white/60 flex-wrap">
                   <span className="flex items-center gap-1.5">
                     <CalendarDays className="w-4 h-4" /> {nextInterview.date}
                   </span>
@@ -227,7 +227,7 @@ export default function InterviewsPage() {
                     href={nextInterview.meetingLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-4 py-2 bg-white text-cyan-600 rounded-xl text-sm font-semibold hover:bg-cyan-50 transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-white rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors" style={{ color: "var(--brand-primary)" }}
                   >
                     <Video className="w-4 h-4" /> Join Meeting
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -235,7 +235,7 @@ export default function InterviewsPage() {
                 )}
                 <button
                   onClick={() => addToCalendar(nextInterview)}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-cyan-400/30 text-white border border-white/20 rounded-xl text-sm font-medium hover:bg-cyan-400/50 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-white/10 text-white border border-white/20 rounded-xl text-sm font-medium hover:bg-white/20 transition-colors"
                 >
                   <Download className="w-4 h-4" /> Add to Calendar
                 </button>
@@ -298,7 +298,7 @@ export default function InterviewsPage() {
                 onClick={() => setActiveTab(tab.value)}
                 className={`px-5 py-3.5 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.value
-                    ? "border-cyan-500 text-cyan-600 bg-cyan-50/50"
+                    ? "border-brand-primary text-brand-primary bg-brand-primary-light"
                     : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -332,7 +332,7 @@ export default function InterviewsPage() {
         {/* Preparation Tips Card */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-cyan-500" />
+            <BookOpen className="w-4 h-4" style={{ color: "var(--brand-primary)" }} />
             General Interview Preparation Tips
           </h2>
           <div className="grid md:grid-cols-2 gap-3">
@@ -345,7 +345,7 @@ export default function InterviewsPage() {
               "Follow up with a thank-you message within 24 hours of the interview.",
             ].map((tip, i) => (
               <div key={i} className="flex items-start gap-2.5 text-sm text-slate-600">
-                <div className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5" style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}>
                   {i + 1}
                 </div>
                 {tip}
@@ -433,7 +433,7 @@ function InterviewCard({
                   href={interview.meetingLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-medium rounded-lg transition-colors hover:opacity-90" style={{ backgroundColor: "var(--brand-primary)" }}
                 >
                   <Video className="w-3.5 h-3.5" /> Join {interview.platform}
                   <ExternalLink className="w-3 h-3" />
@@ -475,7 +475,7 @@ function InterviewCard({
           {/* Expand toggle */}
           <button
             onClick={onToggle}
-            className="mt-2 flex items-center gap-1 text-xs text-cyan-600 hover:text-cyan-700 font-medium"
+            className="mt-2 flex items-center gap-1 text-xs font-medium" style={{ color: "var(--brand-primary)" }}
           >
             {expanded ? "Hide details" : "Show details"}
             <ChevronRight className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`} />
@@ -510,7 +510,7 @@ function InterviewCard({
                   <ul className="space-y-1.5">
                     {interview.preparationTips.map((tip, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                        <CheckCircle2 className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "var(--brand-primary)" }} />
                         {tip}
                       </li>
                     ))}
