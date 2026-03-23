@@ -172,7 +172,7 @@ export default function LoginPage() {
       {/* Register link */}
       <p className="fade-in-up-7 text-center text-sm text-muted-foreground mt-6">
         {t.login.noAccount}{" "}
-        <Link href="/register" className="font-bold text-primary hover:opacity-75 transition-opacity">
+        <Link href="/choose-role" className="font-bold text-primary hover:opacity-75 transition-opacity">
           {t.login.createAccount}
         </Link>
       </p>

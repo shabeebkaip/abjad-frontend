@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, GraduationCap, School, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Eye, EyeOff, Loader2, ChevronLeft } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,8 +67,9 @@ function FieldError({ message }: { message?: string }) {
 
 export default function RegisterPage() {
   const { t } = useTranslation();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [role, setRole] = useState<Role>("teacher");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = (searchParams.get("role") as Role) ?? "teacher";
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -103,83 +105,8 @@ export default function RegisterPage() {
         <p className="text-muted-foreground text-sm mt-1">{t.register.subtitle}</p>
       </div>
 
-      {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white bg-primary">
-            {step > 1 ? "✓" : "1"}
-          </div>
-          <span className="text-xs font-medium text-foreground">{t.register.chooseRole}</span>
-        </div>
-        <div className="flex-1 h-px bg-border mx-1" />
-        <div className="flex items-center gap-2">
-          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${
-            step === 2 ? "text-white bg-primary" : "text-muted-foreground border border-border"
-          }`}>
-            2
-          </div>
-          <span className={`text-xs font-medium ${step === 2 ? "text-foreground" : "text-muted-foreground"}`}>
-            {t.register.yourDetails}
-          </span>
-        </div>
-      </div>
-
-      {/* ── Step 1: Role ── */}
-      {step === 1 && (
-        <div>
-          <p className="text-sm text-muted-foreground mb-4">{t.register.iAmJoiningAs}</p>
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <button
-              type="button"
-              onClick={() => setRole("teacher")}
-              className={`flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
-                role === "teacher" ? "border-primary bg-accent" : "border-border bg-white hover:border-border/80"
-              }`}
-            >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                role === "teacher" ? "bg-primary" : "bg-muted"
-              }`}>
-                <GraduationCap size={22} className={role === "teacher" ? "text-white" : "text-muted-foreground"} />
-              </div>
-              <div>
-                <p className={`font-semibold text-sm ${role === "teacher" ? "text-primary" : "text-foreground"}`}>{t.register.teacher}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{t.register.teacherDesc}</p>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setRole("school")}
-              className={`flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
-                role === "school" ? "border-primary bg-accent" : "border-border bg-white hover:border-border/80"
-              }`}
-            >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                role === "school" ? "bg-primary" : "bg-muted"
-              }`}>
-                <School size={22} className={role === "school" ? "text-white" : "text-muted-foreground"} />
-              </div>
-              <div>
-                <p className={`font-semibold text-sm ${role === "school" ? "text-primary" : "text-foreground"}`}>{t.register.school}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{t.register.schoolDesc}</p>
-              </div>
-            </button>
-          </div>
-
-          <Button
-            type="button"
-            onClick={() => setStep(2)}
-            className="w-full h-11 rounded-xl text-sm font-bold"
-            style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%)" }}
-          >
-            {role === "teacher" ? t.register.continueAsTeacher : t.register.continueAsSchool}
-            <ChevronRight size={16} className="ltr:ml-1 rtl:mr-1 rtl:rotate-180" />
-          </Button>
-        </div>
-      )}
-
-      {/* ── Step 2: Teacher form ── */}
-      {step === 2 && role === "teacher" && (
+      {/* ── Teacher form ── */}
+      {role === "teacher" && (
         <form onSubmit={teacherForm.handleSubmit(onSubmitTeacher)} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -264,7 +191,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex gap-3 pt-1">
-            <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-11 rounded-xl px-4">
+            <Button type="button" variant="outline" onClick={() => router.push("/choose-role")} className="h-11 rounded-xl px-4">
               <ChevronLeft size={16} className="rtl:rotate-180" /> {t.register.back}
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1 h-11 rounded-xl text-sm font-bold" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%)" }}>
@@ -274,8 +201,8 @@ export default function RegisterPage() {
         </form>
       )}
 
-      {/* ── Step 2: School form ── */}
-      {step === 2 && role === "school" && (
+      {/* ── School form ── */}
+      {role === "school" && (
         <form onSubmit={schoolForm.handleSubmit(onSubmitSchool)} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="s-name">{t.register.schoolName}</Label>
@@ -353,7 +280,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex gap-3 pt-1">
-            <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-11 rounded-xl px-4">
+            <Button type="button" variant="outline" onClick={() => router.push("/choose-role")} className="h-11 rounded-xl px-4">
               <ChevronLeft size={16} className="rtl:rotate-180" /> {t.register.back}
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1 h-11 rounded-xl text-sm font-bold" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%)" }}>

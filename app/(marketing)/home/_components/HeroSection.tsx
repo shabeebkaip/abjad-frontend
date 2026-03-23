@@ -165,7 +165,7 @@ export default function HeroSection() {
         {/* CTA buttons */}
         <div className="fade-in-up-4 flex items-center gap-4 flex-wrap justify-center mb-16">
           <Link
-            href="/register"
+            href="/choose-role"
             className="px-8 py-3.5 rounded-full font-bold text-base text-white transition-all duration-200 hover:scale-105 hover:shadow-xl shadow-lg"
             style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 8px 24px var(--brand-primary-glow)" }}
           >
