@@ -2,8 +2,8 @@
 import AboutHero from "./_components/AboutHero";
 import MissionSection from "./_components/MissionSection";
 import VisionAndWhySection from "./_components/VisionAndWhySection";
-import TeamSection from "./_components/TeamSection";
 import ValuesSection from "./_components/ValuesSection";
+import TeamSection from "./_components/TeamSection";
 import AboutCta from "./_components/AboutCta";
 
 export const metadata = {
@@ -18,8 +18,8 @@ export default function AboutPage() {
       <AboutHero />
       <MissionSection />
       <VisionAndWhySection />
-      <TeamSection />
       <ValuesSection />
+      <TeamSection />
       <AboutCta />
     </>
   );
