@@ -1,24 +1,21 @@
-import { Eye, Users2, BookOpen, TrendingUp } from "lucide-react";
+import { TrendingUp, Users2, BookOpen } from "lucide-react";
 
-const whyFeatures = [
+const whyItems = [
   {
-    icon: TrendingUp,
+    num: "①",
     color: "#f59e0b",
-    bg: "#fef3c7",
     title: "Streamline Hiring",
     desc: "Reduce time-to-hire with smart matching and verified educator profiles ready for immediate placement.",
   },
   {
-    icon: Users2,
+    num: "②",
     color: "#6366f1",
-    bg: "#eef2ff",
     title: "Ensure Accurate Placement",
     desc: "Precision matching ensures every educator placed is the right fit for the school's curriculum and culture.",
   },
   {
-    icon: BookOpen,
+    num: "③",
     color: "#10b981",
-    bg: "#ecfdf5",
     title: "Support Professional Development",
     desc: "Abjad champions continuous growth — connecting educators with institutions that invest in excellence.",
   },
@@ -27,103 +24,116 @@ const whyFeatures = [
 export default function VisionAndWhySection() {
   return (
     <>
-      {/* ── Vision Section ── */}
-      <section className="relative bg-white py-24 overflow-hidden">
+      {/* ── Vision — full-bleed dark manifesto ── */}
+      <section
+        className="relative overflow-hidden py-28 px-6"
+        style={{ background: "var(--brand-primary)" }}
+      >
+        {/* Diagonal accent rule */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-50"
-          style={{
-            background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,172,211,0.06) 0%, transparent 70%)",
-          }}
+          className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px opacity-10"
+          style={{ background: "linear-gradient(180deg, transparent, var(--brand-accent), transparent)" }}
         />
+        {/* Large watermark */}
+        <div
+          className="absolute right-0 top-0 bottom-0 flex items-center pointer-events-none select-none"
+          style={{ fontSize: "20rem", fontWeight: 900, lineHeight: 1, color: "rgba(255,255,255,0.02)", overflow: "hidden" }}
+        >
+          VISION
+        </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 text-center">
-          <span
-            className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6"
-            style={{ backgroundColor: "var(--brand-accent-light)", color: "var(--brand-accent)" }}
-          >
-            <Eye size={12} />
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <span className="inline-block text-xs font-black tracking-widest uppercase mb-8 px-4 py-1.5 rounded-full bg-white/8 text-white/50">
             Our Vision
           </span>
 
           <h2
-            className="font-extrabold text-gray-950 mb-6 leading-tight"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 3.2rem)", letterSpacing: "-0.03em" }}
+            className="font-extrabold text-white leading-[1.1] mb-8"
+            style={{ fontSize: "clamp(2.2rem, 5vw, 4rem)", letterSpacing: "-0.04em" }}
           >
             Empowering Educators &amp; Elevating Education{" "}
             <span style={{ color: "var(--brand-accent)" }}>Across Saudi Arabia</span>
           </h2>
 
-          {/* Vision quote */}
+          {/* Vision statement — typographic treatment */}
           <div
-            className="relative inline-block rounded-3xl px-10 py-8 mx-auto max-w-2xl"
-            style={{ background: "var(--brand-gradient)" }}
+            className="inline-block border-t border-b py-8 px-4 max-w-2xl"
+            style={{ borderColor: "rgba(255,255,255,0.12)" }}
           >
-            <div className="absolute -top-3 left-10 text-5xl font-black text-white/20 leading-none select-none">
-              &ldquo;
-            </div>
-            <p className="text-white/90 text-lg font-medium leading-relaxed relative z-10">
-              To become a trusted partner to private and international schools, ensuring every classroom
-              remains active and engaging.
+            <p className="text-white/70 text-xl font-medium leading-relaxed italic">
+              &ldquo;To become a trusted partner to private and international schools, ensuring every
+              classroom remains active and engaging.&rdquo;
             </p>
           </div>
         </div>
       </section>
 
-      {/* ── Why Abjad Leads ── */}
-      <section className="relative bg-[#f8fafc] py-24 overflow-hidden">
+      {/* ── Why Abjad Leads — horizontal numbered strip ── */}
+      <section className="bg-white">
+        {/* Section label strip */}
         <div
-          className="absolute -bottom-32 -left-32 w-125 h-125 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%)" }}
-        />
-
-        <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
-          <div className="text-center mb-14">
+          className="border-b border-gray-100 px-6 lg:px-10 py-5"
+          style={{ maxWidth: "none" }}
+        >
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
             <span
-              className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
-              style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}
+              className="text-xs font-black tracking-widest uppercase"
+              style={{ color: "var(--brand-primary)" }}
             >
               Why Abjad Leads
             </span>
-            <h2
-              className="font-extrabold text-gray-950 mb-4"
-              style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.03em" }}
+            <span className="text-xs text-gray-400">A Nationwide Community</span>
+          </div>
+        </div>
+
+        {/* Three items as horizontal divider rows */}
+        <div className="max-w-6xl mx-auto px-6 lg:px-10 divide-y divide-gray-100">
+          {whyItems.map((item, i) => (
+            <div
+              key={i}
+              className="group grid md:grid-cols-12 gap-6 py-10 items-center"
             >
-              More Than a Hiring Platform —{" "}
-              <span style={{ color: "var(--brand-primary)" }}>A Nationwide Community</span>
-            </h2>
-            <p className="text-gray-500 text-lg max-w-3xl mx-auto">
-              Abjad is more than a hiring platform; it is a nationwide community of educators, substitute
-              teachers, specialists, and institutions working together to advance the future of learning.
-            </p>
-          </div>
-
-          {/* 3-column feature cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {whyFeatures.map((f, i) => (
-              <div
-                key={i}
-                className="group bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1"
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-transform duration-200 group-hover:scale-110"
-                  style={{ backgroundColor: f.bg }}
+              {/* Large coloured number */}
+              <div className="md:col-span-1 flex items-center">
+                <span
+                  className="text-3xl font-black"
+                  style={{ color: item.color }}
                 >
-                  <f.icon size={22} style={{ color: f.color }} strokeWidth={2} />
-                </div>
-                <h3 className="text-base font-bold text-gray-900 mb-2">{f.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+                  {item.num}
+                </span>
               </div>
-            ))}
-          </div>
+              {/* Title */}
+              <div className="md:col-span-4">
+                <h3
+                  className="text-lg font-bold text-gray-950 group-hover:text-brand-primary transition-colors"
+                >
+                  {item.title}
+                </h3>
+              </div>
+              {/* Divider */}
+              <div className="hidden md:block md:col-span-1">
+                <div className="h-px w-full" style={{ background: `${item.color}40` }} />
+              </div>
+              {/* Desc */}
+              <div className="md:col-span-6">
+                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
 
-          {/* For educators callout */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-            <p className="text-gray-600 text-base leading-relaxed text-center max-w-3xl mx-auto">
-              For educators, Abjad makes it easy to discover roles that match your skills, values, and
-              growth ambitions — from private schools to national educational institutions across the
-              Kingdom of Saudi Arabia.
-            </p>
-          </div>
+        {/* Educators callout — accent background */}
+        <div
+          className="px-6 lg:px-10 py-8"
+          style={{ backgroundColor: "var(--brand-accent-light)" }}
+        >
+          <p
+            className="max-w-3xl mx-auto text-center text-sm font-medium leading-relaxed"
+            style={{ color: "var(--brand-primary)" }}
+          >
+            For educators, Abjad makes it easy to discover roles that match your skills, values, and growth
+            ambitions — from private schools to national educational institutions across the Kingdom of Saudi Arabia.
+          </p>
         </div>
       </section>
     </>

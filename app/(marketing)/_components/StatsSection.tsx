@@ -1,19 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, GraduationCap, ArrowRight, Zap, BadgeCheck, Globe2 } from "lucide-react";
+import { Building2, GraduationCap, ArrowRight } from "lucide-react";
+
+const stats = [
+  { value: "70%", label: "Faster hiring vs traditional methods" },
+  { value: "100%", label: "Verified educator profiles" },
+  { value: "KSA", label: "Nationwide coverage" },
+];
 
 export default function StatsSection() {
   return (
-    <section id="schools" className="relative overflow-hidden bg-[#f8fafc] py-24">
+    <section id="schools" className="relative overflow-hidden bg-[#f8fafc]">
+
+      {/* ── Stats banner — full bleed accent strip ── */}
       <div
-        className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(0,172,211,0.07) 0%, transparent 70%)" }}
-      />
+        className="relative overflow-hidden"
+        style={{ background: "var(--brand-primary)" }}
+      >
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-14">
+          <div className="grid grid-cols-3 gap-0 divide-x divide-white/10">
+            {stats.map((s, i) => (
+              <div key={i} className="text-center px-6">
+                <div
+                  className="font-black mb-1 leading-none"
+                  style={{ fontSize: "clamp(2.8rem, 6vw, 4.5rem)", color: i === 0 ? "var(--brand-accent)" : i === 1 ? "#a78bfa" : "#34d399" }}
+                >
+                  {s.value}
+                </div>
+                <div className="text-white/50 text-xs font-medium tracking-wide">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
+      {/* ── Main content ── */}
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
 
-        {/* Section header */}
         <div className="text-center mb-16">
           <span
             className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
@@ -30,86 +58,98 @@ export default function StatsSection() {
             to Connect
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            Abjad transforms education hiring in Saudi Arabia by connecting schools with top teachers
-            and educators. With intelligent matching, real-time updates, and nationwide reach, Abjad
-            streamlines how educators get discovered and how schools hire.
+            Intelligent matching, real-time updates, and nationwide reach — Abjad transforms how
+            educators get discovered and how schools hire.
           </p>
         </div>
 
-        {/* Two-column comparison */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        {/* Checkerboard comparison — alternating bg */}
+        <div className="rounded-3xl overflow-hidden border border-gray-200 shadow-sm">
 
-          {/* For Schools */}
+          {/* Row 1: Schools (dark) */}
           <div
-            className="relative rounded-3xl p-8 overflow-hidden"
+            className="grid lg:grid-cols-2"
             style={{ background: "var(--brand-gradient)" }}
           >
-            <div className="absolute -bottom-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-            <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-5">
-                <Building2 size={22} className="text-white" strokeWidth={2} />
+            <div className="p-10 lg:p-12 flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Building2 size={20} className="text-white" />
+                </div>
+                <span className="text-white/60 text-xs font-bold tracking-widest uppercase">For Schools</span>
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">For Schools</h3>
-              <ul className="space-y-3 mb-8">
-                {["Efficient recruitment", "Verified educators", "Simple onboarding"].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-white/85 text-sm">
-                    <BadgeCheck size={16} className="text-white/70 shrink-0" strokeWidth={2} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              <h3
+                className="font-extrabold text-white mb-4 leading-tight"
+                style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)" }}
+              >
+                Hire Faster.<br />Hire Better.
+              </h3>
+              <p className="text-white/60 text-sm leading-relaxed mb-8">
+                Access a verified pool of ready-to-place educators, post openings in minutes, and
+                fill permanent or substitute vacancies at record speed.
+              </p>
               <Link
                 href="/register?role=school"
-                className="inline-flex items-center gap-2 text-sm font-bold text-white hover:gap-3 transition-all"
+                className="inline-flex items-center gap-2 self-start text-sm font-bold text-white rounded-full px-5 py-2.5 border border-white/30 hover:bg-white/15 transition-all"
               >
-                Get Started <ArrowRight size={15} />
+                Get Started <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="p-10 lg:p-12 flex flex-col gap-4 justify-center border-t lg:border-t-0 lg:border-l border-white/10">
+              {["Efficient recruitment pipeline", "Verified educator profiles", "Seamless onboarding flow"].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: "var(--brand-accent)" }}
+                  />
+                  <span className="text-white/75 text-sm">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Row 2: Teachers (light) */}
+          <div className="grid lg:grid-cols-2 bg-white">
+            <div className="p-10 lg:p-12 flex flex-col gap-4 justify-center border-b lg:border-b-0 lg:border-r border-gray-100 order-2 lg:order-1">
+              {["Flexible roles available now", "International school openings", "Fast one-click applications"].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: "var(--brand-primary)" }}
+                  />
+                  <span className="text-gray-600 text-sm">{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="p-10 lg:p-12 flex flex-col justify-center order-1 lg:order-2">
+              <div className="flex items-center gap-3 mb-5">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: "var(--brand-primary-light)" }}
+                >
+                  <GraduationCap size={20} style={{ color: "var(--brand-primary)" }} />
+                </div>
+                <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "var(--brand-primary)" }}>For Teachers</span>
+              </div>
+              <h3
+                className="font-extrabold text-gray-950 mb-4 leading-tight"
+                style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)" }}
+              >
+                Find Your Role.<br />Grow Your Career.
+              </h3>
+              <p className="text-gray-500 text-sm leading-relaxed mb-8">
+                Discover opportunities that match your skills and schedule — from full-time positions
+                at international schools to flexible substitute roles.
+              </p>
+              <Link
+                href="/register?role=teacher"
+                className="inline-flex items-center gap-2 self-start text-sm font-bold text-white rounded-full px-5 py-2.5 transition-all hover:scale-105 hover:shadow-lg"
+                style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 4px 14px var(--brand-primary-glow)" }}
+              >
+                Get Started <ArrowRight size={14} />
               </Link>
             </div>
           </div>
-
-          {/* For Teachers */}
-          <div className="rounded-3xl p-8 bg-white border border-gray-100 shadow-sm">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
-              style={{ backgroundColor: "var(--brand-primary-light)" }}>
-              <GraduationCap size={22} style={{ color: "var(--brand-primary)" }} strokeWidth={2} />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">For Teachers</h3>
-            <ul className="space-y-3 mb-8">
-              {["Flexible roles", "International school options", "Fast applications"].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-gray-600 text-sm">
-                  <BadgeCheck size={16} style={{ color: "var(--brand-primary)" }} className="shrink-0" strokeWidth={2} />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/register?role=teacher"
-              className="inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3"
-              style={{ color: "var(--brand-primary)" }}
-            >
-              Get Started <ArrowRight size={15} />
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { icon: Zap, color: "#f59e0b", bg: "#fef3c7", stat: "70%", label: "Shorter recruitment time" },
-            { icon: BadgeCheck, color: "#10b981", bg: "#ecfdf5", stat: "100%", label: "Verified profiles" },
-            { icon: Globe2, color: "#6366f1", bg: "#eef2ff", stat: "KSA", label: "Nationwide coverage" },
-          ].map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 text-center shadow-sm">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ backgroundColor: s.bg }}>
-                <s.icon size={18} style={{ color: s.color }} strokeWidth={2} />
-              </div>
-              <div className="text-2xl font-black text-gray-900 mb-1">{s.stat}</div>
-              <div className="text-xs text-gray-500">{s.label}</div>
-            </div>
-          ))}
         </div>
       </div>
     </section>

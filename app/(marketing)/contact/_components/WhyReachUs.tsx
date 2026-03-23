@@ -1,38 +1,31 @@
-import { Globe2, BadgeCheck, ShieldCheck, Clock3, Users2 } from "lucide-react";
-
 const reasons = [
   {
-    icon: Globe2,
-    color: "#6366f1",
-    bg: "#eef2ff",
+    num: "01",
+    numColor: "var(--brand-accent)",
     title: "Nationwide Coverage",
     desc: "We connect schools across the entire Kingdom of Saudi Arabia with qualified teachers and educators, ensuring dependable staffing support nationwide.",
   },
   {
-    icon: Users2,
-    color: "var(--brand-accent)",
-    bg: "rgba(0,172,211,0.08)",
+    num: "02",
+    numColor: "#6366f1",
     title: "Proven Track Record",
     desc: "Our proven experience includes placing hundreds of teachers, substitute teachers, and professional educators in top schools throughout Saudi Arabia.",
   },
   {
-    icon: ShieldCheck,
-    color: "#10b981",
-    bg: "#ecfdf5",
+    num: "03",
+    numColor: "#10b981",
     title: "Thorough Screening",
-    desc: "We follow a thorough screening process, including background checks, credential verification, and trial teaching assignments, to ensure every educator meets the highest standards.",
+    desc: "We follow a thorough screening process including background checks, credential verification, and trial teaching assignments to ensure every educator meets the highest standards.",
   },
   {
-    icon: Clock3,
-    color: "#f59e0b",
-    bg: "#fef3c7",
+    num: "04",
+    numColor: "#f59e0b",
     title: "Fast & Reliable Staffing",
     desc: "Schools trust us to deliver verified and reliable teaching staff quickly — especially for urgent substitute teacher needs across the Kingdom.",
   },
   {
-    icon: BadgeCheck,
-    color: "var(--brand-primary)",
-    bg: "rgba(13,37,66,0.07)",
+    num: "05",
+    numColor: "var(--brand-primary)",
     title: "Continuous Opportunities",
     desc: "Educators and teachers on our platform gain continuous placement opportunities in international schools, high schools, and local institutions throughout Saudi Arabia.",
   },
@@ -40,50 +33,66 @@ const reasons = [
 
 export default function WhyReachUs() {
   return (
-    <section className="bg-[#f8fafc] py-24 overflow-hidden">
+    <section className="bg-white py-24 overflow-hidden">
       <div className="max-w-6xl mx-auto px-6 lg:px-10">
 
-        <div className="text-center mb-14">
+        {/* Label bar */}
+        <div className="flex items-center gap-4 mb-14">
+          <div className="h-px flex-1" style={{ background: "var(--brand-primary-light)" }} />
           <span
-            className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
+            className="text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full"
             style={{ backgroundColor: "var(--brand-accent-light)", color: "var(--brand-accent)" }}
           >
             Why Reach Us
           </span>
+          <div className="h-px flex-1" style={{ background: "var(--brand-primary-light)" }} />
+        </div>
+
+        {/* Big headline */}
+        <div className="grid lg:grid-cols-12 gap-6 mb-12 items-end">
           <h2
-            className="font-extrabold text-gray-950 mb-4"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.03em" }}
+            className="lg:col-span-7 font-extrabold text-gray-950 leading-tight"
+            style={{ fontSize: "clamp(2rem, 4.5vw, 3.2rem)", letterSpacing: "-0.04em" }}
           >
-            Why Schools &amp; Educators{" "}
+            Why Schools & Educators{" "}
             <span style={{ color: "var(--brand-accent)" }}>Trust Abjad</span>
           </h2>
-          <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            From Riyadh to Dammam, Abjad is the platform that schools and educators rely on for
-            fast, verified, and lasting placements.
+          <p className="lg:col-span-5 text-gray-500 text-base leading-relaxed self-end">
+            From Riyadh to Dammam, Abjad is the platform schools and educators rely on for
+            fast, verified, and lasting placements across Saudi Arabia.
           </p>
         </div>
 
-        {/* 5-card grid: 3 top + 2 bottom centered */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Numbered divider rows */}
+        <div className="divide-y divide-gray-100">
           {reasons.map((r, i) => (
-            <div
-              key={i}
-              className={`group bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${
-                i === 3 ? "lg:col-start-1" : ""
-              }`}
-            >
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-transform duration-200 group-hover:scale-110"
-                style={{ backgroundColor: r.bg }}
+            <div key={i} className="grid lg:grid-cols-12 gap-4 items-start py-8 group">
+              {/* Number */}
+              <span
+                className="lg:col-span-1 font-black text-2xl leading-none select-none"
+                style={{ color: r.numColor, fontVariantNumeric: "tabular-nums", opacity: 0.85 }}
               >
-                <r.icon size={22} style={{ color: r.color }} strokeWidth={2} />
+                {r.num}
+              </span>
+
+              {/* Title */}
+              <h3
+                className="lg:col-span-3 font-bold text-gray-900 text-base leading-snug"
+              >
+                {r.title}
+              </h3>
+
+              {/* Divider */}
+              <div className="hidden lg:flex lg:col-span-1 items-center justify-center">
+                <div className="w-px h-8 bg-gray-200" />
               </div>
-              <h3 className="text-base font-bold text-gray-900 mb-2">{r.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{r.desc}</p>
+
+              {/* Desc */}
+              <p className="lg:col-span-7 text-sm text-gray-500 leading-relaxed">
+                {r.desc}
+              </p>
             </div>
           ))}
-          {/* Empty spacer for 5-card grid centering on lg */}
-          <div className="hidden lg:block" />
         </div>
       </div>
     </section>

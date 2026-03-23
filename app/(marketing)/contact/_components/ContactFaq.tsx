@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
@@ -30,53 +29,61 @@ export default function ContactFaq() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section
-      className="py-24 overflow-hidden"
-      style={{ background: "var(--brand-gradient)" }}
-    >
-      <div className="max-w-3xl mx-auto px-6 lg:px-10">
+    <section className="bg-[#f8fafc] py-24 overflow-hidden">
+      <div className="max-w-4xl mx-auto px-6 lg:px-10">
 
-        <div className="text-center mb-12">
-          <span className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4 bg-white/10 text-white/70">
-            FAQs
-          </span>
-          <h2
-            className="font-extrabold text-white mb-4"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.03em" }}
-          >
-            Common{" "}
-            <span style={{ color: "var(--brand-accent)" }}>Questions</span>
-          </h2>
-          <p className="text-white/55 text-base max-w-xl mx-auto">
-            Quick answers to the questions schools and educators ask most often before reaching out.
+        {/* Header */}
+        <div className="grid lg:grid-cols-12 gap-6 mb-14 items-end">
+          <div className="lg:col-span-8">
+            <div
+              className="inline-flex items-center gap-2 text-xs font-black tracking-widest uppercase mb-4"
+              style={{ color: "var(--brand-accent)" }}
+            >
+              <span className="w-6 h-0.5 inline-block rounded" style={{ backgroundColor: "var(--brand-accent)" }} />
+              FAQs
+            </div>
+            <h2
+              className="font-extrabold text-gray-950 leading-tight"
+              style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}
+            >
+              Common{" "}
+              <span style={{ color: "var(--brand-accent)" }}>Questions</span>
+            </h2>
+          </div>
+          <p className="lg:col-span-4 text-gray-500 text-sm leading-relaxed self-end">
+            Quick answers to what schools and educators ask before reaching out.
           </p>
         </div>
 
-        <div className="space-y-3">
+        {/* Accordion rows */}
+        <div className="divide-y divide-gray-200 border-y border-gray-200">
           {faqs.map((faq, i) => {
             const isOpen = open === i;
             return (
-              <div
-                key={i}
-                className="rounded-2xl border border-white/10 overflow-hidden transition-all duration-200"
-                style={{ backgroundColor: isOpen ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)" }}
-              >
+              <div key={i}>
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="w-full flex items-start justify-between gap-4 px-7 py-5 text-left"
+                  className="w-full flex items-start justify-between gap-6 py-6 text-left group"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-sm font-semibold text-white leading-relaxed">{faq.q}</span>
-                  <ChevronDown
-                    size={18}
-                    strokeWidth={2}
-                    className={`text-white/50 shrink-0 mt-0.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                  />
+                  <span className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-gray-700 transition-colors">
+                    {faq.q}
+                  </span>
+                  <span
+                    className="w-7 h-7 rounded-full border shrink-0 flex items-center justify-center text-base font-bold transition-all duration-200 mt-0.5"
+                    style={{
+                      borderColor: isOpen ? "var(--brand-accent)" : "#d1d5db",
+                      color: isOpen ? "var(--brand-accent)" : "#6b7280",
+                      backgroundColor: isOpen ? "var(--brand-accent-light)" : "transparent",
+                    }}
+                  >
+                    {isOpen ? "×" : "+"}
+                  </span>
                 </button>
                 {isOpen && (
-                  <div className="px-7 pb-6">
-                    <p className="text-sm text-white/60 leading-relaxed">{faq.a}</p>
+                  <div className="pb-6 pr-14">
+                    <p className="text-sm text-gray-500 leading-relaxed">{faq.a}</p>
                   </div>
                 )}
               </div>

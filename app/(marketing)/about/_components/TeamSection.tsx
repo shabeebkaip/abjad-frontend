@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Award } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const team = [
   {
@@ -46,83 +46,76 @@ const team = [
 
 export default function TeamSection() {
   return (
-    <section className="relative bg-white py-24 overflow-hidden">
-      <div
-        className="absolute top-0 inset-x-0 h-px pointer-events-none"
-        style={{ background: "linear-gradient(90deg, transparent, var(--brand-accent), transparent)" }}
-      />
-      <div
-        className="absolute -top-32 right-0 w-100 h-100 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(0,172,211,0.05) 0%, transparent 70%)" }}
-      />
+    <section className="relative bg-[#f8fafc] overflow-hidden">
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
-
-        {/* Header */}
-        <div className="text-center mb-14">
-          <span
-            className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4"
-            style={{ backgroundColor: "var(--brand-accent-light)", color: "var(--brand-accent)" }}
-          >
-            <Award size={12} />
-            Our Team
-          </span>
-          <h2
-            className="font-extrabold text-gray-950 mb-4"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.03em" }}
-          >
-            Meet the Experts{" "}
-            <span style={{ color: "var(--brand-accent)" }}>Behind Abjad</span>
-          </h2>
-          <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            A team of seasoned educators, coaches, and HR specialists dedicated to transforming
-            school hiring across Saudi Arabia.
-          </p>
+      {/* Section header with side-rule treatment */}
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 pt-24 pb-14">
+        <div className="flex items-end gap-8 mb-2">
+          <div>
+            <span
+              className="inline-block text-xs font-black tracking-widest uppercase mb-3"
+              style={{ color: "var(--brand-accent)" }}
+            >
+              Our Team
+            </span>
+            <h2
+              className="font-extrabold text-gray-950 leading-tight"
+              style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}
+            >
+              Meet the Experts{" "}
+              <span style={{ color: "var(--brand-accent)" }}>Behind Abjad</span>
+            </h2>
+          </div>
+          <div className="hidden lg:block h-px flex-1 mb-4" style={{ background: "linear-gradient(90deg, var(--brand-accent), transparent)" }} />
         </div>
+        <p className="text-gray-500 text-base max-w-xl">
+          Seasoned educators, coaches, and HR specialists dedicated to transforming school
+          hiring across Saudi Arabia.
+        </p>
+      </div>
 
-        {/* Team grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      {/* Horizontal scrolling/stacked members */}
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 pb-24">
+        <div className="flex flex-col divide-y divide-gray-200">
           {team.map((member, i) => (
             <div
               key={i}
-              className="group relative bg-[#f8fafc] rounded-3xl p-6 border border-gray-100 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col"
+              className="group grid lg:grid-cols-12 gap-6 py-10 items-start"
             >
-              {/* Subtle top accent line */}
-              <div
-                className="absolute top-0 inset-x-6 h-0.5 rounded-full"
-                style={{ backgroundColor: member.color, opacity: 0.6 }}
-              />
-
-              {/* Avatar */}
-              <div className="mb-5 mt-2">
+              {/* Avatar + meta — 3 cols */}
+              <div className="lg:col-span-3 flex items-center gap-5 lg:flex-col lg:items-start">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center font-extrabold text-xl shadow-sm"
-                  style={{ backgroundColor: member.accent, color: member.color, border: `1.5px solid ${member.border}` }}
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center font-extrabold text-xl shrink-0 group-hover:scale-105 transition-transform duration-200"
+                  style={{ backgroundColor: member.accent, color: member.color, border: `2px solid ${member.border}` }}
                 >
                   {member.initials}
                 </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">{member.name}</h3>
+                  <p className="text-sm font-semibold mt-0.5" style={{ color: member.color }}>{member.title}</p>
+                  <span
+                    className="inline-block mt-2 text-xs font-medium px-2.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: member.accent, color: member.color }}
+                  >
+                    {member.tag}
+                  </span>
+                </div>
               </div>
 
-              {/* Name & title */}
-              <h3 className="text-base font-bold text-gray-900 leading-snug mb-1">{member.name}</h3>
-              <p className="text-sm font-semibold mb-3" style={{ color: member.color }}>{member.title}</p>
+              {/* Vertical rule */}
+              <div className="hidden lg:flex lg:col-span-1 justify-center">
+                <div className="w-px h-full min-h-12 rounded-full" style={{ backgroundColor: member.border }} />
+              </div>
 
-              {/* Tag pill */}
-              <span
-                className="self-start text-xs font-medium px-3 py-1 rounded-full mb-4"
-                style={{ backgroundColor: member.accent, color: member.color }}
-              >
-                {member.tag}
-              </span>
-
-              {/* Bio */}
-              <p className="text-xs text-gray-500 leading-relaxed flex-1">{member.bio}</p>
+              {/* Bio — 8 cols */}
+              <div className="lg:col-span-8">
+                <p className="text-sm text-gray-600 leading-relaxed">{member.bio}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Meet Us CTA */}
-        <div className="text-center">
+        <div className="pt-8">
           <Link
             href="/register"
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm text-white transition-all hover:scale-105 hover:shadow-lg"
