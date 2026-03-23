@@ -5,9 +5,6 @@ export default function MissionSection() {
   return (
     <section className="relative bg-white overflow-hidden">
 
-      {/* Thin top rule */}
-      <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--brand-accent) 50%, transparent)" }} />
-
       {/* Full-bleed editorial split */}
       <div className="grid lg:grid-cols-2 min-h-130">
 

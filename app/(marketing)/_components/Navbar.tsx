@@ -4,18 +4,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 const NAV_LINKS = [
-  { label: "How It Works", labelAr: "كيف يعمل",   href: "#how-it-works" },
-  { label: "For Schools",  labelAr: "للمدارس",     href: "#schools" },
-  { label: "Testimonials", labelAr: "آراء العملاء", href: "#testimonials" },
+  { label: "Home",    labelAr: "الرئيسية",  href: "/"        },
+  { label: "About",   labelAr: "من نحن",    href: "/about"   },
+  { label: "Contact", labelAr: "تواصل معنا", href: "/contact" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled]   = useState(false);
   const [menuOpen, setMenuOpen]   = useState(false);
   const { lang, switchLang }      = useLanguage();
+  const pathname                  = usePathname();
   const isAr                      = lang === "ar";
 
   useEffect(() => {
@@ -24,17 +26,35 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
   return (
     <>
-      {/* ── Floating island navbar ── */}
-      <header className="fixed top-0 inset-x-0 z-50 flex justify-center pointer-events-none pt-4 px-4">
+      {/* ── Navbar: floating island → full-width on scroll ── */}
+      <header
+        className="fixed top-0 inset-x-0 z-50 flex justify-center pointer-events-none transition-all duration-500 ease-in-out"
+        style={{ paddingTop: scrolled ? "0" : "1rem", paddingLeft: scrolled ? "0" : "1rem", paddingRight: scrolled ? "0" : "1rem" }}
+      >
         <div
-          className={`pointer-events-auto w-full max-w-5xl flex items-center justify-between px-4 py-2.5 rounded-2xl transition-all duration-300 ${
-            scrolled
-              ? "bg-white/90 backdrop-blur-xl shadow-lg shadow-black/[0.08] border border-black/[0.06]"
-              : "bg-white/75 backdrop-blur-md border border-black/[0.07] shadow-md shadow-black/[0.05]"
-          }`}
+          className="pointer-events-auto w-full transition-all duration-500 ease-in-out"
+          style={{
+            maxWidth: scrolled ? "100%" : "64rem",
+            borderRadius: scrolled ? "0" : "1rem",
+            backgroundColor: scrolled ? "rgba(255,255,255,0.97)" : "rgba(255,255,255,0.75)",
+            backdropFilter: "blur(20px)",
+            boxShadow: scrolled
+              ? "0 1px 0 0 rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06)"
+              : "0 4px 20px rgba(0,0,0,0.05)",
+            border: scrolled ? "none" : "1px solid rgba(0,0,0,0.07)",
+            borderBottom: scrolled ? "1px solid rgba(0,0,0,0.07)" : undefined,
+          }}
         >
+          {/* Inner container — always max-w-6xl centered */}
+          <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
             <Image
@@ -49,15 +69,28 @@ export default function Navbar() {
 
           {/* Desktop — center links */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3.5 py-2 rounded-xl hover:bg-gray-50 transition-all"
-              >
-                {isAr ? l.labelAr : l.label}
-              </a>
-            ))}
+            {NAV_LINKS.map((l) => {
+              const active = isActive(l.href);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={`text-sm font-medium px-3.5 py-2 rounded-xl transition-all ${
+                    active
+                      ? "text-gray-900 bg-gray-100 font-semibold"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
+                  {isAr ? l.labelAr : l.label}
+                  {active && (
+                    <span
+                      className="block h-0.5 rounded-full mt-0.5 mx-auto w-4"
+                      style={{ backgroundColor: "var(--brand-accent)" }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop — right side */}
@@ -111,6 +144,7 @@ export default function Navbar() {
           >
             {menuOpen ? <X size={20} className="text-gray-700" /> : <Menu size={20} className="text-gray-700" />}
           </button>
+          </div>{/* end inner container */}
         </div>
       </header>
 
@@ -119,30 +153,44 @@ export default function Navbar() {
         <div className="fixed inset-x-0 top-0 z-40 pt-20 px-4 pointer-events-auto md:hidden">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
             <nav className="p-3">
-              {NAV_LINKS.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center text-sm font-medium text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 hover:text-brand-primary transition-colors"
-                >
-                  {isAr ? l.labelAr : l.label}
-                </a>
-              ))}
+              {NAV_LINKS.map((l) => {
+                const active = isActive(l.href);
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center text-sm font-medium px-4 py-3 rounded-xl transition-colors ${
+                      active
+                        ? "bg-gray-50 font-semibold"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                    style={active ? { color: "var(--brand-primary)" } : {}}
+                  >
+                    {isAr ? l.labelAr : l.label}
+                    {active && (
+                      <span
+                        className="ml-auto w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ backgroundColor: "var(--brand-accent)" }}
+                      />
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
             <div className="px-3 pb-3 pt-1 border-t border-gray-100 flex flex-col gap-2">
               <Link
                 href="/login"
                 onClick={() => setMenuOpen(false)}
-                className="text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:border-brand-primary hover:text-brand-primary transition-colors"
+                className="text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors"
               >
                 {isAr ? "تسجيل الدخول" : "Sign in"}
               </Link>
               <Link
                 href="/register"
                 onClick={() => setMenuOpen(false)}
-              className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
-              style={{ backgroundColor: "var(--brand-primary)" }}
+                className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
+                style={{ backgroundColor: "var(--brand-primary)" }}
               >
                 {isAr ? "ابدأ مجاناً" : "Get started"}
               </Link>
@@ -173,11 +221,3 @@ export default function Navbar() {
     </>
   );
 }
-
-
-const navLinks = [
-  { label: "For Teachers", href: "#teachers" },
-  { label: "For Schools", href: "#schools" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Testimonials", href: "#testimonials" },
-];

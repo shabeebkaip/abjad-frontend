@@ -1,4 +1,4 @@
-import { Footer } from "../_components/CtaAndFooter";
+
 import AboutHero from "./_components/AboutHero";
 import MissionSection from "./_components/MissionSection";
 import VisionAndWhySection from "./_components/VisionAndWhySection";
@@ -21,7 +21,6 @@ export default function AboutPage() {
       <TeamSection />
       <ValuesSection />
       <AboutCta />
-      <Footer />
     </>
   );
 }

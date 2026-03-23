@@ -80,14 +80,6 @@ export default function AboutHero() {
           Join Today <ArrowRight size={16} />
         </Link>
       </div>
-
-      {/* Wave */}
-      <div className="relative z-10 -mb-px">
-        <svg viewBox="0 0 1440 70" fill="none" xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none" className="w-full block" style={{ height: "70px" }}>
-          <path d="M0 70V40C360 5 720 70 1080 40C1260 22 1380 42 1440 38V70H0Z" fill="#f8fafc" />
-        </svg>
-      </div>
     </section>
   );
 }

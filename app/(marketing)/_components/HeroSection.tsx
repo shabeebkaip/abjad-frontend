@@ -132,10 +132,12 @@ export default function HeroSection() {
           Connect with the{" "}
           <span style={{ color: "var(--brand-accent)" }}>Best Teachers</span>{" "}
           <br className="hidden sm:block" />
+          and Schools in{" "}
           <span className="relative inline-block">
-            and Schools in Saudi Arabia
+            Saudi Arabia
             <svg
-              className="absolute -bottom-2 inset-s-0 w-full"
+              className="absolute left-0 right-0 w-full"
+              style={{ bottom: "-0.2em", height: "0.35em" }}
               viewBox="0 0 300 12"
               preserveAspectRatio="none"
               aria-hidden="true"
@@ -146,7 +148,7 @@ export default function HeroSection() {
                 strokeWidth="3.5"
                 fill="none"
                 strokeLinecap="round"
-                opacity="0.5"
+                opacity="0.7"
               />
             </svg>
           </span>

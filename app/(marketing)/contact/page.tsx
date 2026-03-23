@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Footer } from "../_components/CtaAndFooter";
 import ContactHero from "./_components/ContactHero";
 import WhyReachUs from "./_components/WhyReachUs";
 import WhoShouldContact from "./_components/WhoShouldContact";
@@ -24,7 +23,6 @@ export default function ContactPage() {
       <ContactForm />
       <ServingSchools />
       <ContactFaq />
-      <Footer />
     </div>
   );
 }
