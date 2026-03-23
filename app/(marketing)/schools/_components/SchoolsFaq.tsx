@@ -67,8 +67,12 @@ const faqs = [
   },
 ];
 
+const INITIAL_VISIBLE = 6;
+
 export default function SchoolsFaq() {
   const [open, setOpen] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const visibleFaqs = showAll ? faqs : faqs.slice(0, INITIAL_VISIBLE);
 
   return (
     <section className="bg-[#f8fafc] overflow-hidden">
@@ -100,7 +104,7 @@ export default function SchoolsFaq() {
             </h2>
 
             <div className="divide-y divide-gray-200 border-y border-gray-200">
-              {faqs.map((faq, i) => {
+              {visibleFaqs.map((faq, i) => {
                 const isOpen = open === i;
                 return (
                   <div key={i}>
@@ -133,6 +137,22 @@ export default function SchoolsFaq() {
                 );
               })}
             </div>
+
+            {/* Show more / less toggle */}
+            <button
+              type="button"
+              onClick={() => { setShowAll(!showAll); if (showAll) setOpen(null); }}
+              className="mt-6 flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+              style={{ color: "var(--brand-accent)" }}
+            >
+              {showAll ? "Show fewer questions" : `Show all ${faqs.length} questions`}
+              <span
+                className="w-5 h-5 rounded-full border flex items-center justify-center text-xs font-bold transition-transform"
+                style={{ borderColor: "var(--brand-accent)", transform: showAll ? "rotate(45deg)" : "none" }}
+              >
+                +
+              </span>
+            </button>
           </div>
 
           {/* Right — sticky sidebar */}

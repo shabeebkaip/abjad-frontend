@@ -1,56 +1,56 @@
 import Link from "next/link";
-import { ArrowRight, MapPin, Star, CheckCircle2, Clock, Search, ArrowUpRight } from "lucide-react";
+import { ArrowRight, MapPin, CheckCircle2, Clock, Building2, ArrowUpRight } from "lucide-react";
 
-const educators = [
+const opportunities = [
   {
-    initials: "SM",
+    initials: "AIS",
     bgColor: "var(--brand-accent)",
-    name: "Sara Mohammed",
-    subject: "English Literature",
-    experience: "8 yrs exp",
+    school: "American International School",
+    role: "English Literature Teacher",
     location: "Riyadh",
-    rating: "4.9",
-    tag: "Available Now",
+    type: "Full-time",
+    curriculum: "American",
+    tag: "Hiring Now",
     tagBg: "rgba(16,185,129,0.15)",
     tagColor: "#34d399",
-    subjects: ["IGCSE", "A-Level"],
+    tags: ["Grade 9–12", "IB"],
   },
   {
-    initials: "KA",
+    initials: "BIJ",
     bgColor: "#7c3aed",
-    name: "Khalid Al-Rashidi",
-    subject: "Mathematics",
-    experience: "12 yrs exp",
+    school: "British International School",
+    role: "Mathematics Teacher",
     location: "Jeddah",
-    rating: "4.8",
-    tag: "Top Rated",
+    type: "Full-time",
+    curriculum: "British",
+    tag: "New Post",
     tagBg: "rgba(245,158,11,0.15)",
     tagColor: "#f59e0b",
-    subjects: ["IB", "SAT Prep"],
+    tags: ["IGCSE", "A-Level"],
   },
   {
-    initials: "LH",
+    initials: "ISG",
     bgColor: "#0891b2",
-    name: "Layla Hassan",
-    subject: "Science & Biology",
-    experience: "5 yrs exp",
+    school: "ISG Dammam",
+    role: "Science & Biology Teacher",
     location: "Dammam",
-    rating: "5.0",
-    tag: "Verified",
-    tagBg: "rgba(0,172,211,0.15)",
-    tagColor: "var(--brand-accent)",
-    subjects: ["AP Science", "IB"],
+    type: "Substitute",
+    curriculum: "IB",
+    tag: "Urgent",
+    tagBg: "rgba(239,68,68,0.15)",
+    tagColor: "#f87171",
+    tags: ["IB Sciences", "DP"],
   },
 ];
 
 const stats = [
-  { value: "500+", label: "Partner Schools" },
-  { value: "5,000+", label: "Verified Educators" },
-  { value: "24–48h", label: "Average Hire Time" },
-  { value: "70%", label: "Faster Than Traditional" },
+  { value: "2,000+", label: "Verified Teachers" },
+  { value: "500+", label: "Active Schools" },
+  { value: "3-Day", label: "Average Match Time" },
+  { value: "100%", label: "Verified Schools" },
 ];
 
-export default function SchoolsHero() {
+export default function TeachersHero() {
   return (
     <section
       className="relative overflow-hidden"
@@ -88,57 +88,58 @@ export default function SchoolsHero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
               </span>
-              Hiring Platform for Saudi Schools
+              Teaching Platform for Saudi Arabia
             </div>
 
             <h1
-              className="font-extrabold text-white leading-[1.06] mb-7"
+              className="font-extrabold text-white leading-[1.06] mb-5"
               style={{ fontSize: "clamp(2.6rem, 4.8vw, 4rem)", letterSpacing: "-0.04em" }}
             >
-              Hire Qualified{" "}
+              Instant Connection Between{" "}
               <span
                 className="relative inline-block"
                 style={{ color: "var(--brand-accent)" }}
               >
                 Teachers
-                {/* Underline accent */}
                 <span
                   className="absolute -bottom-1 left-0 right-0 h-0.75 rounded-full opacity-50"
                   style={{ background: "var(--brand-accent)" }}
                 />
               </span>
-              {" "}in Hours,{" "}
-              <br className="hidden lg:block" />
-              Not Weeks.
+              {" "}and Schools.
             </h1>
 
-            <p className="text-white/60 text-base leading-relaxed mb-10 max-w-md">
-              Browse thousands of verified educators across Saudi Arabia — from substitute teachers
-              to permanent hires — and make an offer the same day.
+            <p className="text-white/75 text-base font-semibold mb-3">
+              Empowering Schools. Elevating Teachers.
+            </p>
+
+            <p className="text-white/55 text-sm leading-relaxed mb-10 max-w-md">
+              Discover a smarter way to find the right teacher or substitute teacher — trusted by
+              top Riyadh schools, Jeddah schools, and Dammam schools.
             </p>
 
             <div className="flex items-center gap-3 flex-wrap mb-14">
               <Link
-                href="/register?role=school"
+                href="/register?role=teacher"
                 className="inline-flex items-center gap-2.5 font-bold text-sm px-8 py-4 rounded-full transition-all hover:shadow-2xl hover:shadow-black/40 hover:-translate-y-0.5 text-white"
                 style={{ background: "linear-gradient(135deg, var(--brand-accent) 0%, #0083a8 100%)" }}
               >
-                Start Hiring Free <ArrowRight size={15} />
+                Join Now <ArrowRight size={15} />
               </Link>
               <Link
-                href="/contact"
+                href="/jobs"
                 className="inline-flex items-center gap-2.5 border border-white/20 bg-white/8 text-white/80 font-semibold text-sm px-7 py-4 rounded-full hover:bg-white/14 transition-all"
               >
-                Request a Demo
+                Browse Jobs
               </Link>
             </div>
 
             {/* Trust anchors */}
             <div className="flex flex-wrap gap-x-6 gap-y-3">
               {[
-                "No recruitment fees",
-                "Vetted & verified profiles",
-                "Post a job in 2 minutes",
+                "Free to join",
+                "Verified school profiles",
+                "Instant job alerts",
               ].map((t) => (
                 <span key={t} className="flex items-center gap-2 text-xs font-semibold text-white/50">
                   <CheckCircle2 size={13} style={{ color: "var(--brand-accent)" }} />
@@ -148,15 +149,15 @@ export default function SchoolsHero() {
             </div>
           </div>
 
-          {/* ── Right: Platform UI mockup ── */}
+          {/* ── Right: Job listing mockup ── */}
           <div className="lg:col-span-7 flex flex-col pb-24">
 
-            {/* Fake search/filter bar */}
+            {/* Search bar */}
             <div className="bg-white/8 border border-white/12 rounded-2xl px-5 py-4 flex items-center gap-3 mb-4 backdrop-blur-sm">
-              <Search size={16} className="text-white/40 shrink-0" />
-              <span className="text-white/35 text-sm flex-1">Search by subject, city, or curriculum…</span>
+              <Building2 size={16} className="text-white/40 shrink-0" />
+              <span className="text-white/35 text-sm flex-1">Search by school, subject, or city…</span>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-white/50 font-medium">5,000+ results</span>
+                <span className="text-xs text-white/50 font-medium">500+ openings</span>
                 <div
                   className="h-5 w-px"
                   style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -165,14 +166,14 @@ export default function SchoolsHero() {
                   className="text-xs font-bold px-3 py-1 rounded-full"
                   style={{ background: "var(--brand-accent)", color: "white" }}
                 >
-                  Filter
+                  Search
                 </span>
               </div>
             </div>
 
-            {/* Educator cards — first 2 full, 3rd locked */}
+            {/* Job cards */}
             <div className="flex flex-col gap-3">
-              {educators.map((e, i) => (
+              {opportunities.map((o, i) => (
                 <div
                   key={i}
                   className={`group relative rounded-2xl border border-white/10 bg-white/6 backdrop-blur-sm px-6 py-5 flex items-center gap-5 transition-all cursor-pointer ${
@@ -181,73 +182,68 @@ export default function SchoolsHero() {
                 >
                   {/* Locked overlay for 3rd card */}
                   {i === 2 && (
-                    <Link href="/register?role=school" className="absolute inset-0 rounded-2xl backdrop-blur-[2px] bg-linear-to-b from-transparent via-(--brand-primary)/60 to-(--brand-primary)/90 z-10 flex items-center justify-center group/lock">
+                    <Link href="/register?role=teacher" className="absolute inset-0 rounded-2xl backdrop-blur-[2px] bg-linear-to-b from-transparent via-(--brand-primary)/60 to-(--brand-primary)/90 z-10 flex items-center justify-center group/lock">
                       <span className="text-xs font-bold px-4 py-2 rounded-full border border-white/20 bg-white/10 text-white/60 flex items-center gap-1.5 group-hover/lock:bg-white/20 group-hover/lock:text-white/90 transition-all">
-                        Sign up to see all educators <ArrowUpRight size={12} />
+                        Sign up to see all opportunities <ArrowUpRight size={12} />
                       </span>
                     </Link>
                   )}
-                  {/* Avatar */}
+                  {/* School avatar */}
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-sm shrink-0"
-                    style={{ background: e.bgColor }}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-xs shrink-0"
+                    style={{ background: o.bgColor }}
                   >
-                    {e.initials}
+                    {o.initials}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <span className="font-bold text-white text-sm">{e.name}</span>
+                      <span className="font-bold text-white text-sm">{o.role}</span>
                       <span
                         className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-                        style={{ background: e.tagBg, color: e.tagColor }}
+                        style={{ background: o.tagBg, color: o.tagColor }}
                       >
-                        {e.tag}
+                        {o.tag}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-white/45 flex-wrap">
-                      <span>{e.subject}</span>
-                      <span className="w-1 h-1 rounded-full bg-white/20 shrink-0" />
-                      <span>{e.experience}</span>
+                      <span>{o.school}</span>
                       <span className="w-1 h-1 rounded-full bg-white/20 shrink-0" />
                       <span className="flex items-center gap-1">
                         <MapPin size={10} />
-                        {e.location}
+                        {o.location}
                       </span>
+                      <span className="w-1 h-1 rounded-full bg-white/20 shrink-0" />
+                      <span>{o.type}</span>
                     </div>
                     <div className="flex gap-1.5 mt-2">
-                      {e.subjects.map((s) => (
+                      {o.tags.map((t) => (
                         <span
-                          key={s}
+                          key={t}
                           className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white/8 text-white/50"
                         >
-                          {s}
+                          {t}
                         </span>
                       ))}
                     </div>
                   </div>
 
-                  {/* Rating + action */}
+                  {/* Curriculum + action */}
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="flex items-center gap-1">
-                      <Star size={11} className="fill-amber-400 text-amber-400" />
-                      <span className="text-xs font-bold text-white/70">{e.rating}</span>
-                    </div>
-                    <button
-                      className="text-xs font-bold px-4 py-1.5 rounded-full border border-white/20 text-white/60 hover:bg-white/10 transition-all group-hover:border-white/30"
-                    >
-                      View Profile
+                    <span className="text-xs text-white/40">{o.curriculum}</span>
+                    <button className="text-xs font-bold px-4 py-1.5 rounded-full border border-white/20 text-white/60 hover:bg-white/10 transition-all group-hover:border-white/30">
+                      Apply Now
                     </button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* More educators count */}
+            {/* More count */}
             <div className="mt-3 flex items-center justify-center gap-2 py-3">
               <Clock size={11} className="text-white/25" />
-              <span className="text-xs text-white/30 font-medium">4,997 more verified educators available</span>
+              <span className="text-xs text-white/30 font-medium">497 more school openings available</span>
             </div>
           </div>
         </div>
