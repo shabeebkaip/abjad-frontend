@@ -94,7 +94,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between gap-4 py-5 text-left group"
       >
-        <span className="text-sm font-semibold text-gray-900 group-hover:text-[color:var(--brand-primary)] transition-colors">
+        <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-primary transition-colors">
           {q}
         </span>
         <ChevronDown
