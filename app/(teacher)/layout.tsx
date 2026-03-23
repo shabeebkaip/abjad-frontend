@@ -10,7 +10,6 @@ import {
   User,
   Bell,
   LogOut,
-  Bookmark,
   ChevronDown,
   Settings,
   MessageSquare,
@@ -22,7 +21,6 @@ const navItems = [
   { href: "/jobs",          icon: Search,          label: "Find Jobs" },
   { href: "/applications",  icon: FileText,        label: "My Applications" },
   { href: "/interviews",    icon: Calendar,        label: "Interviews" },
-  { href: "/saved-jobs",    icon: Bookmark,        label: "Saved Jobs" },
   { href: "/profile",       icon: User,            label: "My Profile" },
   { href: "/notifications", icon: Bell,            label: "Notifications" },
   { href: "/support",       icon: MessageSquare,   label: "Support" },
@@ -43,14 +41,8 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         {/* Logo + user row */}
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between h-14 px-4 lg:px-6">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-base"
-              style={{ background: "var(--brand-gradient)" }}
-            >
-              أ
-            </div>
-            <span className="font-bold text-slate-900 text-lg tracking-tight">Abjad</span>
+          <Link href="/dashboard" className="flex items-center shrink-0">
+            <img src="/ABJAD.png" alt="Abjad" className="h-8 w-auto" />
           </Link>
 
           {/* Right: bell + profile */}
