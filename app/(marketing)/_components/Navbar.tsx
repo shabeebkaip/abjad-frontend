@@ -8,9 +8,10 @@ import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 const NAV_LINKS = [
-  { label: "Home",    labelAr: "الرئيسية",  href: "/"        },
-  { label: "About",   labelAr: "من نحن",    href: "/about"   },
-  { label: "Contact", labelAr: "تواصل معنا", href: "/contact" },
+  { label: "Home",    labelAr: "الرئيسية",    href: "/"        },
+  { label: "Schools", labelAr: "للمدارس",     href: "/schools" },
+  { label: "About",   labelAr: "من نحن",      href: "/about"   },
+  { label: "Contact", labelAr: "تواصل معنا",  href: "/contact" },
 ];
 
 export default function Navbar() {
