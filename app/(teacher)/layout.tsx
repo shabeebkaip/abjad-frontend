@@ -69,7 +69,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 >
                   AH
                 </div>
-                <span className="text-sm font-medium text-slate-700 hidden sm:block">Ahmed Hassan</span>
+                <span className="text-sm font-medium text-slate-700 hidden sm:block">Shabeeb K</span>
                 <ChevronDown size={13} className="text-slate-400" />
               </button>
 
@@ -78,7 +78,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                   <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
                   <div className="absolute right-0 top-full mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
                     <p className="px-4 py-2 text-xs text-slate-400 font-medium border-b border-slate-100 mb-1">
-                      ahmed.hassan@email.com
+                      shabeeb@email.com
                     </p>
                     <Link
                       href="/profile"

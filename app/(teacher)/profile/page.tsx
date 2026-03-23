@@ -143,7 +143,7 @@ export default function ProfilePage() {
                 <Camera size={13} className="text-gray-600" />
               </button>
             </div>
-            <h3 className="font-semibold text-gray-900">Ahmed Hassan</h3>
+            <h3 className="font-semibold text-gray-900">Shabeeb</h3>
             <p className="text-xs text-gray-500 mt-0.5">Mathematics & Physics Teacher</p>
             <div className="mt-3">
               <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
@@ -198,10 +198,10 @@ export default function ProfilePage() {
                 <SectionHeader title="Personal Information" done />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField label="Full Name (English)" required>
-                    <input defaultValue="Ahmed Hassan" className={inputCls} />
+                    <input defaultValue="Shabeeb K" className={inputCls} />
                   </FormField>
                   <FormField label="Full Name (Arabic)" required>
-                    <input defaultValue="أحمد حسن" className={inputCls} dir="rtl" />
+                    <input defaultValue="شبيب ك" className={inputCls} dir="rtl" />
                   </FormField>
                   <FormField label="ID Type" required>
                     <select className={selectCls} defaultValue="National ID">
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                     <input defaultValue="Saudi Arabian" className={inputCls} />
                   </FormField>
                   <FormField label="Contact Email" required>
-                    <input type="email" defaultValue="ahmed.hassan@email.com" className={inputCls} />
+                    <input type="email" defaultValue="shabeeb@email.com" className={inputCls} />
                   </FormField>
                   <FormField label="Mobile Number" required>
                     <div className="flex">

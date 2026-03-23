@@ -80,8 +80,8 @@ const STATUS_CONFIG: Record<
     step: 3,
   },
   "Offer Received": {
-    color: "text-cyan-600",
-    bg: "bg-cyan-50 border-cyan-200",
+    color: "text-teal-700",
+    bg: "bg-teal-50 border-teal-200",
     icon: <Award className="w-3.5 h-3.5" />,
     step: 4,
   },
@@ -268,8 +268,8 @@ function ProgressBar({ status }: { status: ApplicationStatus }) {
   return (
     <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
       <div
-        className="h-full bg-linear-to-r from-cyan-400 to-cyan-600 rounded-full transition-all"
-        style={{ width: `${Math.max(5, percent)}%` }}
+        className="h-full rounded-full transition-all"
+        style={{ width: `${Math.max(5, percent)}%`, background: "var(--brand-primary)" }}
       />
     </div>
   );
@@ -341,8 +341,8 @@ export default function ApplicationsPage() {
             {
               label: "Active Offers",
               value: MOCK_APPLICATIONS.filter((a) => a.status === "Offer Received").length,
-              icon: <Award className="w-5 h-5 text-cyan-500" />,
-              bg: "bg-cyan-50",
+              icon: <Award className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />,
+              bg: "bg-slate-100",
             },
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4">
@@ -402,14 +402,14 @@ export default function ApplicationsPage() {
                   onClick={() => setActiveTab(tab.value)}
                   className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                     activeTab === tab.value
-                      ? "border-cyan-500 text-cyan-600 bg-cyan-50/50"
+                      ? "border-[var(--brand-primary)] text-[var(--brand-primary)] bg-slate-50/70"
                       : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {tab.label}
                   {count > 0 && (
                     <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                      activeTab === tab.value ? "bg-cyan-500 text-white" : "bg-slate-100 text-slate-500"
+                      activeTab === tab.value ? "bg-[var(--brand-primary)] text-white" : "bg-slate-100 text-slate-500"
                     }`}>
                       {count}
                     </span>
@@ -463,7 +463,9 @@ function ApplicationCard({
     <div className="p-5 hover:bg-slate-50/50 transition-colors">
       <div className="flex items-start gap-4">
         {/* School logo */}
-        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0"
+          style={{ background: "var(--brand-gradient)" }}
+        >
           {app.school[0]}
         </div>
 
@@ -530,7 +532,7 @@ function ApplicationCard({
             </div>
           )}
           {app.status === "Offer Received" && app.offerAmount && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-xl px-3 py-2">
+            <div className="mt-3 flex items-center gap-2 text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-xl px-3 py-2">
               <Award className="w-4 h-4 shrink-0" />
               <span>Offer received: <strong>{app.offerAmount}</strong> — Review and respond</span>
               <div className="flex gap-2 ml-auto shrink-0">
@@ -556,7 +558,8 @@ function ApplicationCard({
           {/* Expand / collapse */}
           <button
             onClick={onToggle}
-            className="mt-3 flex items-center gap-1 text-xs text-cyan-600 hover:text-cyan-700 font-medium"
+            className="mt-3 flex items-center gap-1 text-xs font-medium hover:opacity-80 transition-opacity"
+            style={{ color: "var(--brand-primary)" }}
           >
             <Eye className="w-3.5 h-3.5" />
             {expanded ? "Hide timeline" : "View timeline"}
@@ -571,8 +574,10 @@ function ApplicationCard({
                 return (
                   <div key={idx} className="relative">
                     <div className={`absolute -left-5.25 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${
-                      idx === app.timeline.length - 1 ? "bg-cyan-500 text-white" : "bg-white border-slate-300 text-slate-400"
-                    }`}>
+                      idx === app.timeline.length - 1 ? "text-white" : "bg-white border-slate-300 text-slate-400"
+                    }`}
+                      style={idx === app.timeline.length - 1 ? { backgroundColor: "var(--brand-primary)" } : {}}
+                    >
                       <div className="w-1.5 h-1.5 rounded-full bg-current" />
                     </div>
                     <div className="flex items-start justify-between gap-2">

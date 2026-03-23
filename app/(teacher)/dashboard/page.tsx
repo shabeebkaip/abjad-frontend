@@ -178,7 +178,7 @@ export default function DashboardPage() {
       {/* Welcome */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Welcome back, Ahmed 👋</h1>
+          <h1 className="text-xl font-bold text-gray-900">Welcome back, Shabeeb 👋</h1>
           <p className="text-sm text-gray-500 mt-0.5">Here&apos;s what&apos;s happening with your job search</p>
         </div>
         <Link
