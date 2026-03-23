@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8 text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
           style={{ backgroundColor: "var(--brand-primary-light)" }}
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
       {/* Icon */}
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"

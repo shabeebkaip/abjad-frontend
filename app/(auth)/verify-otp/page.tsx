@@ -77,7 +77,7 @@ export default function VerifyOtpPage() {
   const filled = otp.filter(Boolean).length;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
       {/* Icon */}
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
@@ -107,7 +107,7 @@ export default function VerifyOtpPage() {
 
       {/* OTP form */}
       <form onSubmit={handleSubmit}>
-        <div className="flex gap-2 justify-center mb-4" onPaste={handlePaste}>
+        <div className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -118,7 +118,7 @@ export default function VerifyOtpPage() {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-12 h-12 text-center text-xl font-semibold rounded-xl border-2 outline-none transition-all focus:scale-105 ${
+              className={`w-full aspect-square text-center text-lg sm:text-xl font-semibold rounded-xl border-2 outline-none transition-all focus:scale-105 ${
                 error
                   ? "border-red-400 bg-red-50 text-red-600"
                   : digit
