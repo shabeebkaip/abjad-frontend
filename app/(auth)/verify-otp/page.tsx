@@ -2,17 +2,45 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader2, MailCheck, RefreshCw } from "lucide-react";
+import { useAuth } from "@/lib/auth/useAuth";
+import { OTP_SESSION_KEY } from "@/lib/auth/AuthContext";
+import type { OtpSession } from "@/lib/auth/types";
 
 const OTP_LENGTH = 6;
 
+function getDashboardPath(role?: string): string {
+  // Route groups (teacher), (school) don't affect URL — path is just /dashboard
+  if (role === "school") return "/dashboard";
+  return "/dashboard";
+}
+
 export default function VerifyOtpPage() {
+  const router = useRouter();
+  const { verifyOtp, sendOtp } = useAuth();
+
+  const [session, setSession] = useState<OtpSession | null>(null);
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(60);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Load OTP session (set by login/register pages via AuthContext.sendOtp)
+  useEffect(() => {
+    const raw = sessionStorage.getItem(OTP_SESSION_KEY);
+    if (!raw) {
+      router.replace("/login");
+      return;
+    }
+    try {
+      setSession(JSON.parse(raw) as OtpSession);
+    } catch {
+      router.replace("/login");
+    }
+  }, [router]);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -43,9 +71,7 @@ export default function VerifyOtpPage() {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
     const next = [...otp];
-    pasted.split("").forEach((d, i) => {
-      next[i] = d;
-    });
+    pasted.split("").forEach((d, i) => { next[i] = d; });
     setOtp(next);
     inputsRef.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
   };
@@ -57,21 +83,37 @@ export default function VerifyOtpPage() {
       setError("Please enter the complete 6-digit code");
       return;
     }
+    if (!session) return;
+
     setIsLoading(true);
-    console.log("OTP submitted:", code);
-    // TODO: wire up API
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsLoading(false);
+    setError("");
+    try {
+      const result = await verifyOtp(session.email, code, session.purpose);
+      const destination = getDashboardPath(result.user.role);
+      router.push(destination);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid code. Please try again.");
+      setOtp(Array(OTP_LENGTH).fill(""));
+      inputsRef.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleResend = async () => {
+    if (!session) return;
     setIsResending(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setOtp(Array(OTP_LENGTH).fill(""));
-    setCountdown(60);
-    setError("");
-    setIsResending(false);
-    inputsRef.current[0]?.focus();
+    try {
+      await sendOtp(session.email, session.purpose);
+      setOtp(Array(OTP_LENGTH).fill(""));
+      setCountdown(60);
+      setError("");
+      inputsRef.current[0]?.focus();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to resend code. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const filled = otp.filter(Boolean).length;
@@ -90,7 +132,13 @@ export default function VerifyOtpPage() {
       <div className="mb-8">
         <h2 className="text-2xl font-semibold text-gray-900">Verify your email</h2>
         <p className="text-gray-500 text-sm mt-1">
-          We sent a 6-digit code to your email. Enter it below to continue.
+          We sent a 6-digit code to{" "}
+          {session ? (
+            <span className="font-medium text-gray-700">{session.email}</span>
+          ) : (
+            "your email"
+          )}
+          . Enter it below to continue.
         </p>
       </div>
 
@@ -118,6 +166,7 @@ export default function VerifyOtpPage() {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
+              disabled={isLoading}
               className={`w-full aspect-square text-center text-lg sm:text-xl font-semibold rounded-xl border-2 outline-none transition-all focus:scale-105 ${
                 error
                   ? "border-red-400 bg-red-50 text-red-600"

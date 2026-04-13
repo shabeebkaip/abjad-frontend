@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Almarai, Bricolage_Grotesque, Cinzel } from "next/font/google";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
+import { AuthProvider } from "@/lib/auth/AuthContext";
 
 const almarai = Almarai({
   weight: ["300", "400", "700", "800"],
@@ -48,9 +49,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${almarai.variable} ${bricolage.variable} ${cinzel.variable} antialiased`}>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </AuthProvider>
       </body>
     </html>
   );

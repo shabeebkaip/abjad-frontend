@@ -6,13 +6,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, ChevronLeft } from "lucide-react";
+import { Loader2, ChevronLeft } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useAuth } from "@/lib/auth/useAuth";
 
 type Role = "teacher" | "school";
 
@@ -23,12 +24,7 @@ const teacherSchema = z.object({
   phone: z.string().min(9, "Enter a valid phone number"),
   subject: z.string().min(1, "Please select a subject"),
   experience: z.string().min(1, "Please select experience level"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
   terms: z.literal(true, { message: "You must accept the terms" }),
-}).refine((d) => d.password === d.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
 });
 
 const schoolSchema = z.object({
@@ -38,12 +34,7 @@ const schoolSchema = z.object({
   phone: z.string().min(9, "Enter a valid phone number"),
   city: z.string().min(1, "Please enter the city"),
   schoolType: z.string().min(1, "Please select school type"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
   terms: z.literal(true, { message: "You must accept the terms" }),
-}).refine((d) => d.password === d.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
 });
 
 type TeacherForm = z.infer<typeof teacherSchema>;
@@ -70,9 +61,9 @@ function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = (searchParams.get("role") as Role) ?? "teacher";
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const { sendOtp } = useAuth();
 
   const teacherForm = useForm<TeacherForm>({ resolver: zodResolver(teacherSchema) });
   const schoolForm = useForm<SchoolForm>({ resolver: zodResolver(schoolSchema) });
@@ -80,22 +71,36 @@ function RegisterPage() {
   const teacherTerms = teacherForm.watch("terms");
   const schoolTerms = schoolForm.watch("terms");
 
+  const selectClass = (hasError: boolean) =>
+    `h-11 w-full rounded-xl border border-input bg-transparent ps-3 pe-3 text-sm outline-none focus-visible:border-ring transition-colors ${hasError ? "border-destructive" : ""}`;
+
   const onSubmitTeacher = async (data: TeacherForm) => {
     setIsLoading(true);
-    console.log(data);
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsLoading(false);
+    setApiError("");
+    try {
+      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role: "teacher" }));
+      await sendOtp(data.email, "signup");
+      router.push("/verify-otp");
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const onSubmitSchool = async (data: SchoolForm) => {
     setIsLoading(true);
-    console.log(data);
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsLoading(false);
+    setApiError("");
+    try {
+      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role: "school" }));
+      await sendOtp(data.email, "signup");
+      router.push("/verify-otp");
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const selectClass = (hasError: boolean) =>
-    `h-11 w-full rounded-xl border border-input bg-transparent ps-3 pe-3 text-sm outline-none focus-visible:border-ring transition-colors ${hasError ? "border-destructive" : ""}`;
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -104,6 +109,10 @@ function RegisterPage() {
         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{t.register.title}</h2>
         <p className="text-muted-foreground text-sm mt-1">{t.register.subtitle}</p>
       </div>
+
+      {apiError && (
+        <p className="text-xs text-destructive mb-4">{apiError}</p>
+      )}
 
       {/* ── Teacher form ── */}
       {role === "teacher" && (
@@ -153,28 +162,6 @@ function RegisterPage() {
               </select>
               <FieldError message={teacherForm.formState.errors.experience?.message} />
             </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="t-password">{t.register.password}</Label>
-            <div className="relative">
-              <Input id="t-password" type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" aria-invalid={!!teacherForm.formState.errors.password} className="h-11 rounded-xl pe-11" dir="ltr" {...teacherForm.register("password")} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} tabIndex={-1} className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            </div>
-            <FieldError message={teacherForm.formState.errors.password?.message} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="t-confirm">{t.register.confirmPassword}</Label>
-            <div className="relative">
-              <Input id="t-confirm" type={showConfirm ? "text" : "password"} placeholder="Repeat password" aria-invalid={!!teacherForm.formState.errors.confirmPassword} className="h-11 rounded-xl pe-11" dir="ltr" {...teacherForm.register("confirmPassword")} />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)} tabIndex={-1} className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            </div>
-            <FieldError message={teacherForm.formState.errors.confirmPassword?.message} />
           </div>
 
           <div className="space-y-1">
@@ -242,28 +229,6 @@ function RegisterPage() {
               {schoolTypes.map((t2) => <option key={t2} value={t2}>{t2}</option>)}
             </select>
             <FieldError message={schoolForm.formState.errors.schoolType?.message} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="s-password">{t.register.password}</Label>
-            <div className="relative">
-              <Input id="s-password" type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" aria-invalid={!!schoolForm.formState.errors.password} className="h-11 rounded-xl pe-11" dir="ltr" {...schoolForm.register("password")} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} tabIndex={-1} className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            </div>
-            <FieldError message={schoolForm.formState.errors.password?.message} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="s-confirm">{t.register.confirmPassword}</Label>
-            <div className="relative">
-              <Input id="s-confirm" type={showConfirm ? "text" : "password"} placeholder="Repeat password" aria-invalid={!!schoolForm.formState.errors.confirmPassword} className="h-11 rounded-xl pe-11" dir="ltr" {...schoolForm.register("confirmPassword")} />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)} tabIndex={-1} className="absolute inset-e-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
-              </button>
-            </div>
-            <FieldError message={schoolForm.formState.errors.confirmPassword?.message} />
           </div>
 
           <div className="space-y-1">

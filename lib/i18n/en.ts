@@ -24,6 +24,7 @@ export interface Translations {
     welcome: string; subtitle: string; email: string; emailPlaceholder: string;
     password: string; passwordPlaceholder: string; remember: string; forgot: string;
     cta: string; signingIn: string; or: string; noAccount: string; createAccount: string;
+    otpSent: string;
   };
   register: {
     title: string; subtitle: string; chooseRole: string; yourDetails: string;
@@ -89,18 +90,19 @@ export const en: Translations = {
   },
   login: {
     welcome: "Welcome back",
-    subtitle: "Sign in to your Abjad account",
+    subtitle: "Enter your email to receive a verification code",
     email: "Email address",
     emailPlaceholder: "you@example.com",
     password: "Password",
     passwordPlaceholder: "Enter your password",
     remember: "Remember me",
     forgot: "Forgot password?",
-    cta: "Sign in",
-    signingIn: "Signing in…",
+    cta: "Send verification code",
+    signingIn: "Sending code…",
     or: "or",
     noAccount: "Don't have an account?",
     createAccount: "Create account",
+    otpSent: "Code sent! Check your inbox.",
   },
   register: {
     title: "Create account",
