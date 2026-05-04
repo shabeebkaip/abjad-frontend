@@ -49,7 +49,7 @@ export default function AboutHero() {
             </h1>
 
             <p className="text-white/65 text-lg leading-relaxed mb-10 max-w-[48ch]">
-              Abjad connects teachers, substitute teachers, and schools across Saudi Arabia —
+              Abjad connects teachers, substitute teachers, and schools across Saudi Arabia,
               building a future where education staffing is faster, smarter, and more reliable.
             </p>
 
@@ -116,7 +116,7 @@ export default function AboutHero() {
               >
                 {s.val}
               </div>
-              <div className="text-white/30 text-xs">{s.label}</div>
+              <div className="text-white text-xs">{s.label}</div>
             </div>
           ))}
         </div>

@@ -1,21 +1,23 @@
+import { Zap, Target, GraduationCap } from "lucide-react";
+
 const whyItems = [
   {
-    num: "01",
+    icon: Zap,
     color: "#f59e0b",
     title: "Streamline Hiring",
     desc: "Reduce time-to-hire with smart matching and verified educator profiles ready for immediate placement across Saudi Arabia.",
   },
   {
-    num: "02",
+    icon: Target,
     color: "var(--brand-accent)",
     title: "Ensure Accurate Placement",
     desc: "Precision matching ensures every educator placed is the right fit for the school's curriculum, culture, and community.",
   },
   {
-    num: "03",
+    icon: GraduationCap,
     color: "#34d399",
     title: "Support Professional Development",
-    desc: "Abjad champions continuous growth — connecting educators with institutions that invest in excellence and long-term careers.",
+    desc: "Abjad champions continuous growth, connecting educators with institutions that invest in excellence and long-term careers.",
   },
 ];
 
@@ -84,12 +86,12 @@ export default function VisionAndWhySection() {
               className="group grid md:grid-cols-12 gap-6 py-10 items-center"
             >
               <div className="md:col-span-1">
-                <span
-                  className="text-4xl font-black leading-none"
-                  style={{ color: item.color, opacity: 0.65 }}
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: `${item.color}22` }}
                 >
-                  {item.num}
-                </span>
+                  <item.icon size={18} style={{ color: item.color }} strokeWidth={2} />
+                </div>
               </div>
               <div className="md:col-span-4">
                 <h3 className="text-white font-bold text-base">{item.title}</h3>
@@ -98,7 +100,7 @@ export default function VisionAndWhySection() {
                 <div className="h-px w-full" style={{ background: `${item.color}28` }} />
               </div>
               <div className="md:col-span-6">
-                <p className="text-white/45 text-sm leading-relaxed">{item.desc}</p>
+                <p className="text-white/70 text-sm leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}

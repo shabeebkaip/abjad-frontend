@@ -24,7 +24,7 @@ export default function TeachersCta() {
           className="font-extrabold text-white leading-[1.08] mb-4"
           style={{ fontSize: "clamp(2.2rem, 5vw, 3.5rem)", letterSpacing: "-0.04em" }}
         >
-          Your Next Classroom Awaits —{" "}
+          Your Next Classroom Awaits,{" "}
           <span style={{ color: "var(--brand-accent)" }}>Join Abjad Today</span>
         </h2>
 

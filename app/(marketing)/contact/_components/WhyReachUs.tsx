@@ -1,31 +1,38 @@
+import { Globe, Award, ShieldCheck, Zap, RefreshCw } from "lucide-react";
+
 const reasons = [
   {
-    num: "01",
-    numColor: "var(--brand-accent)",
+    icon: Globe,
+    iconColor: "var(--brand-accent)",
+    iconBg: "rgba(0,172,211,0.1)",
     title: "Nationwide Coverage",
     desc: "We connect schools across the entire Kingdom of Saudi Arabia with qualified teachers and educators, ensuring dependable staffing support nationwide.",
   },
   {
-    num: "02",
-    numColor: "#6366f1",
+    icon: Award,
+    iconColor: "#6366f1",
+    iconBg: "rgba(99,102,241,0.1)",
     title: "Proven Track Record",
     desc: "Our proven experience includes placing hundreds of teachers, substitute teachers, and professional educators in top schools throughout Saudi Arabia.",
   },
   {
-    num: "03",
-    numColor: "#10b981",
+    icon: ShieldCheck,
+    iconColor: "#10b981",
+    iconBg: "rgba(16,185,129,0.1)",
     title: "Thorough Screening",
     desc: "We follow a thorough screening process including background checks, credential verification, and trial teaching assignments to ensure every educator meets the highest standards.",
   },
   {
-    num: "04",
-    numColor: "#f59e0b",
+    icon: Zap,
+    iconColor: "#f59e0b",
+    iconBg: "rgba(245,158,11,0.1)",
     title: "Fast & Reliable Staffing",
-    desc: "Schools trust us to deliver verified and reliable teaching staff quickly — especially for urgent substitute teacher needs across the Kingdom.",
+    desc: "Schools trust us to deliver verified and reliable teaching staff quickly, especially for urgent substitute teacher needs across the Kingdom.",
   },
   {
-    num: "05",
-    numColor: "var(--brand-primary)",
+    icon: RefreshCw,
+    iconColor: "var(--brand-primary)",
+    iconBg: "rgba(13,37,66,0.08)",
     title: "Continuous Opportunities",
     desc: "Educators and teachers on our platform gain continuous placement opportunities in international schools, high schools, and local institutions throughout Saudi Arabia.",
   },
@@ -63,17 +70,19 @@ export default function WhyReachUs() {
           </p>
         </div>
 
-        {/* Numbered divider rows */}
+        {/* Divider rows */}
         <div className="divide-y divide-gray-100">
           {reasons.map((r, i) => (
             <div key={i} className="grid lg:grid-cols-12 gap-4 items-start py-8 group">
-              {/* Number */}
-              <span
-                className="lg:col-span-1 font-black text-2xl leading-none select-none"
-                style={{ color: r.numColor, fontVariantNumeric: "tabular-nums", opacity: 0.85 }}
-              >
-                {r.num}
-              </span>
+              {/* Icon */}
+              <div className="lg:col-span-1">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: r.iconBg }}
+                >
+                  <r.icon size={18} style={{ color: r.iconColor }} strokeWidth={2} />
+                </div>
+              </div>
 
               {/* Title */}
               <h3

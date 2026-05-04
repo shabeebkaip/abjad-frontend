@@ -25,7 +25,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (isAuthPage && hasSession) {
-    return NextResponse.redirect(new URL('/teacher/dashboard', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();

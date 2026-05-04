@@ -1,19 +1,19 @@
 import Link from "next/link";
-import { ArrowRight, Bell, Lock, UserCheck, Zap } from "lucide-react";
+import { ArrowRight, Bell, Lock, UserCheck, Zap, Briefcase, Handshake, Sparkles } from "lucide-react";
 
 const steps = [
   {
-    num: "01",
+    icon: Briefcase,
     title: "Post Your Vacancies",
     desc: "From preschool to high school — list your teaching openings in minutes.",
   },
   {
-    num: "02",
+    icon: Sparkles,
     title: "Get Instant Matches",
     desc: "Receive qualified teacher candidates across Saudi Arabia immediately.",
   },
   {
-    num: "03",
+    icon: Handshake,
     title: "Interview & Hire",
     desc: "Interview and hire directly through the platform — fast, secure, seamless.",
   },
@@ -92,14 +92,14 @@ export default function SchoolsSimpleHiring() {
 
           {/* 3 steps */}
           <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
-            {steps.map((s) => (
-              <div key={s.num} className="px-8 py-10 flex items-start gap-5">
-                <span
-                  className="text-4xl font-black leading-none shrink-0 mt-1"
-                  style={{ color: "var(--brand-accent)", opacity: 0.55 }}
+            {steps.map((s, i) => (
+              <div key={i} className="px-8 py-10 flex items-start gap-5">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
-                  {s.num}
-                </span>
+                  <s.icon size={20} style={{ color: "var(--brand-accent)" }} strokeWidth={2} />
+                </div>
                 <div>
                   <h3 className="text-white font-bold text-base mb-2">{s.title}</h3>
                   <p className="text-white/50 text-sm leading-relaxed">{s.desc}</p>
@@ -124,10 +124,10 @@ export default function SchoolsSimpleHiring() {
           {features.map((f, i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl p-7 border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+              className="bg-white rounded-2xl p-7 border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center"
             >
               <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 mx-auto"
                 style={{ backgroundColor: f.bg }}
               >
                 <f.icon size={20} style={{ color: f.color }} strokeWidth={2} />

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Mail, Phone, MapPin, Twitter, Linkedin, Instagram, Youtube } from "lucide-react";
+import { ArrowRight, Mail, Phone, MapPin, Twitter, Linkedin, Instagram } from "lucide-react";
 
 export function CtaBanner() {
   return (
@@ -57,8 +57,7 @@ const footerLinks = {
   "Company": [
     { label: "About Us", href: "#" },
     { label: "Careers", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Press", href: "#" },
+    { label: "Blogs", href: "#" },
   ],
   "Support": [
     { label: "Help Center", href: "#" },
@@ -72,7 +71,6 @@ const SOCIALS = [
   { icon: Twitter, href: "#", label: "Twitter / X" },
   { icon: Linkedin, href: "#", label: "LinkedIn" },
   { icon: Instagram, href: "#", label: "Instagram" },
-  { icon: Youtube, href: "#", label: "YouTube" },
 ];
 
 export function Footer() {

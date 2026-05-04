@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Bell,
   BriefcaseIcon,
@@ -14,31 +14,34 @@ import {
   Check,
   ChevronRight,
   Filter,
+  Loader2,
 } from "lucide-react";
+import {
+  listNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  deleteNotification,
+} from "@/lib/api/teacher";
+import type { Notification } from "@/lib/api/teacher";
 
-type NotificationType =
-  | "job_match"
-  | "application_update"
-  | "interview"
-  | "offer"
-  | "system"
-  | "announcement";
+// Map API notification types to UI display config
+type UIType = "job_match" | "application_update" | "interview" | "offer" | "system" | "announcement";
 
-interface Notification {
-  id: number;
-  type: NotificationType;
-  title: string;
-  body: string;
-  time: string;
-  read: boolean;
-  actionLabel?: string;
-  actionHref?: string;
+function uiType(apiType: Notification["type"]): UIType {
+  const map: Record<Notification["type"], UIType> = {
+    job_match:            "job_match",
+    application_status:   "application_update",
+    interview_invitation: "interview",
+    interview_reminder:   "interview",
+    offer_received:       "offer",
+    message:              "system",
+    profile_status:       "system",
+    system:               "system",
+  };
+  return map[apiType] ?? "system";
 }
 
-const TYPE_CONFIG: Record<
-  NotificationType,
-  { label: string; icon: React.ReactNode; color: string; bg: string }
-> = {
+const TYPE_CONFIG: Record<UIType, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
   job_match: {
     label: "Job Match",
     icon: <Star className="w-4 h-4" />,
@@ -77,137 +80,78 @@ const TYPE_CONFIG: Record<
   },
 };
 
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: 1,
-    type: "offer",
-    title: "Offer Letter Received 🎉",
-    body: "Dhahran British Grammar School has sent you a formal offer for English Language Teacher position. Review and respond within 5 days.",
-    time: "2 hours ago",
-    read: false,
-    actionLabel: "View Offer",
-    actionHref: "/teacher/applications",
-  },
-  {
-    id: 2,
-    type: "interview",
-    title: "Interview Confirmed",
-    body: "Your video interview with Al-Noor International School for Mathematics Teacher is confirmed for Wed, Jun 18 at 10:00 AM via Zoom.",
-    time: "5 hours ago",
-    read: false,
-    actionLabel: "View Details",
-    actionHref: "/teacher/interviews",
-  },
-  {
-    id: 3,
-    type: "job_match",
-    title: "3 New Job Matches",
-    body: "We found 3 new teaching positions that match your profile — Physics in Riyadh, Mathematics in Jeddah, and CS in Dammam.",
-    time: "Yesterday at 8:00 AM",
-    read: false,
-    actionLabel: "Browse Jobs",
-    actionHref: "/teacher/jobs",
-  },
-  {
-    id: 4,
-    type: "application_update",
-    title: "You've Been Shortlisted!",
-    body: "Manarat Schools has shortlisted your application for Physics & Chemistry Teacher. They'll be in touch soon regarding next steps.",
-    time: "Yesterday at 3:45 PM",
-    read: false,
-    actionLabel: "Track Application",
-    actionHref: "/teacher/applications",
-  },
-  {
-    id: 5,
-    type: "application_update",
-    title: "Application Rejected",
-    body: "Al-Rajhi Model Schools has updated your application status for Islamic Studies Teacher to Rejected. The position was filled internally.",
-    time: "Jun 5, 2025",
-    read: true,
-  },
-  {
-    id: 6,
-    type: "system",
-    title: "Profile Completion Reminder",
-    body: "Your profile is 72% complete. Add your certifications and preferred cities to increase your match score and get better job recommendations.",
-    time: "Jun 4, 2025",
-    read: true,
-    actionLabel: "Complete Profile",
-    actionHref: "/teacher/profile",
-  },
-  {
-    id: 7,
-    type: "job_match",
-    title: "High-Match Job Alert",
-    body: "A new Mathematics Teacher position at King Faisal Schools in Riyadh is a 94% match for your profile. Apply before it closes in 3 days.",
-    time: "Jun 3, 2025",
-    read: true,
-    actionLabel: "View Job",
-    actionHref: "/teacher/jobs",
-  },
-  {
-    id: 8,
-    type: "announcement",
-    title: "Platform Update: New Features",
-    body: "Abjad now supports video interview scheduling directly within the platform. Schools can request video interviews which you'll see in your Interviews tab.",
-    time: "Jun 1, 2025",
-    read: true,
-  },
-  {
-    id: 9,
-    type: "application_update",
-    title: "Application Submitted Successfully",
-    body: "Your application for Computer Science Teacher at KFUPM Schools has been submitted. You'll be notified of any updates.",
-    time: "May 31, 2025",
-    read: true,
-  },
-  {
-    id: 10,
-    type: "system",
-    title: "Account Verified",
-    body: "Your identity has been verified successfully. Your profile is now visible to schools on the Abjad platform.",
-    time: "May 28, 2025",
-    read: true,
-  },
+const FILTER_OPTIONS: { value: UIType | "all"; label: string }[] = [
+  { value: "all",                label: "All" },
+  { value: "job_match",          label: "Job Matches" },
+  { value: "application_update", label: "Applications" },
+  { value: "interview",          label: "Interviews" },
+  { value: "offer",              label: "Offers" },
+  { value: "system",             label: "System" },
 ];
 
-const FILTER_OPTIONS: { value: NotificationType | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "job_match", label: "Job Matches" },
-  { value: "application_update", label: "Applications" },
-  { value: "interview", label: "Interviews" },
-  { value: "offer", label: "Offers" },
-  { value: "system", label: "System" },
-  { value: "announcement", label: "Announcements" },
-];
+function timeAgo(isoStr: string): string {
+  const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
+  if (secs < 3600)   return `${Math.floor(secs / 60)} min ago`;
+  if (secs < 86400)  return `${Math.floor(secs / 3600)} hours ago`;
+  if (secs < 172800) return "Yesterday";
+  return new Date(isoStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
-  const [filter, setFilter] = useState<NotificationType | "all">("all");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<UIType | "all">("all");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const loadNotifications = useCallback(async () => {
+    try {
+      const res = await listNotifications({ limit: 50 });
+      setNotifications(res.notifications);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  useEffect(() => { loadNotifications(); }, [loadNotifications]);
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const markRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const handleMarkRead = async (id: string) => {
+    try {
+      await markNotificationRead(id);
+      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const dismiss = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const handleDismiss = async (id: string) => {
+    try {
+      await deleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const filtered = notifications.filter((n) => {
-    if (showUnreadOnly && n.read) return false;
-    if (filter !== "all" && n.type !== filter) return false;
+    if (showUnreadOnly && n.isRead) return false;
+    if (filter !== "all" && uiType(n.type) !== filter) return false;
     return true;
   });
+
+  const countByUIType = (t: UIType) => notifications.filter((n) => uiType(n.type) === t).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -227,8 +171,9 @@ export default function NotificationsPage() {
           </div>
           {unreadCount > 0 && (
             <button
-              onClick={markAllRead}
-              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors hover:bg-brand-primary-light" style={{ color: "var(--brand-primary)" }}
+              onClick={handleMarkAllRead}
+              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors hover:bg-brand-primary-light"
+              style={{ color: "var(--brand-primary)" }}
             >
               <Check className="w-4 h-4" /> Mark all as read
             </button>
@@ -246,10 +191,7 @@ export default function NotificationsPage() {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {FILTER_OPTIONS.map((opt) => {
-                const count =
-                  opt.value === "all"
-                    ? notifications.length
-                    : notifications.filter((n) => n.type === opt.value).length;
+                const count = opt.value === "all" ? notifications.length : countByUIType(opt.value);
                 return (
                   <button
                     key={opt.value}
@@ -275,7 +217,8 @@ export default function NotificationsPage() {
                   type="checkbox"
                   checked={showUnreadOnly}
                   onChange={(e) => setShowUnreadOnly(e.target.checked)}
-                  className="w-4 h-4 rounded" style={{ accentColor: "var(--brand-primary)" }}
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: "var(--brand-primary)" }}
                 />
                 Unread only
               </label>
@@ -285,7 +228,11 @@ export default function NotificationsPage() {
 
         {/* Notification List */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Bell className="w-7 h-7 text-slate-300" />
@@ -297,7 +244,8 @@ export default function NotificationsPage() {
               {showUnreadOnly && (
                 <button
                   onClick={() => setShowUnreadOnly(false)}
-                  className="mt-3 text-sm font-medium" style={{ color: "var(--brand-primary)" }}
+                  className="mt-3 text-sm font-medium"
+                  style={{ color: "var(--brand-primary)" }}
                 >
                   Show all notifications
                 </button>
@@ -307,10 +255,10 @@ export default function NotificationsPage() {
             <div className="divide-y divide-slate-100">
               {filtered.map((notif) => (
                 <NotificationItem
-                  key={notif.id}
+                  key={notif._id}
                   notification={notif}
-                  onRead={markRead}
-                  onDismiss={dismiss}
+                  onRead={handleMarkRead}
+                  onDismiss={handleDismiss}
                 />
               ))}
             </div>
@@ -330,7 +278,10 @@ export default function NotificationsPage() {
               </p>
             </div>
           </div>
-          <button className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors hover:opacity-90 shrink-0" style={{ background: "var(--brand-gradient)" }}>
+          <button
+            className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors hover:opacity-90 shrink-0"
+            style={{ background: "var(--brand-gradient)" }}
+          >
             Manage
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -348,21 +299,24 @@ function NotificationItem({
   onDismiss,
 }: {
   notification: Notification;
-  onRead: (id: number) => void;
-  onDismiss: (id: number) => void;
+  onRead: (id: string) => void;
+  onDismiss: (id: string) => void;
 }) {
-  const cfg = TYPE_CONFIG[n.type];
+  const cfg = TYPE_CONFIG[uiType(n.type)];
 
   return (
     <div
       className={`flex items-start gap-4 p-4 hover:bg-slate-50/50 transition-colors cursor-pointer group relative ${
-        !n.read ? "bg-(--brand-primary-light)/30" : ""
+        !n.isRead ? "bg-blue-50/20" : ""
       }`}
-      onClick={() => onRead(n.id)}
+      onClick={() => !n.isRead && onRead(n._id)}
     >
-      {/* Unread dot */}
-      {!n.read && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }} />
+      {/* Unread bar */}
+      {!n.isRead && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
+          style={{ backgroundColor: "var(--brand-primary)" }}
+        />
       )}
 
       {/* Icon */}
@@ -375,7 +329,7 @@ function NotificationItem({
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <p className={`text-sm font-semibold ${n.read ? "text-slate-700" : "text-slate-900"}`}>
+              <p className={`text-sm font-semibold ${n.isRead ? "text-slate-700" : "text-slate-900"}`}>
                 {n.title}
               </p>
               <span className={`text-[10px] px-1.5 py-0.5 rounded border ${cfg.bg} ${cfg.color} font-medium`}>
@@ -385,39 +339,25 @@ function NotificationItem({
             <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-xs text-slate-400 whitespace-nowrap">{n.time}</span>
+            <span className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDismiss(n.id);
-              }}
+              onClick={(e) => { e.stopPropagation(); onDismiss(n._id); }}
               className="p-1 text-slate-300 hover:text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-1"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-3 mt-2">
-          {n.actionLabel && (
+        {!n.isRead && (
+          <div className="flex items-center gap-3 mt-2">
             <button
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--brand-primary)" }}
-            >
-              {n.actionLabel} <ChevronRight className="w-3 h-3" />
-            </button>
-          )}
-          {!n.read && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onRead(n.id);
-              }}
+              onClick={(e) => { e.stopPropagation(); onRead(n._id); }}
               className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1"
             >
               <CheckCircle2 className="w-3 h-3" /> Mark read
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

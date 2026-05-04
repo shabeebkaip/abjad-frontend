@@ -7,7 +7,7 @@ const reasons = [
     color: "var(--brand-accent)",
     bg: "rgba(0,172,211,0.1)",
     title: "Fast Matches",
-    desc: "AI-powered matching connects teachers and schools within minutes — no waiting, no guesswork.",
+    desc: "AI-powered matching connects teachers and schools within minutes, no waiting, no guesswork.",
   },
   {
     icon: ShieldCheck,
@@ -21,7 +21,7 @@ const reasons = [
     color: "#6366f1",
     bg: "rgba(99,102,241,0.1)",
     title: "Local Focus",
-    desc: "Specialized for Riyadh schools, Jeddah schools, and Dammam schools — we know the Saudi education landscape.",
+    desc: "Specialized for Riyadh schools, Jeddah schools, and Dammam schools, we know the Saudi education landscape.",
   },
 ];
 
@@ -64,10 +64,10 @@ export default function TeachersWhyChooseAbjad() {
           {reasons.map((r, i) => (
             <div
               key={i}
-              className="rounded-3xl border border-gray-100 bg-[#f8fafc] p-8 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+              className="rounded-3xl border border-gray-100 bg-[#f8fafc] p-8 hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center"
             >
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+                className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 mx-auto"
                 style={{ backgroundColor: r.bg }}
               >
                 <r.icon size={22} style={{ color: r.color }} strokeWidth={2} />

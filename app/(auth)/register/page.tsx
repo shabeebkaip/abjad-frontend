@@ -40,15 +40,31 @@ const schoolSchema = z.object({
 type TeacherForm = z.infer<typeof teacherSchema>;
 type SchoolForm = z.infer<typeof schoolSchema>;
 
-const subjects = [
-  "Arabic Language", "English Language", "Mathematics", "Science",
-  "Physics", "Chemistry", "Biology", "History", "Geography",
-  "Islamic Studies", "Art", "Physical Education", "Computer Science", "Other",
+// UI label → API enum value
+const SUBJECT_OPTIONS: { label: string; value: string }[] = [
+  { label: "Arabic Language",    value: "arabic_language" },
+  { label: "English Language",   value: "english_language" },
+  { label: "Mathematics",        value: "mathematics" },
+  { label: "Science",            value: "science" },
+  { label: "Physics",            value: "physics" },
+  { label: "Chemistry",          value: "chemistry" },
+  { label: "Biology",            value: "biology" },
+  { label: "History",            value: "history" },
+  { label: "Geography",          value: "geography" },
+  { label: "Islamic Studies",    value: "islamic_studies" },
+  { label: "Art",                value: "art" },
+  { label: "Physical Education", value: "physical_education" },
+  { label: "Computer Science",   value: "computer_science" },
+  { label: "Other",              value: "other" },
 ];
 
-const schoolTypes = [
-  "Public School", "Private School", "International School",
-  "Islamic School", "Special Needs School", "Kindergarten",
+const SCHOOL_TYPE_OPTIONS: { label: string; value: string }[] = [
+  { label: "Public School",       value: "public" },
+  { label: "Private School",      value: "private" },
+  { label: "International School",value: "international" },
+  { label: "Islamic School",      value: "islamic" },
+  { label: "Special Needs School",value: "special_needs" },
+  { label: "Kindergarten",        value: "kindergarten" },
 ];
 
 function FieldError({ message }: { message?: string }) {
@@ -60,7 +76,8 @@ function RegisterPage() {
   const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const role = (searchParams.get("role") as Role) ?? "teacher";
+  const rawRole = searchParams.get("role");
+  const role: Role = rawRole === "school" ? "school" : "teacher";
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const { sendOtp } = useAuth();
@@ -78,7 +95,8 @@ function RegisterPage() {
     setIsLoading(true);
     setApiError("");
     try {
-      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role: "teacher" }));
+      // role comes from the URL param — never hardcoded
+      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role }));
       await sendOtp(data.email, "signup");
       router.push("/verify-otp");
     } catch (err) {
@@ -92,7 +110,8 @@ function RegisterPage() {
     setIsLoading(true);
     setApiError("");
     try {
-      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role: "school" }));
+      // role comes from the URL param — never hardcoded
+      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role }));
       await sendOtp(data.email, "signup");
       router.push("/verify-otp");
     } catch (err) {
@@ -147,7 +166,7 @@ function RegisterPage() {
               <Label htmlFor="t-subject">{t.register.subject}</Label>
               <select id="t-subject" {...teacherForm.register("subject")} className={selectClass(!!teacherForm.formState.errors.subject)}>
                 <option value="">{t.register.selectPlaceholder}</option>
-                {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
+                {SUBJECT_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
               <FieldError message={teacherForm.formState.errors.subject?.message} />
             </div>
@@ -155,10 +174,10 @@ function RegisterPage() {
               <Label htmlFor="t-experience">{t.register.experience}</Label>
               <select id="t-experience" {...teacherForm.register("experience")} className={selectClass(!!teacherForm.formState.errors.experience)}>
                 <option value="">{t.register.selectPlaceholder}</option>
-                <option value="0-1">{t.register.experience0_1}</option>
-                <option value="2-4">{t.register.experience2_4}</option>
-                <option value="5-9">{t.register.experience5_9}</option>
-                <option value="10+">{t.register.experience10}</option>
+                <option value="0_1">{t.register.experience0_1}</option>
+                <option value="2_4">{t.register.experience2_4}</option>
+                <option value="5_9">{t.register.experience5_9}</option>
+                <option value="10_plus">{t.register.experience10}</option>
               </select>
               <FieldError message={teacherForm.formState.errors.experience?.message} />
             </div>
@@ -226,7 +245,7 @@ function RegisterPage() {
             <Label htmlFor="s-type">{t.register.schoolType}</Label>
             <select id="s-type" {...schoolForm.register("schoolType")} className={selectClass(!!schoolForm.formState.errors.schoolType)}>
               <option value="">{t.register.selectPlaceholder}</option>
-              {schoolTypes.map((t2) => <option key={t2} value={t2}>{t2}</option>)}
+              {SCHOOL_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             <FieldError message={schoolForm.formState.errors.schoolType?.message} />
           </div>

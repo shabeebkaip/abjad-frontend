@@ -1,21 +1,21 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, Globe } from "lucide-react";
 
 const steps = [
   {
-    num: "01",
+    icon: ShieldCheck,
     accent: "var(--brand-accent)",
     title: "Verified Profiles Ready to Place",
     desc: "Every educator on Abjad is manually verified with credential checks, reference reviews, and trial assignments — so schools can hire with zero risk.",
   },
   {
-    num: "02",
+    icon: Sparkles,
     accent: "#a78bfa",
     title: "Smart AI Matching",
     desc: "Our platform analyses curriculum requirements, location, and availability to instantly surface the right educator for the right school — every time.",
   },
   {
-    num: "03",
+    icon: Globe,
     accent: "#34d399",
     title: "Nationwide Support",
     desc: "From Riyadh to Dammam to Jeddah, Abjad covers every region of Saudi Arabia — giving international schools, high schools, and private academies direct access to talent.",
@@ -66,20 +66,20 @@ export default function HowItWorksSection() {
           </p>
         </div>
 
-        {/* 3 numbered step tiles */}
+        {/* 3 step tiles */}
         <div className="grid md:grid-cols-3 gap-5 mb-14">
           {steps.map((s, i) => (
             <div
               key={i}
               className="relative group rounded-3xl p-8 border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 overflow-hidden"
             >
-              {/* Giant step number */}
-              <span
-                className="block font-black leading-none mb-6 select-none"
-                style={{ fontSize: "clamp(3.5rem, 6vw, 5rem)", color: s.accent, opacity: 0.9 }}
+              {/* Step icon */}
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                style={{ backgroundColor: `${s.accent}22` }}
               >
-                {s.num}
-              </span>
+                <s.icon size={28} style={{ color: s.accent }} strokeWidth={1.8} />
+              </div>
               <h3 className="text-base font-bold text-white mb-3">{s.title}</h3>
               <p className="text-sm text-white/55 leading-relaxed">{s.desc}</p>
               {/* Bottom accent line on hover */}

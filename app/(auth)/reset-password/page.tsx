@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
       {/* Icon */}
       <div
-        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 mx-auto"
         style={{ backgroundColor: "var(--brand-accent-light)" }}
       >
         <KeyRound size={26} style={{ color: "var(--brand-accent)" }} />

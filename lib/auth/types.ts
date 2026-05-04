@@ -10,7 +10,7 @@ export interface AuthUser {
 
 export interface VerifyOtpResult {
   user: AuthUser;
-  tokens: { accessToken: string; refreshToken: string };
+  tokens: { accessToken: string; expiresIn?: number };
   isNewUser: boolean;
   nextStep?: string;
 }

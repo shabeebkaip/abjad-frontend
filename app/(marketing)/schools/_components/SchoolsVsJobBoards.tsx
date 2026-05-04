@@ -1,27 +1,27 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Building2, ShieldCheck, Users, Zap } from "lucide-react";
 
 const highlights = [
   {
-    num: "01",
+    icon: Building2,
     color: "var(--brand-accent)",
     title: "A Local Saudi Platform Built for All Schools",
     desc: "Designed to meet the unique hiring needs of Saudi Arabia's education system, from major cities to smaller regions.",
   },
   {
-    num: "02",
+    icon: ShieldCheck,
     color: "#6366f1",
     title: "Verified Teacher & Educator Matching",
     desc: "Every teacher and educator is vetted to ensure your school connects only with qualified, trusted professionals.",
   },
   {
-    num: "03",
+    icon: Users,
     color: "#10b981",
     title: "A Growing Community of Active Educators",
     desc: "Join thousands of dedicated educators across Saudi Arabia ready to engage, apply, and support your institution's growth.",
   },
   {
-    num: "04",
+    icon: Zap,
     color: "#f59e0b",
     title: "Built for Rapid Teacher Placement",
     desc: "Ideal for schools that need fast, accurate hiring — saving time, effort, and administrative resources.",
@@ -68,16 +68,16 @@ export default function SchoolsVsJobBoards() {
           {highlights.map((h, i) => (
             <div
               key={i}
-              className="bg-white p-8 hover:bg-[#f8fafc] transition-colors"
+              className="bg-white p-8 hover:bg-[#f8fafc] transition-colors text-center"
             >
               <div
-                className="text-4xl font-black mb-5 leading-none"
-                style={{ color: h.color }}
+                className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 mx-auto"
+                style={{ backgroundColor: `${h.color}18` }}
               >
-                {h.num}
+                <h.icon size={22} style={{ color: h.color }} strokeWidth={2} />
               </div>
               <div
-                className="h-0.5 w-8 rounded-full mb-5"
+                className="h-0.5 w-8 rounded-full mb-5 mx-auto"
                 style={{ backgroundColor: h.color }}
               />
               <h3 className="text-gray-950 font-bold text-sm leading-snug mb-3">{h.title}</h3>

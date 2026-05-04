@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import authApi from '@/lib/api/auth';
 import { setAccessToken } from '@/lib/api/client';
 import type { AuthUser, AuthContextValue, OtpSession, VerifyOtpResult } from './types';
@@ -13,22 +13,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount: restore session from httpOnly refresh token cookie
+  // Ref prevents React Strict Mode's double-invocation from sending the refresh
+  // token twice. The second call would find the first token already rotated
+  // (revoked) and log the user out — or in the worst case revoke all sessions.
+  const initDone = useRef(false);
+
   useEffect(() => {
-    let cancelled = false;
+    if (initDone.current) return;
+    initDone.current = true;
+
     (async () => {
       try {
         const { accessToken } = await authApi.refreshTokens();
         setAccessToken(accessToken);
         const me = await authApi.getMe();
-        if (!cancelled) setUser(me);
+        setUser(me);
       } catch {
         // No valid session — stay logged out
       } finally {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       }
     })();
-    return () => { cancelled = true; };
   }, []);
 
   const sendOtp = useCallback(async (email: string, purpose: 'login' | 'signup') => {
@@ -39,10 +44,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const verifyOtp = useCallback(
     async (email: string, otp: string, purpose: string): Promise<VerifyOtpResult> => {
-      const result = await authApi.verifyOtp(email, otp, purpose);
+      let registrationData: Record<string, unknown> | undefined;
+      if (purpose === 'signup') {
+        try {
+          const raw = sessionStorage.getItem('abjad_reg_data');
+          if (raw) registrationData = JSON.parse(raw) as Record<string, unknown>;
+        } catch { /* ignore parse errors */ }
+      }
+      const result = await authApi.verifyOtp(email, otp, purpose, registrationData);
       setAccessToken(result.tokens.accessToken);
       setUser(result.user);
       sessionStorage.removeItem(OTP_SESSION_KEY);
+      sessionStorage.removeItem('abjad_reg_data');
       return result;
     },
     [],

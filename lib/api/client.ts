@@ -46,8 +46,10 @@ export async function apiFetch<T = unknown>(
   path: string,
   options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
+  // Don't set Content-Type for FormData — the browser sets multipart/form-data with the boundary automatically
+  const isFormData = options.body instanceof FormData;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string> | undefined),
   };
 
@@ -62,7 +64,9 @@ export async function apiFetch<T = unknown>(
   });
 
   // Token expired — attempt silent refresh once then retry
-  if (res.status === 401 && !_isRefreshing) {
+  // Skip retry when the failing request IS the refresh endpoint (avoids infinite loop)
+  const isRefreshEndpoint = path.includes('/auth/refresh');
+  if (res.status === 401 && !_isRefreshing && !isRefreshEndpoint) {
     _isRefreshing = true;
     try {
       const newToken = await doRefresh();

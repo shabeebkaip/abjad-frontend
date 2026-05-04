@@ -88,20 +88,15 @@ export default function FeaturesSection() {
                 key={i}
                 className="group flex items-start gap-6 py-8 first:pt-0"
               >
-                {/* Large letter */}
-                <span
-                  className="text-5xl font-black leading-none shrink-0 mt-1 transition-colors duration-200"
-                  style={{ color: i === 0 ? "#f0fdf4" : i === 1 ? "rgba(0,172,211,0.08)" : "#eef2ff" }}
+                {/* Icon */}
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-1"
+                  style={{ backgroundColor: i === 0 ? "#f0fdf4" : i === 1 ? "rgba(0,172,211,0.08)" : "#eef2ff" }}
                 >
-                  <span style={{ WebkitTextStroke: `2px ${f.color}`, color: "transparent" }}>
-                    {f.num}
-                  </span>
-                </span>
+                  <f.icon size={18} style={{ color: f.color }} strokeWidth={2.5} />
+                </div>
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <f.icon size={16} style={{ color: f.color }} strokeWidth={2.5} />
-                    <h3 className="text-sm font-bold text-gray-900">{f.title}</h3>
-                  </div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2">{f.title}</h3>
                   <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
                 </div>
               </div>

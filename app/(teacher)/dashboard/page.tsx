@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FileText,
@@ -20,143 +21,13 @@ import {
   Award,
   Upload,
   Search,
+  Loader2,
 } from "lucide-react";
+import { getDashboard } from "@/lib/api/teacher";
+import type { DashboardData, Job, Interview, Notification } from "@/lib/api/teacher";
+import { useAuth } from "@/lib/auth/useAuth";
 
-// ─── Mock data ──────────────────────────────────────────────────────────────
-
-const profileSections = [
-  { label: "Personal Info", done: true },
-  { label: "Professional Info", done: true },
-  { label: "Education", done: true },
-  { label: "Certifications", done: false },
-  { label: "Resume / CV", done: false },
-  { label: "Languages", done: true },
-  { label: "Location Prefs", done: false },
-];
-
-const profileCompleteness = Math.round(
-  (profileSections.filter((s) => s.done).length / profileSections.length) * 100
-);
-
-const stats = [
-  { label: "Applications", value: 8, icon: FileText, color: "bg-blue-50 text-blue-600", change: "+2 this week" },
-  { label: "Interviews", value: 2, icon: Calendar, color: "bg-purple-50 text-purple-600", change: "1 upcoming" },
-  { label: "Offers", value: 1, icon: Award, color: "bg-green-50 text-green-600", change: "Awaiting reply" },
-  { label: "Saved Jobs", value: 5, icon: Briefcase, color: "bg-orange-50 text-orange-600", change: "2 closing soon" },
-];
-
-const upcomingInterviews = [
-  {
-    id: 1,
-    school: "Al Rowad International School",
-    role: "Math Teacher – Grade 7-9",
-    date: "Sat, 14 Mar 2026",
-    time: "10:00 AM",
-    type: "Video Call",
-    status: "confirmed",
-  },
-  {
-    id: 2,
-    school: "Dar Al Fikr School",
-    role: "Science Teacher – Elementary",
-    date: "Mon, 16 Mar 2026",
-    time: "2:30 PM",
-    type: "In-Person",
-    status: "pending",
-  },
-];
-
-const recentApplications = [
-  {
-    id: 1,
-    school: "Manarat Riyadh School",
-    role: "Mathematics Teacher",
-    city: "Riyadh",
-    appliedDate: "10 Mar 2026",
-    status: "Shortlisted",
-    statusColor: "bg-green-100 text-green-700",
-  },
-  {
-    id: 2,
-    school: "Al Injaz International School",
-    role: "Physics Teacher – High School",
-    city: "Jeddah",
-    appliedDate: "8 Mar 2026",
-    status: "Under Review",
-    statusColor: "bg-blue-100 text-blue-700",
-  },
-  {
-    id: 3,
-    school: "Riyadh Schools",
-    role: "Math & Science Teacher",
-    city: "Riyadh",
-    appliedDate: "5 Mar 2026",
-    status: "Submitted",
-    statusColor: "bg-gray-100 text-gray-600",
-  },
-];
-
-const jobRecommendations = [
-  {
-    id: 1,
-    school: "International School of Riyadh",
-    role: "Mathematics Teacher",
-    city: "Riyadh",
-    salary: "SAR 12,000 – 15,000",
-    grades: "Grades 7–12",
-    matchScore: 94,
-    postedDays: 1,
-  },
-  {
-    id: 2,
-    school: "Almadares Private School",
-    role: "Math & Computer Science",
-    city: "Jeddah",
-    salary: "SAR 10,000 – 13,000",
-    grades: "Grades 9–12",
-    matchScore: 88,
-    postedDays: 2,
-  },
-  {
-    id: 3,
-    school: "Al Faris Academy",
-    role: "Senior Mathematics Teacher",
-    city: "Riyadh",
-    salary: "Negotiable",
-    grades: "Grades 10–12",
-    matchScore: 82,
-    postedDays: 3,
-  },
-  {
-    id: 4,
-    school: "Dar Al Elm School",
-    role: "Middle School Math Teacher",
-    city: "Khobar",
-    salary: "SAR 9,000 – 11,000",
-    grades: "Grades 6–9",
-    matchScore: 79,
-    postedDays: 4,
-  },
-  {
-    id: 5,
-    school: "Al Andalus Academy",
-    role: "Mathematics Teacher (Female)",
-    city: "Riyadh",
-    salary: "SAR 11,000 – 14,000",
-    grades: "Grades 7–12",
-    matchScore: 76,
-    postedDays: 5,
-  },
-];
-
-const notifications = [
-  { id: 1, text: "Manarat Riyadh shortlisted your application!", time: "2 hours ago", type: "success", unread: true },
-  { id: 2, text: "Interview confirmed for Al Rowad – Sat 10:00 AM", time: "5 hours ago", type: "info", unread: true },
-  { id: 3, text: "Job offer received from Future Leaders School", time: "Yesterday", type: "offer", unread: true },
-  { id: 4, text: "5 new jobs match your profile today", time: "Yesterday", type: "jobs", unread: false },
-];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function MatchBadge({ score }: { score: number }) {
   const color =
@@ -170,15 +41,156 @@ function MatchBadge({ score }: { score: number }) {
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+function formatSalary(job: Job): string {
+  if (job.salary.display === "negotiable") return "Negotiable";
+  if (job.salary.display === "hide") return "Undisclosed";
+  if (job.salary.min && job.salary.max) {
+    return `SAR ${job.salary.min.toLocaleString()}–${job.salary.max.toLocaleString()}`;
+  }
+  return "Salary on request";
+}
+
+function daysAgo(dateStr: string): number {
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
+}
+
+function postedLabel(dateStr: string): string {
+  const d = daysAgo(dateStr);
+  if (d === 0) return "Posted today";
+  if (d === 1) return "1 day ago";
+  return `${d} days ago`;
+}
+
+function formatInterviewDate(isoStr: string): string {
+  const d = new Date(isoStr);
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatInterviewTime(isoStr: string): string {
+  return new Date(isoStr).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+function schoolName(schoolId: Interview["schoolId"]): string {
+  if (typeof schoolId === "object" && schoolId.name) return schoolId.name;
+  return "School";
+}
+
+function appStatusLabel(status: string): { label: string; color: string } {
+  const map: Record<string, { label: string; color: string }> = {
+    submitted:          { label: "Submitted",    color: "bg-gray-100 text-gray-600" },
+    reviewing:          { label: "Under Review", color: "bg-blue-100 text-blue-700" },
+    shortlisted:        { label: "Shortlisted",  color: "bg-green-100 text-green-700" },
+    interview_scheduled:{ label: "Interview",    color: "bg-purple-100 text-purple-700" },
+    offer_extended:     { label: "Offer",        color: "bg-teal-100 text-teal-700" },
+    hired:              { label: "Hired",        color: "bg-emerald-100 text-emerald-700" },
+    rejected:           { label: "Rejected",     color: "bg-red-100 text-red-600" },
+    withdrawn:          { label: "Withdrawn",    color: "bg-gray-100 text-gray-500" },
+  };
+  return map[status] ?? { label: status, color: "bg-gray-100 text-gray-600" };
+}
+
+function notifIcon(type: Notification["type"]) {
+  const map: Record<string, typeof Bell> = {
+    application_status: CheckCircle2,
+    offer_received:     Award,
+    job_match:          Briefcase,
+  };
+  return map[type] ?? Bell;
+}
+
+function notifIconColor(type: Notification["type"]): string {
+  const map: Record<string, string> = {
+    application_status: "bg-green-100 text-green-600",
+    offer_received:     "bg-purple-100 text-purple-600",
+    job_match:          "bg-blue-100 text-blue-600",
+  };
+  return map[type] ?? "bg-gray-100 text-gray-600";
+}
+
+function timeAgo(isoStr: string): string {
+  const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
+  if (secs < 3600) return `${Math.floor(secs / 60)} min ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)} hours ago`;
+  if (secs < 172800) return "Yesterday";
+  return `${Math.floor(secs / 86400)} days ago`;
+}
+
+const PROFILE_SECTION_KEYS = [
+  { label: "Personal Info",     key: "personal" },
+  { label: "Professional Info", key: "professional" },
+  { label: "Education",         key: "education" },
+  { label: "Certifications",    key: "certifications" },
+  { label: "Resume / CV",       key: "resume" },
+  { label: "Languages",         key: "languages" },
+  { label: "Location Prefs",    key: "location" },
+] as const;
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDashboard()
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <Loader2 size={24} className="animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  const profile = data?.profile;
+  const appStats = data?.applications.stats;
+  const profileCompleteness = profile?.completionPercentage ?? 0;
+  const suggestions = profile?.suggestions ?? [];
+
+  const stats = [
+    {
+      label: "Applications",
+      value: appStats?.total ?? 0,
+      icon: FileText,
+      color: "bg-blue-50 text-blue-600",
+      change: `${appStats?.submitted ?? 0} submitted`,
+    },
+    {
+      label: "Interviews",
+      value: data?.upcomingInterviews.length ?? 0,
+      icon: Calendar,
+      color: "bg-purple-50 text-purple-600",
+      change: "upcoming",
+    },
+    {
+      label: "Offers",
+      value: data?.activeOffers.length ?? 0,
+      icon: Award,
+      color: "bg-green-50 text-green-600",
+      change: data?.activeOffers.length ? "Awaiting reply" : "None active",
+    },
+    {
+      label: "Active",
+      value: data?.applications.activeCount ?? 0,
+      icon: Briefcase,
+      color: "bg-orange-50 text-orange-600",
+      change: "in progress",
+    },
+  ];
+
+  const firstName = user?.firstName ?? user?.email?.split("@")[0] ?? "there";
+
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Welcome */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Welcome back, Shabeeb 👋</h1>
+          <h1 className="text-xl font-bold text-gray-900">Welcome back, {firstName} 👋</h1>
           <p className="text-sm text-gray-500 mt-0.5">Here&apos;s what&apos;s happening with your job search</p>
         </div>
         <Link
@@ -210,13 +222,15 @@ export default function DashboardPage() {
                 style={{ width: `${profileCompleteness}%`, background: "var(--brand-gradient)" }}
               />
             </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {profileSections.filter(s => !s.done).map(s => (
-                <span key={s.label} className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                  + {s.label}
-                </span>
-              ))}
-            </div>
+            {suggestions.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {suggestions.map((s) => (
+                  <span key={s} className="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                    + {s}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <Link
             href="/profile"
@@ -243,7 +257,7 @@ export default function DashboardPage() {
 
       {/* Main content grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left: Recommendations */}
+        {/* Left: Recommendations + Recent Applications */}
         <div className="xl:col-span-2 space-y-4">
           {/* Job Recommendations */}
           <div className="bg-white rounded-2xl border border-gray-100">
@@ -260,88 +274,64 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="divide-y divide-gray-50">
-              {jobRecommendations.map((job) => (
-                <div key={job.id} className="px-5 py-4 hover:bg-gray-50/50 transition-colors group">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-primary-dark transition-colors">
-                          {job.role}
-                        </span>
-                        <MatchBadge score={job.matchScore} />
+              {(data?.recommendations ?? []).length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-8">No recommendations yet — complete your profile to get matched.</p>
+              ) : (
+                (data?.recommendations ?? []).map((job) => (
+                  <div key={job._id} className="px-5 py-4 hover:bg-gray-50/50 transition-colors group">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-primary-dark transition-colors">
+                            {job.title}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <MapPin size={11} /> {job.city}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <BookOpen size={11} /> {job.subjects?.join(", ")}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-xs font-medium text-gray-700">{formatSalary(job)}</span>
+                          <span className="text-xs text-gray-400">{postedLabel(job.createdAt)}</span>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Building2 size={11} /> {job.school}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin size={11} /> {job.city}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <BookOpen size={11} /> {job.grades}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs font-medium text-gray-700">{job.salary}</span>
-                        <span className="text-xs text-gray-400">
-                          {job.postedDays === 1 ? "Posted today" : `${job.postedDays} days ago`}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5 shrink-0">
-                      <button className="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors"
-                        style={{ background: "var(--brand-gradient)" }}>
-                        Quick Apply
-                      </button>
-                      <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium">
-                        Save
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
-          {/* Recent Applications */}
-          <div className="bg-white rounded-2xl border border-gray-100">
-            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
-              <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-                <FileText size={16} className="text-blue-500" />
-                Recent Applications
-              </h2>
-              <Link href="/applications" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
-                View all <ChevronRight size={13} />
-              </Link>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {recentApplications.map((app) => (
-                <div key={app.id} className="px-5 py-4 hover:bg-gray-50/50 transition-colors">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{app.role}</p>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
-                        <Building2 size={11} /> {app.school}
-                        <span>·</span>
-                        <MapPin size={11} /> {app.city}
+          {/* Active Offers */}
+          {(data?.activeOffers ?? []).length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100">
+              <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
+                <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Award size={16} className="text-teal-500" />
+                  Active Offers
+                </h2>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {data!.activeOffers.map((offer) => (
+                  <div key={offer._id} className="px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{offer.position ?? offer.jobId.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{schoolName(offer.schoolId)} · SAR {offer.salary?.toLocaleString()}/mo</p>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${app.statusColor}`}>
-                        {app.status}
+                      <span className="text-xs bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-0.5 rounded-full font-medium capitalize">
+                        {offer.status}
                       </span>
-                      <span className="text-xs text-gray-400">{app.appliedDate}</span>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            <div className="px-5 py-3 border-t border-gray-50">
-              <Link href="/applications" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
-                <TrendingUp size={12} /> Track all 8 applications
-              </Link>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Right column */}
@@ -358,39 +348,34 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="p-4 space-y-3">
-              {upcomingInterviews.map((interview) => (
-                <div key={interview.id} className="rounded-xl border border-gray-100 p-3.5 hover:border-brand-primary/30 transition-colors">
+              {(data?.upcomingInterviews ?? []).map((interview) => (
+                <div key={interview._id} className="rounded-xl border border-gray-100 p-3.5 hover:border-brand-primary/30 transition-colors">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="text-sm font-medium text-gray-900 leading-tight">{interview.role}</p>
+                    <p className="text-sm font-medium text-gray-900 leading-tight">{interview.jobId.title}</p>
                     <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${
-                      interview.status === "confirmed"
+                      interview.status === "accepted"
                         ? "bg-green-100 text-green-700"
                         : "bg-amber-100 text-amber-700"
                     }`}>
-                      {interview.status === "confirmed" ? "Confirmed" : "Pending"}
+                      {interview.status === "accepted" ? "Confirmed" : "Pending"}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 flex items-center gap-1 mb-2">
-                    <Building2 size={10} /> {interview.school}
+                    <Building2 size={10} /> {schoolName(interview.schoolId)}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
                     <Clock size={11} className="text-brand-primary shrink-0" />
-                    <span>{interview.date} · {interview.time}</span>
-                    <span className="ml-auto text-brand-primary font-medium">{interview.type}</span>
+                    <span>{formatInterviewDate(interview.scheduledAt)} · {formatInterviewTime(interview.scheduledAt)}</span>
+                    <span className="ml-auto text-brand-primary font-medium capitalize">{interview.type.replace("_", " ")}</span>
                   </div>
                   <div className="flex gap-2 mt-2.5">
-                    <button className="flex-1 text-xs py-1.5 rounded-lg bg-brand-primary-light text-brand-primary-dark font-medium hover:bg-brand-primary/20 transition-colors">
+                    <Link href="/interviews" className="flex-1 text-xs py-1.5 rounded-lg bg-brand-primary-light text-brand-primary-dark font-medium hover:bg-brand-primary/20 transition-colors text-center">
                       View Details
-                    </button>
-                    {interview.status === "pending" && (
-                      <button className="flex-1 text-xs py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium">
-                        Reschedule
-                      </button>
-                    )}
+                    </Link>
                   </div>
                 </div>
               ))}
-              {upcomingInterviews.length === 0 && (
+              {(data?.upcomingInterviews ?? []).length === 0 && (
                 <p className="text-sm text-gray-400 text-center py-4">No upcoming interviews</p>
               )}
             </div>
@@ -402,39 +387,38 @@ export default function DashboardPage() {
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Bell size={16} className="text-red-500" />
                 Notifications
-                <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">3</span>
+                {(data?.notifications.unreadCount ?? 0) > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">
+                    {data!.notifications.unreadCount}
+                  </span>
+                )}
               </h2>
               <Link href="/notifications" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
                 All <ChevronRight size={13} />
               </Link>
             </div>
             <div className="divide-y divide-gray-50">
-              {notifications.map((n) => {
-                const iconColor =
-                  n.type === "success" ? "bg-green-100 text-green-600" :
-                  n.type === "offer" ? "bg-purple-100 text-purple-600" :
-                  n.type === "jobs" ? "bg-blue-100 text-blue-600" :
-                  "bg-gray-100 text-gray-600";
-                const Icon =
-                  n.type === "success" ? CheckCircle2 :
-                  n.type === "offer" ? Award :
-                  n.type === "jobs" ? Briefcase :
-                  Bell;
+              {(data?.notifications.recent ?? []).map((n) => {
+                const Icon = notifIcon(n.type);
+                const iconColor = notifIconColor(n.type);
                 return (
-                  <div key={n.id} className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50/50 transition-colors ${n.unread ? "bg-blue-50/30" : ""}`}>
+                  <div key={n._id} className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50/50 transition-colors ${!n.isRead ? "bg-blue-50/30" : ""}`}>
                     <div className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${iconColor} mt-0.5`}>
                       <Icon size={13} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs leading-snug ${n.unread ? "font-medium text-gray-900" : "text-gray-600"}`}>
-                        {n.text}
+                      <p className={`text-xs leading-snug ${!n.isRead ? "font-medium text-gray-900" : "text-gray-600"}`}>
+                        {n.body}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.createdAt)}</p>
                     </div>
-                    {n.unread && <div className="shrink-0 w-1.5 h-1.5 bg-brand-primary rounded-full mt-1.5" />}
+                    {!n.isRead && <div className="shrink-0 w-1.5 h-1.5 bg-brand-primary rounded-full mt-1.5" />}
                   </div>
                 );
               })}
+              {(data?.notifications.recent ?? []).length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-6">No notifications</p>
+              )}
             </div>
           </div>
 
@@ -443,10 +427,10 @@ export default function DashboardPage() {
             <h2 className="font-semibold text-gray-900 text-sm mb-3">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Update Resume", icon: Upload, href: "/profile#cv", color: "bg-blue-50 text-blue-600" },
-                { label: "Browse Jobs", icon: Search, href: "/jobs", color: "bg-brand-primary-light text-brand-primary-dark" },
-                { label: "View Offers", icon: Award, href: "/applications?tab=offers", color: "bg-green-50 text-green-600" },
-                { label: "Edit Profile", icon: User, href: "/profile", color: "bg-purple-50 text-purple-600" },
+                { label: "Update Resume", icon: Upload, href: "/profile", color: "bg-blue-50 text-blue-600" },
+                { label: "Browse Jobs",  icon: Search, href: "/jobs",    color: "bg-brand-primary-light text-brand-primary-dark" },
+                { label: "View Applications", icon: TrendingUp, href: "/applications", color: "bg-green-50 text-green-600" },
+                { label: "Edit Profile", icon: User,  href: "/profile",  color: "bg-purple-50 text-purple-600" },
               ].map(({ label, icon: Icon, href, color }) => (
                 <Link
                   key={label}
@@ -477,25 +461,26 @@ export default function DashboardPage() {
                 style={{ width: `${profileCompleteness}%`, background: "var(--brand-gradient)" }}
               />
             </div>
-            <div className="space-y-1.5">
-              {profileSections.map((s) => (
-                <div key={s.label} className="flex items-center gap-2 text-xs">
-                  {s.done
-                    ? <CheckCircle2 size={13} className="text-green-500 shrink-0" />
-                    : <div className="w-3 h-3 rounded-full border-2 border-gray-300 shrink-0" />
-                  }
-                  <span className={s.done ? "text-gray-600" : "text-gray-400"}>{s.label}</span>
-                  {!s.done && (
+            {suggestions.length > 0 && (
+              <div className="space-y-1.5">
+                {suggestions.map((s) => (
+                  <div key={s} className="flex items-center gap-2 text-xs">
+                    <div className="w-3 h-3 rounded-full border-2 border-gray-300 shrink-0" />
+                    <span className="text-gray-400">{s}</span>
                     <Link href="/profile" className="ml-auto text-brand-primary hover:underline">Add</Link>
-                  )}
-                </div>
-              ))}
-            </div>
+                  </div>
+                ))}
+                {PROFILE_SECTION_KEYS.filter((sec) => !suggestions.some((s) => s.toLowerCase().includes(sec.label.toLowerCase()))).map((sec) => (
+                  <div key={sec.label} className="flex items-center gap-2 text-xs">
+                    <CheckCircle2 size={13} className="text-green-500 shrink-0" />
+                    <span className="text-gray-600">{sec.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-

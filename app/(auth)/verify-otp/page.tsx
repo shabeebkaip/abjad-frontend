@@ -11,8 +11,7 @@ import type { OtpSession } from "@/lib/auth/types";
 const OTP_LENGTH = 6;
 
 function getDashboardPath(role?: string): string {
-  // Route groups (teacher), (school) don't affect URL — path is just /dashboard
-  if (role === "school") return "/dashboard";
+  if (role === "school") return "/school/dashboard";
   return "/dashboard";
 }
 
@@ -122,7 +121,7 @@ export default function VerifyOtpPage() {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-8">
       {/* Icon */}
       <div
-        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 mx-auto"
         style={{ backgroundColor: "var(--brand-accent-light)" }}
       >
         <MailCheck size={26} style={{ color: "var(--brand-accent)" }} />

@@ -1,19 +1,25 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Target, ShieldCheck, Globe } from "lucide-react";
 
 const pillars = [
   {
-    n: "01",
+    icon: Target,
+    iconColor: "var(--brand-accent)",
+    iconBg: "rgba(0,172,211,0.1)",
     title: "Right Teacher, Right School",
-    desc: "Precision matching — every educator placed is the exact fit for the school's curriculum, culture, and needs.",
+    desc: "Precision matching, every educator placed is the exact fit for the school's curriculum, culture, and needs.",
   },
   {
-    n: "02",
+    icon: ShieldCheck,
+    iconColor: "#10b981",
+    iconBg: "rgba(16,185,129,0.1)",
     title: "Professional & Verified",
     desc: "Every profile is manually vetted with credential checks, reference reviews, and trial assignments before placement.",
   },
   {
-    n: "03",
+    icon: Globe,
+    iconColor: "#a78bfa",
+    iconBg: "rgba(167,139,250,0.1)",
     title: "Nationwide Reach",
     desc: "From Riyadh to Dammam, we cover every region of Saudi Arabia with qualified educators ready to start.",
   },
@@ -56,7 +62,7 @@ export default function MissionSection() {
                 className="font-extrabold text-gray-950 leading-[1.1] mb-5"
                 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.7rem)", letterSpacing: "-0.04em" }}
               >
-                Ensure schools always have the right teachers — on time and ready to inspire.
+                Ensure schools always have the right teachers, on time and ready to inspire.
               </blockquote>
               <p className="text-gray-400 text-sm mb-12">
                 — The founding principle behind every placement Abjad facilitates
@@ -88,17 +94,17 @@ export default function MissionSection() {
             </p>
 
             <div className="flex flex-col gap-3 mb-10">
-              {pillars.map((p) => (
+              {pillars.map((p, i) => (
                 <div
-                  key={p.n}
+                  key={i}
                   className="flex gap-5 p-5 rounded-xl bg-[#f8fafc] border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all duration-200"
                 >
-                  <span
-                    className="text-2xl font-black leading-none shrink-0 mt-0.5"
-                    style={{ color: "var(--brand-accent)", opacity: 0.5 }}
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ backgroundColor: p.iconBg }}
                   >
-                    {p.n}
-                  </span>
+                    <p.icon size={16} style={{ color: p.iconColor }} strokeWidth={2} />
+                  </div>
                   <div>
                     <h3 className="font-bold text-gray-900 text-sm mb-1">{p.title}</h3>
                     <p className="text-xs text-gray-500 leading-relaxed">{p.desc}</p>

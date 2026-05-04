@@ -1,4 +1,3 @@
-import { MapPin } from "lucide-react";
 
 const regions = [
   {
@@ -62,26 +61,16 @@ export default function ServingSchools() {
           {regions.map((r, i) => (
             <div
               key={i}
-              className="group bg-white border border-gray-100 rounded-2xl p-7 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              className="group bg-white border border-gray-100 rounded-2xl p-7 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center"
             >
-              <div className="flex items-start gap-4">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-200"
-                  style={{ backgroundColor: "var(--brand-accent-light)" }}
-                >
-                  <MapPin size={18} style={{ color: "var(--brand-accent)" }} strokeWidth={2} />
-                </div>
-                <div>
-                  <span
-                    className="text-[10px] font-bold tracking-widest uppercase rounded-full px-2 py-0.5 mb-2 inline-block"
-                    style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}
-                  >
-                    {r.tag}
-                  </span>
-                  <h3 className="text-sm font-bold text-gray-900 mb-1.5">{r.city}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{r.desc}</p>
-                </div>
-              </div>
+              <span
+                className="text-[10px] font-bold tracking-widest uppercase rounded-full px-2 py-0.5 mb-3 inline-block"
+                style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}
+              >
+                {r.tag}
+              </span>
+              <h3 className="text-sm font-bold text-gray-900 mb-1.5">{r.city}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{r.desc}</p>
             </div>
           ))}
         </div>

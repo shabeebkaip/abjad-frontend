@@ -66,21 +66,16 @@ export default function TeachersHowItWorks() {
 
           {/* 3 steps */}
           <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
-            {steps.map((s) => (
-              <div key={s.num} className="px-8 py-10 flex items-start gap-5">
-                <span
-                  className="text-4xl font-black leading-none shrink-0 mt-1"
-                  style={{ color: "var(--brand-accent)", opacity: 0.55 }}
+            {steps.map((s, i) => (
+              <div key={i} className="px-8 py-10 text-center">
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 mx-auto"
+                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
-                  {s.num}
-                </span>
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <s.icon size={16} style={{ color: "var(--brand-accent)" }} strokeWidth={2} />
-                    <h3 className="text-white font-bold text-base">{s.title}</h3>
-                  </div>
-                  <p className="text-white/50 text-sm leading-relaxed">{s.desc}</p>
+                  <s.icon size={22} style={{ color: "var(--brand-accent)" }} strokeWidth={2} />
                 </div>
+                <h3 className="text-white font-bold text-base mb-2">{s.title}</h3>
+                <p className="text-white/50 text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>

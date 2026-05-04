@@ -73,9 +73,9 @@ export default function SchoolsForEducators() {
           {benefits.map((b, i) => (
             <div
               key={i}
-              className="rounded-2xl p-7 border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300"
+              className="rounded-2xl p-7 border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300 text-center"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center mb-5">
+              <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center mb-5 mx-auto">
                 <b.icon size={20} style={{ color: b.color }} strokeWidth={2} />
               </div>
               <h3 className="text-white font-bold text-sm mb-2">{b.title}</h3>

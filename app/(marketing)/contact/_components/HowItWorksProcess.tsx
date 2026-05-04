@@ -1,24 +1,26 @@
+import { FileText, Search, Video, PlayCircle } from "lucide-react";
+
 const steps = [
   {
-    number: "01",
+    icon: FileText,
     color: "var(--brand-accent)",
     title: "Submit Your Information",
     desc: "Fill out our contact form below with your name, email, phone, role, and what you are looking for. Schools can describe their vacancy; educators can share availability and subject specialisation.",
   },
   {
-    number: "02",
+    icon: Search,
     color: "#6366f1",
     title: "Match & Review",
     desc: "Our team reviews your submission and begins matching schools with vetted substitute teachers or permanent educators based on curriculum, location, and urgency.",
   },
   {
-    number: "03",
+    icon: Video,
     color: "#10b981",
     title: "Interview or Trial Assignment",
-    desc: "We coordinate a brief interview or a trial day assignment to confirm compatibility before formalising any placement — ensuring confidence on both sides.",
+    desc: "We coordinate a brief interview or a trial day assignment to confirm compatibility before formalising any placement, ensuring confidence on both sides.",
   },
   {
-    number: "04",
+    icon: PlayCircle,
     color: "#f59e0b",
     title: "Start the Assignment",
     desc: "Once confirmed, the teacher or substitute teacher begins their placement. We remain available throughout to provide ongoing support to both schools and educators.",
@@ -46,7 +48,8 @@ export default function HowItWorksProcess() {
               className="font-extrabold text-white leading-tight"
               style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}
             >
-              How It Works —{" "}
+              How It Works
+              <br />
               <span style={{ color: "var(--brand-accent)" }}>Step by Step</span>
             </h2>
           </div>
@@ -61,20 +64,14 @@ export default function HowItWorksProcess() {
           {steps.map((s, i) => (
             <div key={i} className="grid lg:grid-cols-12 gap-6 items-start py-10 group">
 
-              {/* Giant number */}
+              {/* Icon */}
               <div className="lg:col-span-2 flex items-center gap-4">
-                <span
-                  className="font-black leading-none select-none"
-                  style={{
-                    fontSize: "clamp(3rem, 5vw, 4rem)",
-                    color: s.color,
-                    opacity: 0.9,
-                    fontVariantNumeric: "tabular-nums",
-                    letterSpacing: "-0.05em",
-                  }}
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                  style={{ backgroundColor: `${s.color}22` }}
                 >
-                  {s.number}
-                </span>
+                  <s.icon size={26} style={{ color: s.color }} strokeWidth={1.8} />
+                </div>
               </div>
 
               {/* Colored accent bar */}
