@@ -240,7 +240,10 @@ export default function SchoolDashboardPage() {
 
   const schoolDisplayName =
     data?.profile.nameEn ?? data?.profile.nameAr ?? user?.schoolName ?? "School";
-  const completion  = data?.profile.completionPercentage ?? 0;
+  const completion     = data?.profile.completionPercentage ?? 0;
+  const profileStatus  = data?.profile.status ?? "draft";
+  const isVerified     = profileStatus === "verified";
+  const isPendingVerif = profileStatus === "pending";
   const funnel      = data?.hiringFunnel ?? { total: 0, reviewing: 0, shortlisted: 0, interviewed: 0, offered: 0, hired: 0 };
   const jobsByStatus = data?.jobs.byStatus ?? {};
   const recentApps  = (data?.applications.recent ?? []).slice(0, 5);
@@ -336,6 +339,43 @@ export default function SchoolDashboardPage() {
           >
             Complete Profile
           </Link>
+        </div>
+      )}
+
+      {/* ── Verification nudge — non-blocking ───────────────────────── */}
+      {!isVerified && !isPendingVerif && completion >= 60 && (
+        <div className="bg-white rounded-2xl border border-teal-100 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="h-9 w-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
+              <CheckCircle2 size={16} className="text-teal-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Get your school verified</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                A <span className="text-teal-600 font-medium">Verified by Abjad</span> badge builds trust with teachers — you can post jobs freely while we verify.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/school/profile"
+            className="shrink-0 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Submit for Verification
+          </Link>
+        </div>
+      )}
+
+      {isPendingVerif && (
+        <div className="bg-white rounded-2xl border border-amber-100 p-4 flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+            <Loader2 size={16} className="text-amber-500 animate-spin" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Verification in progress</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Our team is reviewing your school profile. You can continue posting jobs and receiving applications in the meantime.
+            </p>
+          </div>
         </div>
       )}
 

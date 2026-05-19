@@ -453,3 +453,47 @@ export async function replySupportTicket(ticketId: string, content: string): Pro
 export async function closeSupportTicket(ticketId: string): Promise<SupportTicket> {
   return (await apiFetch<SupportTicket>(`/api/support/tickets/${ticketId}/close`, { method: 'POST' })).data!;
 }
+
+// ── Notifications ──────────────────────────────────────────────────────────────
+
+export interface SchoolNotification {
+  _id: string;
+  type: 'application_status' | 'interview_invitation' | 'interview_reminder' | 'offer_received' | 'message' | 'profile_status' | 'system';
+  title: string;
+  body: string;
+  isRead: boolean;
+  data?: Record<string, string>;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface SchoolNotificationsResponse {
+  notifications: SchoolNotification[];
+  total: number;
+  unreadCount: number;
+}
+
+export async function listSchoolNotifications(params?: { limit?: number; unreadOnly?: boolean; type?: string }): Promise<SchoolNotificationsResponse> {
+  const q = new URLSearchParams();
+  if (params?.limit)      q.set('limit',      String(params.limit));
+  if (params?.unreadOnly) q.set('unreadOnly',  'true');
+  if (params?.type)       q.set('type',        params.type);
+  return (await apiFetch<SchoolNotificationsResponse>(`/api/notifications?${q}`)).data!;
+}
+
+export async function getSchoolNotificationUnreadCount(): Promise<number> {
+  const res = await apiFetch<{ count: number }>('/api/notifications/unread-count');
+  return res.data!.count;
+}
+
+export async function markSchoolNotificationRead(notificationId: string): Promise<void> {
+  await apiFetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
+}
+
+export async function markAllSchoolNotificationsRead(): Promise<void> {
+  await apiFetch('/api/notifications/read-all', { method: 'PATCH' });
+}
+
+export async function deleteSchoolNotification(notificationId: string): Promise<void> {
+  await apiFetch(`/api/notifications/${notificationId}`, { method: 'DELETE' });
+}

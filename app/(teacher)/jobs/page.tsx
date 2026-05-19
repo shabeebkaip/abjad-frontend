@@ -464,6 +464,15 @@ function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
           </div>
           <div className="flex items-center gap-2 mt-2.5 flex-wrap">
             <span className="text-xs font-semibold text-slate-700">{salaryText(job)}</span>
+            {job.matchScore != null && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                job.matchScore >= 80 ? "bg-green-50 text-green-700" :
+                job.matchScore >= 60 ? "bg-blue-50 text-blue-700" :
+                "bg-slate-100 text-slate-500"
+              }`}>
+                {job.matchScore}% match
+              </span>
+            )}
             {deadline.label && (
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${deadline.cls}`}>{deadline.label}</span>
             )}
@@ -547,6 +556,15 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
           </span>
           {deadline.label && (
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${deadline.cls}`}>{deadline.label}</span>
+          )}
+          {job.matchScore != null && (
+            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+              job.matchScore >= 80 ? "bg-green-50 text-green-700 ring-1 ring-green-200" :
+              job.matchScore >= 60 ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" :
+              "bg-slate-100 text-slate-500"
+            }`}>
+              {job.matchScore}% match
+            </span>
           )}
           <span className="text-[11px] text-slate-400 ml-auto">{postedLabel(job.createdAt)}</span>
         </div>

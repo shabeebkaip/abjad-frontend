@@ -537,13 +537,13 @@ export default function SchoolProfilePage() {
       case "verified":
         return (
           <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
-            <CheckCircle2 size={11} /> Verified
+            <CheckCircle2 size={11} /> Verified by Abjad
           </span>
         );
       case "pending":
         return (
           <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
-            <Loader2 size={11} className="animate-spin" /> Under Review
+            <Loader2 size={11} className="animate-spin" /> Verification in progress
           </span>
         );
       case "rejected":

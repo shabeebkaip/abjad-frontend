@@ -9,25 +9,42 @@ import {
   Bell, LogOut, ChevronDown, Settings, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
+import { getSchoolNotificationUnreadCount } from "@/lib/api/school";
 
 const navItems = [
-  { href: "/school/dashboard",    icon: LayoutDashboard, label: "Dashboard"     },
-  { href: "/school/jobs",         icon: Briefcase,        label: "Jobs"          },
-  { href: "/school/applications", icon: FileText,         label: "Applications"  },
-  { href: "/school/candidates",   icon: Users,            label: "Candidates"    },
-  { href: "/school/shortlists",   icon: BookMarked,       label: "Shortlists"    },
-  { href: "/school/interviews",   icon: Calendar,         label: "Interviews"    },
-  { href: "/school/offers",       icon: Gift,             label: "Offers"        },
-  { href: "/school/team",         icon: UserCog,          label: "Team"          },
-  { href: "/school/profile",      icon: Building2,        label: "School Profile"},
-  { href: "/school/support",      icon: MessageSquare,    label: "Support"       },
+  { href: "/school/dashboard",       icon: LayoutDashboard, label: "Dashboard"     },
+  { href: "/school/jobs",            icon: Briefcase,        label: "Jobs"          },
+  { href: "/school/applications",    icon: FileText,         label: "Applications"  },
+  { href: "/school/candidates",      icon: Users,            label: "Candidates"    },
+  { href: "/school/shortlists",      icon: BookMarked,       label: "Shortlists"    },
+  { href: "/school/interviews",      icon: Calendar,         label: "Interviews"    },
+  { href: "/school/offers",          icon: Gift,             label: "Offers"        },
+  { href: "/school/team",            icon: UserCog,          label: "Team"          },
+  { href: "/school/profile",         icon: Building2,        label: "School Profile"},
+  { href: "/school/support",         icon: MessageSquare,    label: "Support"       },
 ];
 
 export default function SchoolLayout({ children }: { children: React.ReactNode }) {
   const pathname  = usePathname();
   const router    = useRouter();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileOpen, setProfileOpen]     = useState(false);
+  const [unreadCount, setUnreadCount]     = useState(0);
+
+  // Poll unread notification count every 60 s while the school is active
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== "school") return;
+    let active = true;
+    const fetch = async () => {
+      try {
+        const count = await getSchoolNotificationUnreadCount();
+        if (active) setUnreadCount(count);
+      } catch { /* silent */ }
+    };
+    fetch();
+    const interval = setInterval(fetch, 60_000);
+    return () => { active = false; clearInterval(interval); };
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -59,9 +76,21 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
           </Link>
 
           <div className="flex items-center gap-1">
-            <button className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
+            <Link
+              href="/school/notifications"
+              className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              aria-label="Notifications"
+            >
               <Bell size={20} />
-            </button>
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center text-white text-[9px] font-bold rounded-full px-1 leading-none"
+                  style={{ background: "var(--brand-gradient)" }}
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
 
             {/* Profile dropdown */}
             <div className="relative">

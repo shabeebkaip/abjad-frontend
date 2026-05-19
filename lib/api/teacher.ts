@@ -79,6 +79,7 @@ export interface Job {
   viewsCount: number;
   applicationsCount: number;
   isSaved?: boolean;
+  matchScore?: number;
   createdAt: string;
   // Detail-only fields
   description?: string;
@@ -203,6 +204,7 @@ export interface DashboardData {
   profile: {
     completionPercentage: number;
     status: string;
+    profileStatus: string;
     suggestions: string[];
   };
   applications: {

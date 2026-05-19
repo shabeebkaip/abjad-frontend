@@ -606,8 +606,8 @@ export default function ProfilePage() {
 
   const statusBadge = () => {
     switch (profileStatus) {
-      case "approved":  return <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium"><CheckCircle2 size={11} /> Profile Approved</span>;
-      case "pending":   return <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium"><Loader2 size={11} className="animate-spin" /> Under Review</span>;
+      case "approved":  return <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium"><CheckCircle2 size={11} /> Verified by Abjad</span>;
+      case "pending":   return <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium"><Loader2 size={11} className="animate-spin" /> Verification in progress</span>;
       case "rejected":  return <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium"><X size={11} /> Profile Rejected</span>;
       default:          return <span className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium"><AlertCircle size={11} /> Draft</span>;
     }
