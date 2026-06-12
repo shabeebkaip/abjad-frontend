@@ -14,7 +14,7 @@ const regions = [
 export default function SchoolsDiscover() {
   return (
     <section
-      className="relative overflow-hidden py-28"
+      className="relative overflow-hidden py-16 lg:py-28"
       style={{ background: "var(--brand-primary)" }}
     >
       {/* Dot grid */}
@@ -29,7 +29,7 @@ export default function SchoolsDiscover() {
       />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
           {/* Left — content */}
           <div>

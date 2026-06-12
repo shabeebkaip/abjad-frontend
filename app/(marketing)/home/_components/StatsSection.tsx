@@ -25,7 +25,7 @@ export default function StatsSection() {
         <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-14">
           <div className="grid grid-cols-3 gap-0 divide-x divide-white/10">
             {stats.map((s, i) => (
-              <div key={i} className="text-center px-6">
+              <div key={i} className="text-center px-2 sm:px-6">
                 <div
                   className="font-black mb-1 leading-none"
                   style={{ fontSize: "clamp(2.8rem, 6vw, 4.5rem)", color: i === 0 ? "var(--brand-accent)" : i === 1 ? "#a78bfa" : "#34d399" }}
@@ -40,7 +40,7 @@ export default function StatsSection() {
       </div>
 
       {/* ── Main content ── */}
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-14 lg:py-24">
 
         <div className="text-center mb-16">
           <span

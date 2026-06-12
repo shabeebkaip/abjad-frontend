@@ -20,7 +20,7 @@ const communities = [
 export default function TeachersNetwork() {
   return (
     <section
-      className="relative overflow-hidden py-28"
+      className="relative overflow-hidden py-16 lg:py-28"
       style={{ background: "var(--brand-primary)" }}
     >
       {/* Dot grid */}
@@ -37,7 +37,7 @@ export default function TeachersNetwork() {
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
 
         {/* Section header */}
-        <div className="text-center mb-16 max-w-2xl mx-auto">
+        <div className="text-center mb-8 lg:mb-16 max-w-2xl mx-auto">
           <span className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-white/10 text-white/60 mb-6">
             Join the Abjad Network
           </span>
@@ -56,9 +56,9 @@ export default function TeachersNetwork() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-px bg-white/8 rounded-3xl overflow-hidden mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/8 rounded-3xl overflow-hidden mb-8 lg:mb-16">
           {stats.map((s) => (
-            <div key={s.label} className="bg-white/4 px-8 py-10 text-center hover:bg-white/8 transition-colors">
+            <div key={s.label} className="bg-white/4 px-4 py-6 sm:px-8 sm:py-10 text-center hover:bg-white/8 transition-colors">
               <div
                 className="font-black text-white leading-none mb-2"
                 style={{ fontSize: "clamp(2rem, 3.5vw, 2.8rem)", color: s.color }}
@@ -71,7 +71,7 @@ export default function TeachersNetwork() {
         </div>
 
         {/* Community list + CTA */}
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
           {/* Community list */}
           <div>
@@ -96,7 +96,7 @@ export default function TeachersNetwork() {
 
           {/* CTA card */}
           <div className="flex flex-col gap-6">
-            <div className="rounded-3xl bg-white/6 border border-white/10 p-10">
+            <div className="rounded-3xl bg-white/6 border border-white/10 p-6 sm:p-10">
               <h3
                 className="font-extrabold text-white leading-tight mb-4"
                 style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)" }}

@@ -31,7 +31,7 @@ const benefits = [
 export default function SchoolsForEducators() {
   return (
     <section
-      className="relative overflow-hidden py-28"
+      className="relative overflow-hidden py-16 lg:py-28"
       style={{ background: "var(--brand-gradient)" }}
     >
       {/* Dot grid */}
@@ -49,7 +49,7 @@ export default function SchoolsForEducators() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
         {/* Header */}
-        <div className="grid lg:grid-cols-2 gap-10 items-end mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-end mb-12 lg:mb-16">
           <div>
             <span className="inline-block text-xs font-black tracking-widest uppercase px-3.5 py-1.5 rounded-full bg-white/10 text-white/60 mb-5">
               For Educators

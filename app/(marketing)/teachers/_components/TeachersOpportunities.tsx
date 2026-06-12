@@ -32,8 +32,8 @@ export default function TeachersOpportunities() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12 sm:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
 
           {/* Left — headline + pain points */}
           <div>
@@ -76,7 +76,7 @@ export default function TeachersOpportunities() {
           <div className="lg:pt-16">
             {/* Flexible hours card */}
             <div
-              className="rounded-3xl p-10 relative overflow-hidden mb-5"
+              className="rounded-3xl p-6 sm:p-10 relative overflow-hidden mb-5"
               style={{ background: "var(--brand-gradient)" }}
             >
               <div className="absolute -bottom-10 -right-10 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
@@ -95,7 +95,7 @@ export default function TeachersOpportunities() {
                   Abjad supports teachers who want flexibility — choose the hours, days, and
                   schools that fit your lifestyle without compromising career growth.
                 </p>
-                <div className="grid grid-cols-2 gap-3 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                   {flexBenefits.map((b) => (
                     <div
                       key={b.label}

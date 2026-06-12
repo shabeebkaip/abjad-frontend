@@ -37,7 +37,7 @@ const tiles = [
 export default function StartHiringSection() {
   return (
     <section className="relative overflow-hidden bg-white">
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-28">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-16 lg:py-28">
 
         {/* Full-width label strip */}
         <div className="flex items-center gap-4 mb-12">
@@ -52,11 +52,11 @@ export default function StartHiringSection() {
         </div>
 
         {/* Mosaic grid: headline tile + 4 benefit tiles + CTA tile */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-          {/* Headline tile — spans 2 cols */}
+          {/* Headline tile — full width on mobile/tablet, 2 cols on desktop */}
           <div
-            className="col-span-2 rounded-3xl p-10 relative overflow-hidden"
+            className="col-span-1 sm:col-span-2 rounded-3xl p-8 sm:p-10 relative overflow-hidden"
             style={{ background: "var(--brand-gradient)" }}
           >
             <div className="absolute -right-6 -bottom-6 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />

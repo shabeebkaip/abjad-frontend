@@ -46,7 +46,7 @@ export default function SchoolsGrowth() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-14 lg:py-24">
 
         {/* Section header */}
         <div className="text-center mb-16 max-w-2xl mx-auto">
@@ -96,7 +96,7 @@ export default function SchoolsGrowth() {
                   <h3 className="text-gray-950 font-bold text-base leading-snug">{item.title}</h3>
                 </div>
               </div>
-              <p className="text-gray-500 text-sm leading-relaxed pl-13">{item.desc}</p>
+              <p className="text-gray-500 text-sm leading-relaxed pl-0 sm:pl-13">{item.desc}</p>
             </div>
           ))}
         </div>

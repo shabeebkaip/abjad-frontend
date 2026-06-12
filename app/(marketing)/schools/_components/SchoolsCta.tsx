@@ -15,7 +15,7 @@ export default function SchoolsCta() {
       <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-white/4 pointer-events-none" />
       <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full bg-white/3 pointer-events-none" />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 py-28 text-center">
+      <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 py-16 lg:py-28 text-center">
         <span className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-white/10 text-white/55 mb-8">
           Join Abjad Today
         </span>

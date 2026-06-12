@@ -30,7 +30,7 @@ const features = [
 export default function FeaturesSection() {
   return (
     <section id="teachers" className="relative overflow-hidden bg-white">
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-28">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-16 lg:py-28">
 
         {/* Full-width label strip */}
         <div className="flex items-center gap-4 mb-12">

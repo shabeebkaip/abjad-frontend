@@ -65,9 +65,9 @@ export default function TeachersHowItWorks() {
           </div>
 
           {/* 3 steps */}
-          <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
             {steps.map((s, i) => (
-              <div key={i} className="px-8 py-10 text-center">
+              <div key={i} className="px-4 py-6 sm:px-8 sm:py-10 text-center">
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 mx-auto"
                   style={{ backgroundColor: "rgba(255,255,255,0.1)" }}

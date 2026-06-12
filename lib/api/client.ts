@@ -2,8 +2,7 @@
 // - Injects Authorization header from in-memory token store
 // - On 401: attempts one silent refresh via httpOnly cookie, retries original request
 // - On persistent 401: throws AuthError (caller should redirect to /login)
-const URL = true;
-const API_BASE = URL ? 'https://abjad-backend.vercel.app' : 'http://localhost:5000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // In-memory store — XSS-safe, restored on page load via refresh endpoint
 let _accessToken: string | null = null;

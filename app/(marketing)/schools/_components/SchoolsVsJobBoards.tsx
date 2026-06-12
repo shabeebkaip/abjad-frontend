@@ -45,7 +45,7 @@ export default function SchoolsVsJobBoards() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-14 lg:py-24">
 
         {/* Headline */}
         <div className="text-center mb-16">
@@ -68,7 +68,7 @@ export default function SchoolsVsJobBoards() {
           {highlights.map((h, i) => (
             <div
               key={i}
-              className="bg-white p-8 hover:bg-[#f8fafc] transition-colors text-center"
+              className="bg-white p-5 sm:p-8 hover:bg-[#f8fafc] transition-colors text-center"
             >
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 mx-auto"

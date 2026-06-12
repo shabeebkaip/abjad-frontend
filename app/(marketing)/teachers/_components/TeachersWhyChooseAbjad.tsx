@@ -42,10 +42,10 @@ export default function TeachersWhyChooseAbjad() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12 sm:py-24">
 
         {/* Headline */}
-        <div className="text-center mb-16 max-w-2xl mx-auto">
+        <div className="text-center mb-8 lg:mb-16 max-w-2xl mx-auto">
           <h2
             className="font-extrabold text-gray-950 leading-tight mb-4"
             style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: "-0.04em" }}
@@ -64,7 +64,7 @@ export default function TeachersWhyChooseAbjad() {
           {reasons.map((r, i) => (
             <div
               key={i}
-              className="rounded-3xl border border-gray-100 bg-[#f8fafc] p-8 hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center"
+              className="rounded-3xl border border-gray-100 bg-[#f8fafc] p-5 sm:p-8 hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-center"
             >
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 mx-auto"

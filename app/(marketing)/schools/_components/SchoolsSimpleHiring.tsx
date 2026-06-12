@@ -93,7 +93,7 @@ export default function SchoolsSimpleHiring() {
           {/* 3 steps */}
           <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
             {steps.map((s, i) => (
-              <div key={i} className="px-8 py-10 flex items-start gap-5">
+              <div key={i} className="px-5 py-7 sm:px-8 sm:py-10 flex items-start gap-5">
                 <div
                   className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
                   style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
@@ -111,7 +111,7 @@ export default function SchoolsSimpleHiring() {
       </div>
 
       {/* ── Feature cards ── */}
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-20">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12 lg:py-20">
         <div className="flex items-center gap-4 mb-12">
           <div className="h-px flex-1 bg-gray-200" />
           <span className="text-xs font-black tracking-widest uppercase text-gray-400 px-4">

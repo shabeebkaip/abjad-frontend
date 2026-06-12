@@ -270,6 +270,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
   html {
     font-family: var(--font-bricolage), sans-serif;

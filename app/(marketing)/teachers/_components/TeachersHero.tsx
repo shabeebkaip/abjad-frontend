@@ -77,13 +77,13 @@ export default function TeachersHero() {
         style={{ background: "linear-gradient(135deg, transparent 40%, var(--brand-accent) 100%)" }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pt-28 pb-0">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pt-16 sm:pt-24 lg:pt-28 pb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
 
           {/* ── Left: Content ── */}
-          <div className="lg:col-span-5 pb-24">
+          <div className="lg:col-span-5 pb-10 lg:pb-24">
             {/* Live pill */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/15 bg-white/8 text-white/70 text-xs font-bold tracking-widest uppercase mb-10">
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/15 bg-white/8 text-white/70 text-xs font-bold tracking-widest uppercase mb-6 sm:mb-10">
               <span className="relative flex h-1.5 w-1.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
@@ -118,7 +118,7 @@ export default function TeachersHero() {
               top Riyadh schools, Jeddah schools, and Dammam schools.
             </p>
 
-            <div className="flex items-center gap-3 flex-wrap mb-14">
+            <div className="flex items-center gap-3 flex-wrap mb-8 sm:mb-14">
               <Link
                 href="/register?role=teacher"
                 className="inline-flex items-center gap-2.5 font-bold text-sm px-8 py-4 rounded-full transition-all hover:shadow-2xl hover:shadow-black/40 hover:-translate-y-0.5 text-white"
@@ -150,7 +150,7 @@ export default function TeachersHero() {
           </div>
 
           {/* ── Right: Job listing mockup ── */}
-          <div className="lg:col-span-7 flex flex-col pb-24">
+          <div className="lg:col-span-7 flex flex-col pb-10 lg:pb-24">
 
             {/* Search bar */}
             <div className="bg-white/8 border border-white/12 rounded-2xl px-5 py-4 flex items-center gap-3 mb-4 backdrop-blur-sm">
@@ -254,7 +254,7 @@ export default function TeachersHero() {
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-white/8">
             {stats.map((s) => (
-              <div key={s.label} className="px-8 py-7 text-center">
+              <div key={s.label} className="px-3 py-5 sm:px-8 sm:py-7 text-center">
                 <div
                   className="font-black text-white leading-none mb-1.5"
                   style={{ fontSize: "clamp(1.6rem, 2.5vw, 2rem)" }}

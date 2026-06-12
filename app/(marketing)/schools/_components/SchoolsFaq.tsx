@@ -90,8 +90,8 @@ export default function SchoolsFaq() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
-        <div className="grid lg:grid-cols-12 gap-16">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-14 lg:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
 
           {/* Left — accordion */}
           <div className="lg:col-span-8">
@@ -129,7 +129,7 @@ export default function SchoolsFaq() {
                       </span>
                     </button>
                     {isOpen && (
-                      <div className="pb-5 pr-12">
+                      <div className="pb-5 pr-4 sm:pr-12">
                         <p className="text-sm text-gray-500 leading-relaxed">{faq.a}</p>
                       </div>
                     )}
@@ -157,7 +157,7 @@ export default function SchoolsFaq() {
 
           {/* Right — sticky sidebar */}
           <div className="lg:col-span-4">
-            <div className="sticky top-28 space-y-5">
+            <div className="lg:sticky lg:top-28 space-y-5">
 
               {/* Quote card */}
               <div

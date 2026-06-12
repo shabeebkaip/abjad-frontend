@@ -4,7 +4,7 @@ import { ArrowRight, ShieldCheck, Sparkles, Globe } from "lucide-react";
 const steps = [
   {
     icon: ShieldCheck,
-    accent: "var(--brand-accent)",
+    accent: "#00ACD3",
     title: "Verified Profiles Ready to Place",
     desc: "Every educator on Abjad is manually verified with credential checks, reference reviews, and trial assignments — so schools can hire with zero risk.",
   },
@@ -44,7 +44,7 @@ export default function HowItWorksSection() {
         02
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-28">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 py-16 lg:py-28">
 
         {/* Top: label + headline side by side on desktop */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-16">
@@ -71,7 +71,7 @@ export default function HowItWorksSection() {
           {steps.map((s, i) => (
             <div
               key={i}
-              className="relative group rounded-3xl p-8 border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 overflow-hidden"
+              className="relative group rounded-3xl p-8 border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 overflow-hidden flex flex-col items-center text-center md:items-start md:text-left"
             >
               {/* Step icon */}
               <div
@@ -91,15 +91,18 @@ export default function HowItWorksSection() {
           ))}
         </div>
 
-        {/* Body text + CTA row */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 border-t border-white/10 pt-10">
+        {/* CTA block */}
+        <div className="flex flex-col items-start gap-4 border-t border-white/10 pt-10">
+          <h3 className="text-xl font-bold text-white leading-snug">
+            Ready to hire the right educator?
+          </h3>
           <p className="text-white/50 text-sm leading-relaxed max-w-lg">
-            Designed to support schools nationwide — Abjad goes beyond Riyadh, Jeddah, and Dammam,
+            <strong className="text-white/80">Designed to support schools nationwide</strong> — Abjad goes beyond Riyadh, Jeddah, and Dammam,
             serving institutions across every region of Saudi Arabia.
           </p>
           <Link
             href="/register?role=school"
-            className="shrink-0 inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm transition-all hover:scale-105 hover:shadow-lg"
+            className="mt-2 shrink-0 inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm transition-all hover:scale-105 hover:shadow-lg"
             style={{ backgroundColor: "var(--brand-accent)", color: "#fff" }}
           >
             Start Hiring <ArrowRight size={16} />

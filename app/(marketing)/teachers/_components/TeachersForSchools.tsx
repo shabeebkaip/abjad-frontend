@@ -48,8 +48,8 @@ export default function TeachersForSchools() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
-        <div className="grid lg:grid-cols-12 gap-16">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12 sm:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
 
           {/* Left */}
           <div className="lg:col-span-5">

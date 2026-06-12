@@ -138,7 +138,7 @@ export default function TestimonialsSection() {
         </div>
 
         {/* FAQ accordion */}
-        <div className="bg-[#f8fafc] rounded-3xl border border-gray-100 px-8 py-2 shadow-sm">
+        <div className="bg-[#f8fafc] rounded-3xl border border-gray-100 px-4 sm:px-8 py-2 shadow-sm">
           {faqs.map((faq, i) => (
             <FaqItem key={i} q={faq.q} a={faq.a} />
           ))}

@@ -87,12 +87,12 @@ export default function HeroSection() {
   ];
 
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden bg-background">
+    <section className="relative sm:min-h-screen flex flex-col overflow-hidden bg-background">
 
       {/* ── Floating tags layer ── */}
       <div
         ref={bgRef}
-        className="absolute inset-0 will-change-transform transition-transform duration-120 ease-out"
+        className="absolute inset-0 will-change-transform transition-transform duration-120 ease-out opacity-40 sm:opacity-100"
         aria-hidden="true"
       >
         {tags.map((label, i) => (
@@ -100,16 +100,22 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* Radial vignette — fades tags toward center so headline reads clean */}
+      {/* Radial vignette — mobile: full-width strong coverage; desktop: soft elliptic */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none sm:hidden"
+        style={{
+          background: "radial-gradient(ellipse 120% 75% at 50% 46%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 55%, rgba(255,255,255,0.80) 80%, transparent 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none hidden sm:block"
         style={{
           background: "radial-gradient(ellipse 65% 70% at 50% 46%, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.82) 55%, transparent 100%)",
         }}
       />
 
       {/* ── Main content — centered ── */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 pt-32 pb-12">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 pt-20 sm:pt-32 pb-10 sm:pb-12">
 
         {/* Live badge */}
         <div className="fade-in-up-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-8"
@@ -156,14 +162,14 @@ export default function HeroSection() {
 
         {/* Subtext */}
         <p
-          className="fade-in-up-3 text-gray-500 text-lg leading-relaxed mb-10"
+          className="fade-in-up-3 text-gray-500 text-base sm:text-lg leading-relaxed mb-6 sm:mb-10"
           style={{ maxWidth: "52ch" }}
         >
           Whether you are an educator or an international school in Riyadh, Jeddah, or Dammam, Abjad helps you find the perfect match instantly.
         </p>
 
         {/* CTA buttons */}
-        <div className="fade-in-up-4 flex items-center gap-4 flex-wrap justify-center mb-16">
+        <div className="fade-in-up-4 flex items-center gap-4 flex-wrap justify-center mb-8 sm:mb-16">
           <Link
             href="/choose-role"
             className="px-8 py-3.5 rounded-full font-bold text-base text-white transition-all duration-200 hover:scale-105 hover:shadow-xl shadow-lg"
@@ -174,28 +180,45 @@ export default function HeroSection() {
         </div>
 
         {/* Value props */}
-        <div className="fade-in-up-5 flex items-center gap-px rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white">
-          {(isRTL ? [
+        {(() => {
+          const props = isRTL ? [
             { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "توظيف في أيام",      sub: "لا أشهر من الانتظار" },
             { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "مدارس موثّقة فقط", sub: "كل مدرسة تمر بمراجعتنا" },
-            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "توافق دقيق",    sub: "حسب مادتك ومدينتك" },
+            { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "توافق دقيق", sub: "حسب مادتك ومدينتك" },
           ] : [
-            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Hired in days",         sub: "Not months of waiting" },
-            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Verified schools",  sub: "Every school is reviewed" },
+            { icon: <Zap size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Hired in days",      sub: "Not months of waiting" },
+            { icon: <BadgeCheck size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Verified schools", sub: "Every school is reviewed" },
             { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Precise matching", sub: "By subject, grade & city" },
-          ]).map((p, i) => (
-            <div
-              key={i}
-              className={`flex flex-col items-center text-center px-7 py-5 ${
-                i < 2 ? "border-e border-gray-100" : ""
-              }`}
-            >
-              <div className="mb-2">{p.icon}</div>
-              <span className="text-sm font-bold text-gray-800 whitespace-nowrap">{p.title}</span>
-              <span className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">{p.sub}</span>
+          ];
+          return (
+            <div className="fade-in-up-5 w-full rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white">
+              {/* Mobile: vertical list */}
+              <div className="flex flex-col sm:hidden divide-y divide-gray-100">
+                {props.map((p, i) => (
+                  <div key={i} className="flex items-center gap-4 px-5 py-4">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gray-50">
+                      {p.icon}
+                    </div>
+                    <div className="text-left min-w-0">
+                      <p className="text-sm font-bold text-gray-800">{p.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{p.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop: horizontal columns */}
+              <div className="hidden sm:flex items-stretch divide-x divide-gray-100">
+                {props.map((p, i) => (
+                  <div key={i} className="flex flex-col items-center justify-center text-center px-7 py-5 flex-1">
+                    <div className="mb-2">{p.icon}</div>
+                    <span className="text-sm font-bold text-gray-800 whitespace-nowrap">{p.title}</span>
+                    <span className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">{p.sub}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })()}
       </div>
 
       {/* ── Wave into next section ── */}

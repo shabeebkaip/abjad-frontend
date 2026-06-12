@@ -25,8 +25,8 @@ export default function SchoolsHiringChallenge() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-14 lg:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
 
           {/* Left — headline + problem cards */}
           <div>
@@ -69,7 +69,7 @@ export default function SchoolsHiringChallenge() {
           <div className="lg:pt-16">
             {/* Solution card */}
             <div
-              className="rounded-3xl p-10 relative overflow-hidden mb-5"
+              className="rounded-3xl p-7 sm:p-10 relative overflow-hidden mb-5"
               style={{ background: "var(--brand-gradient)" }}
             >
               <div className="absolute -bottom-10 -right-10 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />

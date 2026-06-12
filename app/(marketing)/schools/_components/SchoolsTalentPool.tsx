@@ -24,10 +24,10 @@ const categoryStyles = [
 export default function SchoolsTalentPool() {
   return (
     <section className="bg-white overflow-hidden">
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-28">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-16 lg:py-28">
 
         {/* Editorial header — 12-col grid */}
-        <div className="grid lg:grid-cols-12 gap-10 mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 mb-12 lg:mb-20">
           <div className="lg:col-span-5">
             <div
               className="inline-flex items-center gap-2 text-xs font-black tracking-widest uppercase mb-5"
@@ -82,7 +82,7 @@ export default function SchoolsTalentPool() {
 
           {/* Dark CTA banner */}
           <div
-            className="rounded-3xl p-10 lg:p-12 flex flex-col lg:flex-row items-center justify-between gap-8"
+            className="rounded-3xl p-7 sm:p-10 lg:p-12 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8"
             style={{ background: "var(--brand-gradient)" }}
           >
             <div>
