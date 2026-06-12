@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { getSavedJobs, unsaveJob, applyForJob } from "@/lib/api/teacher";
 import type { Job } from "@/lib/api/teacher";
+import { useAuth } from "@/lib/auth/useAuth";
+import { ApplyJobModal } from "@/components/teacher/ApplyJobModal";
 
 const PAGE_SIZE = 20;
 
@@ -98,11 +100,24 @@ export default function SavedJobsPage() {
     }
   };
 
-  const handleApply = async (id: string) => {
+  // SRD 2.4.1 — open the confirmation modal instead of applying immediately.
+  const [applyModalJob, setApplyModalJob] = useState<Job | null>(null);
+  const { user } = useAuth();
+
+  const handleApply = (id: string) => {
+    const job = jobs.find((j) => j._id === id);
+    if (!job) return;
+    setApplyModalJob(job);
+  };
+
+  const handleApplyConfirm = async (coverLetter: string) => {
+    if (!applyModalJob) return;
+    const id = applyModalJob._id;
     setApplyingId(id);
     try {
-      await applyForJob(id);
+      await applyForJob(id, coverLetter || undefined);
       setAppliedJobs((prev) => new Set([...prev, id]));
+      setApplyModalJob(null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -189,6 +204,18 @@ export default function SavedJobsPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* SRD 2.4.1 — Apply confirmation modal */}
+      {applyModalJob && (
+        <ApplyJobModal
+          job={applyModalJob}
+          applicantName={user?.firstName ? `${user.firstName} ${user.lastName ?? ""}`.trim() : undefined}
+          isOpen={!!applyModalJob}
+          isSubmitting={applyingId === applyModalJob._id}
+          onClose={() => { if (!applyingId) setApplyModalJob(null); }}
+          onConfirm={handleApplyConfirm}
+        />
       )}
     </div>
   );
