@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { listInterviews, respondToInterview } from "@/lib/api/teacher";
+import { InterviewResponseModal, type InterviewResponseMode } from "@/components/teacher/InterviewResponseModal";
 import type { Interview as ApiInterview } from "@/lib/api/teacher";
 
 // ── Type mapping ──────────────────────────────────────────────────────────────
@@ -117,11 +118,37 @@ export default function InterviewsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // SRD 2.6.2 — Decline and Reschedule require a reason (Reschedule also a
+  // proposed new time). Accept stays one-tap. The modal collects the inputs
+  // then calls handleSubmitResponse.
+  const [responseModal, setResponseModal] = useState<{ id: string; mode: InterviewResponseMode } | null>(null);
+
   const handleRespond = async (id: string, action: "accepted" | "declined" | "reschedule_requested") => {
+    if (action === "accepted") {
+      setResponding(id);
+      try {
+        const updated = await respondToInterview(id, action);
+        setInterviews((prev) => prev.map((i) => i._id === id ? updated : i));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setResponding(null);
+      }
+      return;
+    }
+    // declined / reschedule_requested → open modal first
+    setResponseModal({ id, mode: action === "declined" ? "decline" : "reschedule" });
+  };
+
+  const handleSubmitResponse = async (reason: string, proposedTime?: string) => {
+    if (!responseModal) return;
+    const { id, mode } = responseModal;
+    const action = mode === "decline" ? "declined" : "reschedule_requested";
     setResponding(id);
     try {
-      const updated = await respondToInterview(id, action);
+      const updated = await respondToInterview(id, action, reason, proposedTime);
       setInterviews((prev) => prev.map((i) => i._id === id ? updated : i));
+      setResponseModal(null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -296,6 +323,22 @@ export default function InterviewsPage() {
           </>
         )}
       </div>
+
+      {/* SRD 2.6.2 — Decline / Reschedule reason capture */}
+      {responseModal && (() => {
+        const interview = interviews.find((i) => i._id === responseModal.id);
+        if (!interview) return null;
+        return (
+          <InterviewResponseModal
+            interview={interview}
+            mode={responseModal.mode}
+            isOpen
+            isSubmitting={responding === responseModal.id}
+            onClose={() => { if (responding !== responseModal.id) setResponseModal(null); }}
+            onConfirm={handleSubmitResponse}
+          />
+        );
+      })()}
     </div>
   );
 }
