@@ -162,10 +162,15 @@ export default function ApplicationsPage() {
   const pipelineCount = (s: UIStatus) => applications.filter((a) => toUIStatus(a.status) === s).length;
 
   const responseRate = stats?.responseRate ?? 0;
-  const avgMatch = applications.length
-    ? Math.round(applications.reduce((sum, a) => sum + (a.matchScore ?? 0), 0) / applications.length)
-    : 0;
-  const activeOffers = applications.filter((a) => a.status === "offer_extended").length;
+  const successRate = stats?.successRate ?? 0;
+  // SRD 2.5.4 — format avg response hours: "—" if no responses yet, "Xh" under
+  // a day, "Xd" otherwise.
+  const avgResponse = (() => {
+    const h = stats?.avgResponseHours;
+    if (h == null) return "—";
+    if (h < 24) return `${Math.round(h)}h`;
+    return `${Math.round(h / 24)}d`;
+  })();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -185,10 +190,10 @@ export default function ApplicationsPage() {
             {/* Analytics Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total Applied",   value: stats?.total ?? 0,       icon: <FileText className="w-5 h-5 text-blue-500" />,    bg: "bg-blue-50" },
-                { label: "Response Rate",   value: `${responseRate}%`,      icon: <TrendingUp className="w-5 h-5 text-emerald-500" />,bg: "bg-emerald-50" },
-                { label: "Avg Match Score", value: `${avgMatch}%`,          icon: <Star className="w-5 h-5 text-amber-500" />,        bg: "bg-amber-50" },
-                { label: "Active Offers",   value: activeOffers,            icon: <Award className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />, bg: "bg-slate-100" },
+                { label: "Total Applied",     value: stats?.total ?? 0,     icon: <FileText className="w-5 h-5 text-blue-500" />,     bg: "bg-blue-50" },
+                { label: "Response Rate",     value: `${responseRate}%`,    icon: <TrendingUp className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-50" },
+                { label: "Avg Response Time", value: avgResponse,           icon: <Clock className="w-5 h-5 text-amber-500" />,       bg: "bg-amber-50" },
+                { label: "Success Rate",      value: `${successRate}%`,     icon: <Award className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />, bg: "bg-slate-100" },
               ].map((s) => (
                 <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center`}>{s.icon}</div>
