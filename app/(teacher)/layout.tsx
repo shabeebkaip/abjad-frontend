@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Calendar,
   Loader2,
+  Bookmark,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getUnreadCount } from "@/lib/api/teacher";
@@ -22,6 +23,7 @@ import { getUnreadCount } from "@/lib/api/teacher";
 const navItems = [
   { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
   { href: "/jobs",          icon: Search,          label: "Find Jobs" },
+  { href: "/saved-jobs",    icon: Bookmark,        label: "Saved" },
   { href: "/applications",  icon: FileText,        label: "My Applications" },
   { href: "/interviews",    icon: Calendar,        label: "Interviews" },
   { href: "/profile",       icon: User,            label: "My Profile" },
