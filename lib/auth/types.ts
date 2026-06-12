@@ -18,13 +18,14 @@ export interface VerifyOtpResult {
 export interface OtpSession {
   email: string;
   purpose: 'login' | 'signup';
+  rememberDevice?: boolean;
 }
 
 export interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  sendOtp: (email: string, purpose: 'login' | 'signup') => Promise<void>;
+  sendOtp: (email: string, purpose: 'login' | 'signup', rememberDevice?: boolean) => Promise<void>;
   verifyOtp: (email: string, otp: string, purpose: string) => Promise<VerifyOtpResult>;
   logout: () => Promise<void>;
 }

@@ -36,11 +36,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const sendOtp = useCallback(async (email: string, purpose: 'login' | 'signup') => {
-    await authApi.sendOtp(email, purpose);
-    const session: OtpSession = { email, purpose };
-    sessionStorage.setItem(OTP_SESSION_KEY, JSON.stringify(session));
-  }, []);
+  const sendOtp = useCallback(
+    async (email: string, purpose: 'login' | 'signup', rememberDevice: boolean = true) => {
+      await authApi.sendOtp(email, purpose);
+      const session: OtpSession = { email, purpose, rememberDevice };
+      sessionStorage.setItem(OTP_SESSION_KEY, JSON.stringify(session));
+    },
+    [],
+  );
 
   const verifyOtp = useCallback(
     async (email: string, otp: string, purpose: string): Promise<VerifyOtpResult> => {
@@ -51,7 +54,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (raw) registrationData = JSON.parse(raw) as Record<string, unknown>;
         } catch { /* ignore parse errors */ }
       }
-      const result = await authApi.verifyOtp(email, otp, purpose, registrationData);
+      // Read rememberDevice choice from the OTP session (set during sendOtp)
+      let rememberDevice = true;
+      try {
+        const raw = sessionStorage.getItem(OTP_SESSION_KEY);
+        if (raw) {
+          const s = JSON.parse(raw) as OtpSession;
+          if (typeof s.rememberDevice === 'boolean') rememberDevice = s.rememberDevice;
+        }
+      } catch { /* default to true */ }
+
+      const result = await authApi.verifyOtp(email, otp, purpose, registrationData, rememberDevice);
       setAccessToken(result.tokens.accessToken);
       setUser(result.user);
       sessionStorage.removeItem(OTP_SESSION_KEY);

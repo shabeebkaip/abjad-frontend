@@ -27,6 +27,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [rememberDevice, setRememberDevice] = useState(true);
 
   const {
     register,
@@ -40,7 +41,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setApiError("");
     try {
-      await sendOtp(data.email, "login");
+      await sendOtp(data.email, "login", rememberDevice);
       setSent(true);
       setTimeout(() => router.push("/verify-otp"), 800);
     } catch (err) {
@@ -77,6 +78,24 @@ export default function LoginPage() {
           {errors.email && (
             <p className="text-xs text-destructive">{errors.email.message}</p>
           )}
+        </div>
+
+        {/* Remember this device */}
+        <div className="fade-in-up-3 flex items-center gap-2">
+          <input
+            id="remember-device"
+            type="checkbox"
+            checked={rememberDevice}
+            onChange={(e) => setRememberDevice(e.target.checked)}
+            disabled={isLoading || sent}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+          />
+          <Label
+            htmlFor="remember-device"
+            className="text-sm text-gray-600 cursor-pointer select-none font-normal"
+          >
+            {t.login.remember}
+          </Label>
         </div>
 
         {/* API error */}

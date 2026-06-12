@@ -15,10 +15,11 @@ const authApi = {
     otp: string,
     purpose: string,
     registrationData?: Record<string, unknown>,
+    rememberDevice: boolean = true,
   ): Promise<VerifyOtpResult> {
     const res = await apiFetch<VerifyOtpResult>('/api/auth/verify-otp', {
       method: 'POST',
-      body: JSON.stringify({ email, code: otp, purpose, ...registrationData }),
+      body: JSON.stringify({ email, code: otp, purpose, rememberDevice, ...registrationData }),
     });
     if (!res.data) throw new Error('Invalid response from server');
     return res.data;
