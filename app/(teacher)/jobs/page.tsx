@@ -5,13 +5,14 @@ import Link from "next/link";
 import {
   Search, MapPin, BookOpen, Clock, Bookmark, Zap, X,
   GraduationCap, Banknote, CalendarDays, CheckCircle2,
-  Briefcase, Share2, ChevronDown, ChevronRight,
+  Briefcase, Share2, ChevronDown, ChevronLeft, ChevronRight,
   Building2, SlidersHorizontal, Filter, Loader2,
   List as ListIcon, LayoutGrid,
 } from "lucide-react";
 
 type ViewMode = "list" | "grid";
 const VIEW_MODE_KEY = "abjad_jobs_view_mode";
+const PAGE_SIZE = 20; // SRD 2.3.1
 import { listJobs, saveJob, unsaveJob, applyForJob } from "@/lib/api/teacher";
 import type { Job } from "@/lib/api/teacher";
 
@@ -117,6 +118,8 @@ function toggleFilter<T>(value: T, list: T[], setter: (v: T[]) => void) {
 export default function JobsPage() {
   const [jobs, setJobs]                     = useState<Job[]>([]);
   const [total, setTotal]                   = useState(0);
+  const [page, setPage]                     = useState(1);
+  const [totalPages, setTotalPages]         = useState(1);
   const [loading, setLoading]               = useState(true);
   const [searchQuery, setSearchQuery]       = useState("");
   const [sortBy, setSortBy]                 = useState("newest");
@@ -141,30 +144,38 @@ export default function JobsPage() {
   const [selectedSubjects,  setSelectedSubjects]  = useState<string[]>([]);
   const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
   const [openSections, setOpenSections] = useState({ city: true, subject: true, grade: false, contract: false });
-  const loadJobs = useCallback(async (overrides?: { cities?: string[]; subjects?: string[]; contracts?: string[]; sort?: string }) => {
+  const loadJobs = useCallback(async (overrides?: { cities?: string[]; subjects?: string[]; contracts?: string[]; sort?: string; page?: number }) => {
     setLoading(true);
     try {
+      const nextPage = overrides?.page ?? page;
       const params = {
         city:          overrides?.cities    ?? selectedCities,
         subjects:      overrides?.subjects  ?? selectedSubjects,
         employmentType:(overrides?.contracts ?? selectedContracts)[0],
         sortBy:        (overrides?.sort ?? sortBy) as "newest" | "deadline" | "salary_asc" | "salary_desc",
-        limit:         50,
+        page:          nextPage,
+        limit:         PAGE_SIZE,
       };
       const res = await listJobs(params);
       setJobs(res.jobs);
       setTotal(res.total);
+      setTotalPages(Math.max(1, res.totalPages));
+      setPage(nextPage);
       // Restore saved/applied state from API isSaved flag
       const savedSet = new Set<string>();
       res.jobs.forEach((j) => { if (j.isSaved) savedSet.add(j._id); });
       setSavedJobs((prev) => new Set([...prev, ...savedSet]));
-      if (res.jobs.length > 0 && !selectedJobId) setSelectedJobId(res.jobs[0]._id);
+      // Reset selection when paging — the previously selected job may no longer be on this page
+      if (res.jobs.length > 0) {
+        const stillVisible = selectedJobId && res.jobs.some((j) => j._id === selectedJobId);
+        if (!stillVisible) setSelectedJobId(res.jobs[0]._id);
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCities, selectedSubjects, selectedContracts, sortBy, selectedJobId]);
+  }, [selectedCities, selectedSubjects, selectedContracts, sortBy, selectedJobId, page]);
 
   useEffect(() => { loadJobs(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -222,19 +233,26 @@ export default function JobsPage() {
       ? lists[type].filter((v) => v !== value)
       : [...lists[type], value];
     setters[type](updated);
-    loadJobs({ [type]: updated });
+    loadJobs({ [type]: updated, page: 1 });
   };
 
   const handleSortChange = (val: string) => {
     setSortBy(val);
-    loadJobs({ sort: val });
+    loadJobs({ sort: val, page: 1 });
   };
 
   const clearFilters = () => {
     setSelectedCities([]);
     setSelectedSubjects([]);
     setSelectedContracts([]);
-    loadJobs({ cities: [], subjects: [], contracts: [] });
+    loadJobs({ cities: [], subjects: [], contracts: [], page: 1 });
+  };
+
+  const handlePageChange = (next: number) => {
+    if (next < 1 || next > totalPages || next === page) return;
+    loadJobs({ page: next });
+    // Jump back to the top of the list when paging
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const activeFilterCount = selectedCities.length + selectedSubjects.length + selectedContracts.length;
@@ -433,6 +451,17 @@ export default function JobsPage() {
               </div>
             )}
           </div>
+
+          {/* SRD 2.3.1 — pagination (20/page) */}
+          {!loading && total > PAGE_SIZE && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              pageSize={PAGE_SIZE}
+              onChange={handlePageChange}
+            />
+          )}
         </div>
 
         {/* RIGHT: Detail panel */}
@@ -789,6 +818,75 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
         <p className="text-center text-[10px] text-slate-300 mt-2">
           Posted via Abjad · {postedLabel(job.createdAt)}
         </p>
+      </div>
+    </div>
+  );
+}
+
+// SRD 2.3.1 — Prev/Next + condensed page numbers (first, current ±1, last,
+// with ellipsis when there's a gap).
+function Pagination({ page, totalPages, total, pageSize, onChange }: {
+  page: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
+  onChange: (page: number) => void;
+}) {
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, total);
+  const pages: (number | "…")[] = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "…") {
+      pages.push("…");
+    }
+  }
+
+  return (
+    <div className="shrink-0 bg-white border-t border-slate-100 px-4 py-2 flex items-center justify-between gap-3">
+      <span className="text-xs text-slate-500">
+        Showing <span className="font-semibold text-slate-700">{start}–{end}</span> of {total}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onChange(page - 1)}
+          disabled={page <= 1}
+          className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          aria-label="Previous page"
+        >
+          <ChevronLeft size={14} />
+        </button>
+        {pages.map((p, i) =>
+          p === "…" ? (
+            <span key={`gap-${i}`} className="px-1.5 text-xs text-slate-400">…</span>
+          ) : (
+            <button
+              key={p}
+              type="button"
+              onClick={() => onChange(p)}
+              aria-current={p === page ? "page" : undefined}
+              className={`min-w-[28px] h-7 text-xs font-semibold rounded-md transition-colors ${
+                p === page
+                  ? "text-white"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+              style={p === page ? { backgroundColor: "var(--brand-primary)" } : undefined}
+            >
+              {p}
+            </button>
+          )
+        )}
+        <button
+          type="button"
+          onClick={() => onChange(page + 1)}
+          disabled={page >= totalPages}
+          className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          aria-label="Next page"
+        >
+          <ChevronRight size={14} />
+        </button>
       </div>
     </div>
   );
