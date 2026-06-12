@@ -227,8 +227,13 @@ export default function JobsPage() {
       setPage(nextPage);
       // Restore saved/applied state from API isSaved flag
       const savedSet = new Set<string>();
-      res.jobs.forEach((j) => { if (j.isSaved) savedSet.add(j._id); });
+      const appliedSet = new Set<string>();
+      res.jobs.forEach((j) => {
+        if (j.isSaved)   savedSet.add(j._id);
+        if (j.isApplied) appliedSet.add(j._id);
+      });
       setSavedJobs((prev) => new Set([...prev, ...savedSet]));
+      setAppliedJobs((prev) => new Set([...prev, ...appliedSet]));
       // Reset selection when paging — the previously selected job may no longer be on this page
       if (res.jobs.length > 0) {
         const stillVisible = selectedJobId && res.jobs.some((j) => j._id === selectedJobId);

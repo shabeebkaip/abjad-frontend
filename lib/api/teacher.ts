@@ -81,6 +81,9 @@ export interface Job {
   viewsCount: number;
   applicationsCount: number;
   isSaved?: boolean;
+  // Flagged on listings when an authenticated teacher has a non-withdrawn
+  // application against this job (SRD 2.3 — show "Applied" instead of "Apply").
+  isApplied?: boolean;
   matchScore?: number;
   // SRD 5.1.1 — per-criterion breakdown (0–100 each). Used to render
   // "Why this match" chips under recommendation cards.
@@ -139,6 +142,9 @@ export interface ApplicationStats {
   rejected: number;
   withdrawn: number;
   responseRate: number;
+  // SRD 2.5.4 — null when no applications have been responded to yet
+  avgResponseHours: number | null;
+  successRate: number;
 }
 
 export interface Interview {
