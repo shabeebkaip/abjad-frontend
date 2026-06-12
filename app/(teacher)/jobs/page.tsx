@@ -7,7 +7,11 @@ import {
   GraduationCap, Banknote, CalendarDays, CheckCircle2,
   Briefcase, Share2, ChevronDown, ChevronRight,
   Building2, SlidersHorizontal, Filter, Loader2,
+  List as ListIcon, LayoutGrid,
 } from "lucide-react";
+
+type ViewMode = "list" | "grid";
+const VIEW_MODE_KEY = "abjad_jobs_view_mode";
 import { listJobs, saveJob, unsaveJob, applyForJob } from "@/lib/api/teacher";
 import type { Job } from "@/lib/api/teacher";
 
@@ -116,6 +120,18 @@ export default function JobsPage() {
   const [loading, setLoading]               = useState(true);
   const [searchQuery, setSearchQuery]       = useState("");
   const [sortBy, setSortBy]                 = useState("newest");
+  const [viewMode, setViewMode]             = useState<ViewMode>("list");
+
+  // SRD 2.3.1 — restore the user's last view-mode choice
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem(VIEW_MODE_KEY) : null;
+    if (saved === "grid" || saved === "list") setViewMode(saved);
+  }, []);
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") window.localStorage.setItem(VIEW_MODE_KEY, mode);
+  };
   const [selectedJobId, setSelectedJobId]   = useState<string | null>(null);
   const [showFilters, setShowFilters]       = useState(true);
   const [savedJobs, setSavedJobs]           = useState<Set<string>>(new Set());
@@ -279,6 +295,32 @@ export default function JobsPage() {
             </select>
             <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
+
+          {/* SRD 2.3.1 — Grid/List view toggle */}
+          <div className="shrink-0 hidden sm:flex items-center rounded-lg border border-slate-200 bg-white p-0.5" role="group" aria-label="View mode">
+            <button
+              type="button"
+              onClick={() => handleViewModeChange("list")}
+              aria-pressed={viewMode === "list"}
+              aria-label="List view"
+              className={`p-1.5 rounded-md transition-colors ${
+                viewMode === "list" ? "bg-slate-100 text-slate-700" : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              <ListIcon size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => handleViewModeChange("grid")}
+              aria-pressed={viewMode === "grid"}
+              aria-label="Grid view"
+              className={`p-1.5 rounded-md transition-colors ${
+                viewMode === "grid" ? "bg-slate-100 text-slate-700" : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              <LayoutGrid size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -347,7 +389,7 @@ export default function JobsPage() {
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          <div className={`flex-1 overflow-y-auto ${viewMode === "list" ? "divide-y divide-slate-100" : ""}`}>
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 size={24} className="animate-spin text-slate-400" />
@@ -363,7 +405,7 @@ export default function JobsPage() {
                   Clear all filters
                 </button>
               </div>
-            ) : (
+            ) : viewMode === "list" ? (
               filteredJobs.map((job) => (
                 <JobListCard
                   key={job._id}
@@ -375,6 +417,20 @@ export default function JobsPage() {
                   onToggleSave={handleToggleSave}
                 />
               ))
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3">
+                {filteredJobs.map((job) => (
+                  <JobGridCard
+                    key={job._id}
+                    job={job}
+                    isSelected={selectedJobId === job._id}
+                    isSaved={savedJobs.has(job._id)}
+                    isApplied={appliedJobs.has(job._id)}
+                    onSelect={() => setSelectedJobId(job._id)}
+                    onToggleSave={handleToggleSave}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -484,6 +540,78 @@ function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
             <span className="text-[10px] text-slate-300 ml-auto">{postedLabel(job.createdAt)}</span>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// SRD 2.3.1 — denser grid layout. Same data as JobListCard, vertical stack so
+// 2 cards fit per row at md+ widths.
+function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSave }: {
+  job: Job; isSelected: boolean; isSaved: boolean; isApplied: boolean;
+  onSelect: () => void; onToggleSave: (id: string) => void;
+}) {
+  const deadline = deadlinePill(job.deadline);
+  return (
+    <div
+      onClick={onSelect}
+      className="relative rounded-xl border bg-white p-4 cursor-pointer transition-all hover:shadow-md hover:-translate-y-px"
+      style={{
+        borderColor: isSelected ? "var(--brand-primary)" : "rgb(226 232 240)",
+        boxShadow: isSelected ? "0 0 0 2px var(--brand-primary-light)" : undefined,
+      }}
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        {job.school?.logoUrl ? (
+          <img src={job.school.logoUrl} alt="" className="w-10 h-10 rounded-xl shrink-0 object-cover" />
+        ) : (
+          <div className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center text-white font-bold text-sm" style={{ background: "var(--brand-gradient)" }}>
+            {schoolInitial(job)}
+          </div>
+        )}
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleSave(job._id); }}
+          className="shrink-0 p-1 rounded transition-colors"
+          style={{ color: isSaved ? "var(--brand-primary)" : "rgb(203 213 225)" }}
+          aria-label={isSaved ? "Unsave job" : "Save job"}
+        >
+          <Bookmark size={14} className={isSaved ? "fill-current" : ""} />
+        </button>
+      </div>
+
+      <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-1" style={{ color: isSelected ? "var(--brand-primary)" : "" }}>
+        {job.title}
+      </h3>
+      {job.school?.name && (
+        <p className="text-[11px] text-slate-400 truncate mb-3">{job.school.name}</p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 mb-3">
+        <span className="flex items-center gap-1"><MapPin size={10} />{CITY_LABELS[job.city] ?? job.city}</span>
+        {job.subjects?.[0] && <span className="flex items-center gap-1"><BookOpen size={10} />{job.subjects[0]}</span>}
+        <span className="flex items-center gap-1"><Clock size={10} />{job.employmentType?.replace("_", "-")}</span>
+      </div>
+
+      <div className="pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
+        <span className="text-xs font-semibold text-slate-700">{salaryText(job)}</span>
+        {job.matchScore != null && (
+          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+            job.matchScore >= 80 ? "bg-green-50 text-green-700" :
+            job.matchScore >= 60 ? "bg-blue-50 text-blue-700" :
+            "bg-slate-100 text-slate-500"
+          }`}>
+            {job.matchScore}% match
+          </span>
+        )}
+        {deadline.label && (
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${deadline.cls}`}>{deadline.label}</span>
+        )}
+        {isApplied && (
+          <span className="flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">
+            <CheckCircle2 size={9} />Applied
+          </span>
+        )}
+        <span className="text-[10px] text-slate-300 ml-auto">{postedLabel(job.createdAt)}</span>
       </div>
     </div>
   );
