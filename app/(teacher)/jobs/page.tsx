@@ -52,6 +52,41 @@ const CONTRACT_TYPES = [
   { value: "contract",   label: "Contract" },
 ];
 
+const LANGUAGES = [
+  { value: "arabic",    label: "Arabic" },
+  { value: "english",   label: "English" },
+  { value: "bilingual", label: "Bilingual" },
+  { value: "other",     label: "Other" },
+];
+
+const EXPERIENCE_OPTIONS = [
+  { value: "0-1",  label: "0–1 years" },
+  { value: "1-3",  label: "1–3 years" },
+  { value: "3-5",  label: "3–5 years" },
+  { value: "5-10", label: "5–10 years" },
+  { value: "10+",  label: "10+ years" },
+];
+
+const POSTED_WITHIN_OPTIONS = [
+  { value: 7,  label: "Last 7 days" },
+  { value: 14, label: "Last 14 days" },
+  { value: 30, label: "Last 30 days" },
+  { value: 90, label: "Last 90 days" },
+];
+
+// UI grouping → API individual grade values
+const GRADE_UI_TO_API: Record<string, string[]> = {
+  kg:         ["kg"],
+  elementary: ["elementary_1", "elementary_2", "elementary_3", "elementary_4", "elementary_5", "elementary_6"],
+  middle:     ["middle_7", "middle_8", "middle_9"],
+  high:       ["high_10", "high_11", "high_12"],
+};
+
+// Salary slider bounds (SAR / month)
+const SALARY_MIN = 0;
+const SALARY_MAX = 30000;
+const SALARY_STEP = 500;
+
 const SORT_OPTIONS = [
   { value: "newest",       label: "Newest" },
   { value: "deadline",     label: "Closing Soon" },
@@ -142,19 +177,46 @@ export default function JobsPage() {
   const [applyingId, setApplyingId]         = useState<string | null>(null);
   const [selectedCities,    setSelectedCities]    = useState<string[]>([]);
   const [selectedSubjects,  setSelectedSubjects]  = useState<string[]>([]);
+  const [selectedGrades,    setSelectedGrades]    = useState<string[]>([]);
   const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
-  const [openSections, setOpenSections] = useState({ city: true, subject: true, grade: false, contract: false });
-  const loadJobs = useCallback(async (overrides?: { cities?: string[]; subjects?: string[]; contracts?: string[]; sort?: string; page?: number }) => {
+  const [selectedLanguage,  setSelectedLanguage]  = useState<string>("");
+  const [selectedExperience,setSelectedExperience]= useState<string>("");
+  const [salaryMin,         setSalaryMin]         = useState<number>(SALARY_MIN);
+  const [salaryMax,         setSalaryMax]         = useState<number>(SALARY_MAX);
+  const [postedWithin,      setPostedWithin]      = useState<number | null>(null);
+  const [openSections, setOpenSections] = useState({
+    city: true, subject: true, grade: false, contract: false,
+    language: false, experience: false, salary: false, posted: false,
+  });
+  const loadJobs = useCallback(async (overrides?: {
+    cities?: string[]; subjects?: string[]; grades?: string[]; contracts?: string[];
+    language?: string; experience?: string; salaryMin?: number; salaryMax?: number;
+    postedWithin?: number | null; sort?: string; page?: number;
+  }) => {
     setLoading(true);
     try {
       const nextPage = overrides?.page ?? page;
+      // Expand UI grade groups (kg/elementary/middle/high) into API grade values.
+      const gradesUi = overrides?.grades ?? selectedGrades;
+      const apiGrades = gradesUi.flatMap((g) => GRADE_UI_TO_API[g] ?? []);
+      const nextSalaryMin = overrides?.salaryMin ?? salaryMin;
+      const nextSalaryMax = overrides?.salaryMax ?? salaryMax;
+      const nextPostedWithin = overrides?.postedWithin !== undefined ? overrides.postedWithin : postedWithin;
+
       const params = {
-        city:          overrides?.cities    ?? selectedCities,
-        subjects:      overrides?.subjects  ?? selectedSubjects,
-        employmentType:(overrides?.contracts ?? selectedContracts)[0],
-        sortBy:        (overrides?.sort ?? sortBy) as "newest" | "deadline" | "salary_asc" | "salary_desc",
-        page:          nextPage,
-        limit:         PAGE_SIZE,
+        city:                overrides?.cities    ?? selectedCities,
+        subjects:            overrides?.subjects  ?? selectedSubjects,
+        gradeLevels:         apiGrades.length > 0 ? apiGrades : undefined,
+        employmentType:      (overrides?.contracts ?? selectedContracts)[0],
+        languageRequirement: (overrides?.language   ?? selectedLanguage)   || undefined,
+        experienceRequired:  (overrides?.experience ?? selectedExperience) || undefined,
+        // Only send salary bounds when the user has narrowed from the default range
+        salaryMin:           nextSalaryMin > SALARY_MIN ? nextSalaryMin : undefined,
+        salaryMax:           nextSalaryMax < SALARY_MAX ? nextSalaryMax : undefined,
+        postedWithin:        nextPostedWithin ?? undefined,
+        sortBy:              (overrides?.sort ?? sortBy) as "newest" | "deadline" | "salary_asc" | "salary_desc",
+        page:                nextPage,
+        limit:               PAGE_SIZE,
       };
       const res = await listJobs(params);
       setJobs(res.jobs);
@@ -175,7 +237,11 @@ export default function JobsPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCities, selectedSubjects, selectedContracts, sortBy, selectedJobId, page]);
+  }, [
+    selectedCities, selectedSubjects, selectedGrades, selectedContracts,
+    selectedLanguage, selectedExperience, salaryMin, salaryMax, postedWithin,
+    sortBy, selectedJobId, page,
+  ]);
 
   useEffect(() => { loadJobs(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -226,14 +292,34 @@ export default function JobsPage() {
     }
   };
 
-  const handleFilterChange = (type: "cities" | "subjects" | "contracts", value: string) => {
-    const setters = { cities: setSelectedCities, subjects: setSelectedSubjects, contracts: setSelectedContracts };
-    const lists   = { cities: selectedCities,    subjects: selectedSubjects,    contracts: selectedContracts };
+  const handleFilterChange = (type: "cities" | "subjects" | "grades" | "contracts", value: string) => {
+    const setters = { cities: setSelectedCities, subjects: setSelectedSubjects, grades: setSelectedGrades, contracts: setSelectedContracts };
+    const lists   = { cities: selectedCities,    subjects: selectedSubjects,    grades: selectedGrades,    contracts: selectedContracts };
     const updated = lists[type].includes(value)
       ? lists[type].filter((v) => v !== value)
       : [...lists[type], value];
     setters[type](updated);
     loadJobs({ [type]: updated, page: 1 });
+  };
+
+  // Single-select filters (language, experience): toggle off when same value clicked again.
+  const handleSingleFilterChange = (type: "language" | "experience", value: string) => {
+    const setters = { language: setSelectedLanguage, experience: setSelectedExperience };
+    const currents = { language: selectedLanguage, experience: selectedExperience };
+    const next = currents[type] === value ? "" : value;
+    setters[type](next);
+    loadJobs({ [type]: next, page: 1 });
+  };
+
+  const handlePostedWithinChange = (days: number | null) => {
+    setPostedWithin(days);
+    loadJobs({ postedWithin: days, page: 1 });
+  };
+
+  const handleSalaryChange = (nextMin: number, nextMax: number) => {
+    setSalaryMin(nextMin);
+    setSalaryMax(nextMax);
+    loadJobs({ salaryMin: nextMin, salaryMax: nextMax, page: 1 });
   };
 
   const handleSortChange = (val: string) => {
@@ -244,8 +330,19 @@ export default function JobsPage() {
   const clearFilters = () => {
     setSelectedCities([]);
     setSelectedSubjects([]);
+    setSelectedGrades([]);
     setSelectedContracts([]);
-    loadJobs({ cities: [], subjects: [], contracts: [], page: 1 });
+    setSelectedLanguage("");
+    setSelectedExperience("");
+    setSalaryMin(SALARY_MIN);
+    setSalaryMax(SALARY_MAX);
+    setPostedWithin(null);
+    loadJobs({
+      cities: [], subjects: [], grades: [], contracts: [],
+      language: "", experience: "",
+      salaryMin: SALARY_MIN, salaryMax: SALARY_MAX,
+      postedWithin: null, page: 1,
+    });
   };
 
   const handlePageChange = (next: number) => {
@@ -255,7 +352,15 @@ export default function JobsPage() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const activeFilterCount = selectedCities.length + selectedSubjects.length + selectedContracts.length;
+  const activeFilterCount =
+    selectedCities.length +
+    selectedSubjects.length +
+    selectedGrades.length +
+    selectedContracts.length +
+    (selectedLanguage ? 1 : 0) +
+    (selectedExperience ? 1 : 0) +
+    (salaryMin > SALARY_MIN || salaryMax < SALARY_MAX ? 1 : 0) +
+    (postedWithin ? 1 : 0);
 
   return (
     <div className="h-[calc(100vh-6.25rem)] flex flex-col overflow-hidden bg-slate-50">
@@ -381,12 +486,63 @@ export default function JobsPage() {
                 ))}
               </FilterSection>
 
+              <FilterSection label="Grade Level" isOpen={openSections.grade} onToggle={() => toggleSection("grade")}>
+                {GRADE_LEVELS.map((g) => (
+                  <FilterCheckbox
+                    key={g.value} label={g.label}
+                    checked={selectedGrades.includes(g.value)}
+                    onChange={() => handleFilterChange("grades", g.value)}
+                  />
+                ))}
+              </FilterSection>
+
               <FilterSection label="Contract Type" isOpen={openSections.contract} onToggle={() => toggleSection("contract")}>
                 {CONTRACT_TYPES.map((ct) => (
                   <FilterCheckbox
                     key={ct.value} label={ct.label}
                     checked={selectedContracts.includes(ct.value)}
                     onChange={() => handleFilterChange("contracts", ct.value)}
+                  />
+                ))}
+              </FilterSection>
+
+              <FilterSection label="Language" isOpen={openSections.language} onToggle={() => toggleSection("language")}>
+                {LANGUAGES.map((l) => (
+                  <FilterRadio
+                    key={l.value} label={l.label} name="language"
+                    checked={selectedLanguage === l.value}
+                    onChange={() => handleSingleFilterChange("language", l.value)}
+                  />
+                ))}
+              </FilterSection>
+
+              <FilterSection label="Experience" isOpen={openSections.experience} onToggle={() => toggleSection("experience")}>
+                {EXPERIENCE_OPTIONS.map((e) => (
+                  <FilterRadio
+                    key={e.value} label={e.label} name="experience"
+                    checked={selectedExperience === e.value}
+                    onChange={() => handleSingleFilterChange("experience", e.value)}
+                  />
+                ))}
+              </FilterSection>
+
+              <FilterSection label="Salary Range" isOpen={openSections.salary} onToggle={() => toggleSection("salary")}>
+                <SalaryRangeSlider
+                  min={SALARY_MIN}
+                  max={SALARY_MAX}
+                  step={SALARY_STEP}
+                  valueMin={salaryMin}
+                  valueMax={salaryMax}
+                  onChange={handleSalaryChange}
+                />
+              </FilterSection>
+
+              <FilterSection label="Posted Date" isOpen={openSections.posted} onToggle={() => toggleSection("posted")}>
+                {POSTED_WITHIN_OPTIONS.map((p) => (
+                  <FilterRadio
+                    key={p.value} label={p.label} name="posted"
+                    checked={postedWithin === p.value}
+                    onChange={() => handlePostedWithinChange(postedWithin === p.value ? null : p.value)}
                   />
                 ))}
               </FilterSection>
@@ -507,6 +663,127 @@ function FilterCheckbox({ label, checked, onChange }: { label: string; checked: 
       <input type="checkbox" checked={checked} onChange={onChange} className="w-3.5 h-3.5 rounded shrink-0" style={{ accentColor: "var(--brand-primary)" }} />
       <span className="text-xs text-slate-600 leading-none truncate">{label}</span>
     </label>
+  );
+}
+
+// Single-select filter row. Clicking the active row again is handled by the parent (toggle off).
+function FilterRadio({ label, name, checked, onChange }: { label: string; name: string; checked: boolean; onChange: () => void }) {
+  return (
+    <label className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-slate-50 rounded-md">
+      <input
+        type="radio"
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        onClick={() => { if (checked) onChange(); }}
+        className="w-3.5 h-3.5 shrink-0"
+        style={{ accentColor: "var(--brand-primary)" }}
+      />
+      <span className="text-xs text-slate-600 leading-none truncate">{label}</span>
+    </label>
+  );
+}
+
+// SRD 2.3.2 — dual-thumb salary range slider. Two overlapping native range
+// inputs share the same track; visual fill is rendered between them.
+function SalaryRangeSlider({ min, max, step, valueMin, valueMax, onChange }: {
+  min: number; max: number; step: number;
+  valueMin: number; valueMax: number;
+  onChange: (nextMin: number, nextMax: number) => void;
+}) {
+  const [localMin, setLocalMin] = useState(valueMin);
+  const [localMax, setLocalMax] = useState(valueMax);
+
+  // Keep local in sync when the parent resets (e.g. Clear all).
+  useEffect(() => { setLocalMin(valueMin); }, [valueMin]);
+  useEffect(() => { setLocalMax(valueMax); }, [valueMax]);
+
+  const fmt = (n: number) => n === 0 ? "0" : n.toLocaleString();
+  const pctMin = ((localMin - min) / (max - min)) * 100;
+  const pctMax = ((localMax - min) / (max - min)) * 100;
+
+  const commit = (nextMin: number, nextMax: number) => {
+    if (nextMin !== valueMin || nextMax !== valueMax) onChange(nextMin, nextMax);
+  };
+
+  return (
+    <div className="px-2 py-3">
+      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-3">
+        <span>SAR {fmt(localMin)}</span>
+        <span className="text-slate-300">—</span>
+        <span>SAR {fmt(localMax)}{localMax === max ? "+" : ""}</span>
+      </div>
+      <div className="relative h-6">
+        {/* Track + active fill */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 rounded-full bg-slate-200" />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full"
+          style={{ left: `${pctMin}%`, right: `${100 - pctMax}%`, backgroundColor: "var(--brand-primary)" }}
+        />
+        {/* Two stacked native inputs — pointer-events-none on track segments via z-index */}
+        <input
+          type="range" min={min} max={max} step={step} value={localMin}
+          aria-label="Minimum salary"
+          onChange={(e) => {
+            const v = Math.min(Number(e.target.value), localMax - step);
+            setLocalMin(v);
+          }}
+          onMouseUp={() => commit(localMin, localMax)}
+          onTouchEnd={() => commit(localMin, localMax)}
+          onKeyUp={() => commit(localMin, localMax)}
+          className="absolute inset-0 w-full bg-transparent pointer-events-auto appearance-none salary-range-thumb"
+          style={{ zIndex: 3 }}
+        />
+        <input
+          type="range" min={min} max={max} step={step} value={localMax}
+          aria-label="Maximum salary"
+          onChange={(e) => {
+            const v = Math.max(Number(e.target.value), localMin + step);
+            setLocalMax(v);
+          }}
+          onMouseUp={() => commit(localMin, localMax)}
+          onTouchEnd={() => commit(localMin, localMax)}
+          onKeyUp={() => commit(localMin, localMax)}
+          className="absolute inset-0 w-full bg-transparent pointer-events-auto appearance-none salary-range-thumb"
+          style={{ zIndex: 4 }}
+        />
+      </div>
+      <style jsx>{`
+        .salary-range-thumb {
+          -webkit-appearance: none;
+          height: 24px;
+        }
+        .salary-range-thumb::-webkit-slider-runnable-track {
+          background: transparent;
+          height: 24px;
+        }
+        .salary-range-thumb::-moz-range-track {
+          background: transparent;
+          height: 24px;
+        }
+        .salary-range-thumb::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 14px;
+          width: 14px;
+          border-radius: 9999px;
+          background: white;
+          border: 2px solid var(--brand-primary);
+          cursor: pointer;
+          margin-top: 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .salary-range-thumb::-moz-range-thumb {
+          height: 14px;
+          width: 14px;
+          border-radius: 9999px;
+          background: white;
+          border: 2px solid var(--brand-primary);
+          cursor: pointer;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+      `}</style>
+    </div>
   );
 }
 
