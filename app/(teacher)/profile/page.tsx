@@ -128,15 +128,17 @@ const degreeUiToApi: Record<string, TeacherProfile["education"]["degreeType"]> =
   "Bachelor's": "bachelor", "Master's": "master", "PhD": "phd", "Diploma": "diploma", "Other": "other",
 };
 
+// SRD 2.2.2 — three employment statuses. "noticePeriodDays" is captured separately
+// (conditional input) only when status === "Currently employed".
 const employmentApiToUi: Record<string, string> = {
   employed: "Currently employed",
   unemployed: "Available immediately",
-  freelance: "Available with notice period",
+  freelance: "Freelance / Self-employed",
 };
 const employmentUiToApi: Record<string, TeacherProfile["professional"]["employmentStatus"]> = {
   "Currently employed": "employed",
   "Available immediately": "unemployed",
-  "Available with notice period": "freelance",
+  "Freelance / Self-employed": "freelance",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -265,7 +267,7 @@ export default function ProfilePage() {
   });
   const [professional, setProfessional] = useState({
     subjects: [] as string[], gradeLevels: [] as string[],
-    experienceRange: "", employmentStatus: "",
+    experienceRange: "", employmentStatus: "", noticePeriodDays: "",
   });
   const [education, setEducation] = useState({
     degreeType: "Bachelor's", major: "", university: "", graduationYear: "", country: "",
@@ -309,6 +311,7 @@ export default function ProfilePage() {
         gradeLevels:      [...new Set(apiGrades.map((g) => GRADE_API_TO_UI_GROUP[g]).filter(Boolean))],
         experienceRange:  EXP_API_TO_UI[p.professional?.experienceRange ?? ""] ?? "",
         employmentStatus: employmentApiToUi[p.professional?.employmentStatus ?? ""] ?? "",
+        noticePeriodDays: p.professional?.noticePeriodDays != null ? String(p.professional.noticePeriodDays) : "",
       });
 
       // Seed education
@@ -383,11 +386,18 @@ export default function ProfilePage() {
     try {
       // Expand UI grade groups → individual API grade values
       const apiGrades = professional.gradeLevels.flatMap((g) => GRADE_UI_TO_API[g] ?? []);
+      const employmentStatus = employmentUiToApi[professional.employmentStatus];
+      const parsedNoticeDays = parseInt(professional.noticePeriodDays, 10);
       const updated = await updateProfessional({
         subjects:         professional.subjects.map((s) => SUBJECT_UI_TO_API[s] ?? s),
         gradeLevels:      apiGrades,
         experienceRange:  EXP_UI_TO_API[professional.experienceRange] || undefined,
-        employmentStatus: employmentUiToApi[professional.employmentStatus],
+        employmentStatus,
+        // Only send notice period when employed AND a valid number is entered.
+        // Backend service also sanitizes, but sending the right shape is cleaner.
+        noticePeriodDays: employmentStatus === "employed" && Number.isFinite(parsedNoticeDays)
+          ? parsedNoticeDays
+          : undefined,
       });
       setProfile(updated);
     } catch (err) {
@@ -872,16 +882,38 @@ export default function ProfilePage() {
                     <FormField label="Employment Status" required>
                       <select
                         value={professional.employmentStatus}
-                        onChange={(e) => setProfessional((p) => ({ ...p, employmentStatus: e.target.value }))}
+                        onChange={(e) => setProfessional((p) => ({
+                          ...p,
+                          employmentStatus: e.target.value,
+                          // Clear notice period whenever the status moves away from "Currently employed".
+                          noticePeriodDays: e.target.value === "Currently employed" ? p.noticePeriodDays : "",
+                        }))}
                         className={selectCls}
                       >
                         <option value="">Select…</option>
                         <option>Currently employed</option>
                         <option>Available immediately</option>
-                        <option>Available with notice period</option>
+                        <option>Freelance / Self-employed</option>
                       </select>
                     </FormField>
                   </div>
+                  {professional.employmentStatus === "Currently employed" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField label="Notice Period (days)">
+                        <input
+                          type="number"
+                          min={0}
+                          max={180}
+                          step={1}
+                          inputMode="numeric"
+                          value={professional.noticePeriodDays}
+                          onChange={(e) => setProfessional((p) => ({ ...p, noticePeriodDays: e.target.value }))}
+                          placeholder="e.g. 30"
+                          className={selectCls}
+                        />
+                      </FormField>
+                    </div>
+                  )}
                 </div>
                 <SaveButton saving={saving} onClick={saveProfessional} />
               </div>

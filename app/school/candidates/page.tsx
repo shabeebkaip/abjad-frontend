@@ -489,7 +489,12 @@ function CandidateProfileModal({
                 {c.professional.employmentStatus && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Star size={14} className="text-gray-400 shrink-0" />
-                    <span className="capitalize">{c.professional.employmentStatus.replace("_", " ")}</span>
+                    <span className="capitalize">
+                      {c.professional.employmentStatus.replace("_", " ")}
+                      {c.professional.employmentStatus === "employed"
+                        && typeof c.professional.noticePeriodDays === "number"
+                        && ` · ${c.professional.noticePeriodDays}-day notice`}
+                    </span>
                   </div>
                 )}
               </div>

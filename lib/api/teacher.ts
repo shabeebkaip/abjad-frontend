@@ -24,6 +24,8 @@ export interface TeacherProfile {
     gradeLevels?: string[];
     experienceRange?: string;
     employmentStatus?: 'employed' | 'unemployed' | 'freelance';
+    // SRD 2.2.2 — only meaningful when employmentStatus === 'employed'.
+    noticePeriodDays?: number;
   };
   education: {
     degreeType?: 'bachelor' | 'master' | 'phd' | 'diploma' | 'other';

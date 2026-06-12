@@ -106,6 +106,7 @@ export interface CandidateProfile {
     gradeLevels?: string[];
     experienceRange?: string;
     employmentStatus?: string;
+    noticePeriodDays?: number;
   };
   education?: { degreeType?: string; major?: string; university?: string; graduationYear?: number; country?: string };
   languages?: Array<{ language: string; proficiency: string }>;
