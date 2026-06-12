@@ -82,6 +82,16 @@ export interface Job {
   applicationsCount: number;
   isSaved?: boolean;
   matchScore?: number;
+  // SRD 5.1.1 — per-criterion breakdown (0–100 each). Used to render
+  // "Why this match" chips under recommendation cards.
+  matchBreakdown?: {
+    subjects: number;
+    gradeLevels: number;
+    experience: number;
+    location: number;
+    language: number;
+    qualifications: number;
+  };
   createdAt: string;
   // Detail-only fields
   description?: string;
