@@ -22,8 +22,9 @@ import {
   Download,
   Loader2,
 } from "lucide-react";
-import { listInterviews, respondToInterview } from "@/lib/api/teacher";
+import { listInterviews, respondToInterview, submitInterviewFeedback } from "@/lib/api/teacher";
 import { InterviewResponseModal, type InterviewResponseMode } from "@/components/teacher/InterviewResponseModal";
+import { InterviewFeedbackModal } from "@/components/teacher/InterviewFeedbackModal";
 import type { Interview as ApiInterview } from "@/lib/api/teacher";
 
 // ── Type mapping ──────────────────────────────────────────────────────────────
@@ -149,6 +150,23 @@ export default function InterviewsPage() {
       const updated = await respondToInterview(id, action, reason, proposedTime);
       setInterviews((prev) => prev.map((i) => i._id === id ? updated : i));
       setResponseModal(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setResponding(null);
+    }
+  };
+
+  // SRD 2.6.4 — teacher post-interview feedback modal
+  const [feedbackModalId, setFeedbackModalId] = useState<string | null>(null);
+
+  const handleSubmitFeedback = async (rating: number, comment?: string) => {
+    if (!feedbackModalId) return;
+    setResponding(feedbackModalId);
+    try {
+      const updated = await submitInterviewFeedback(feedbackModalId, rating, comment);
+      setInterviews((prev) => prev.map((i) => i._id === feedbackModalId ? updated : i));
+      setFeedbackModalId(null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -287,6 +305,7 @@ export default function InterviewsPage() {
                       responding={responding === interview._id}
                       onToggle={() => setExpandedId(expandedId === interview._id ? null : interview._id)}
                       onRespond={handleRespond}
+                      onOpenFeedback={() => setFeedbackModalId(interview._id)}
                     />
                   ))
                 )}
@@ -339,6 +358,21 @@ export default function InterviewsPage() {
           />
         );
       })()}
+
+      {/* SRD 2.6.4 — post-interview feedback */}
+      {feedbackModalId && (() => {
+        const interview = interviews.find((i) => i._id === feedbackModalId);
+        if (!interview) return null;
+        return (
+          <InterviewFeedbackModal
+            interview={interview}
+            isOpen
+            isSubmitting={responding === feedbackModalId}
+            onClose={() => { if (responding !== feedbackModalId) setFeedbackModalId(null); }}
+            onConfirm={handleSubmitFeedback}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -351,12 +385,14 @@ function InterviewCard({
   responding,
   onToggle,
   onRespond,
+  onOpenFeedback,
 }: {
   interview: ApiInterview;
   expanded: boolean;
   responding: boolean;
   onToggle: () => void;
   onRespond: (id: string, action: "accepted" | "declined" | "reschedule_requested") => void;
+  onOpenFeedback: () => void;
 }) {
   const uiT  = toUIType(interview.type);
   const uiS  = toUIStatus(interview.status);
@@ -454,6 +490,27 @@ function InterviewCard({
               >
                 <Download className="w-3.5 h-3.5" /> Add to Calendar
               </button>
+            </div>
+          )}
+
+          {/* SRD 2.6.4 — feedback CTA on completed interviews */}
+          {interview.status === "completed" && (
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <button
+                onClick={onOpenFeedback}
+                disabled={responding}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--brand-gradient)" }}
+              >
+                {responding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Star className="w-3.5 h-3.5" />}
+                {interview.teacherFeedback ? "Edit Feedback" : "Submit Feedback"}
+              </button>
+              {interview.teacherFeedback && (
+                <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  {interview.teacherFeedback.rating}/5
+                </span>
+              )}
             </div>
           )}
 

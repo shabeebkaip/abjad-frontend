@@ -160,6 +160,12 @@ export interface Interview {
   status: 'pending' | 'accepted' | 'declined' | 'rescheduled' | 'completed' | 'cancelled';
   responseDeadline?: string;
   createdAt?: string;
+  // SRD 2.6.4 — teacher post-interview feedback (separate from school's hire/maybe/reject)
+  teacherFeedback?: {
+    rating: number;       // 1–5
+    comment?: string;
+    submittedAt: string;
+  };
 }
 
 export interface Offer {
@@ -469,6 +475,19 @@ export async function respondToInterview(
   const res = await apiFetch<Interview>(`/api/interviews/${interviewId}/respond`, {
     method: 'PATCH',
     body: JSON.stringify({ action, ...(reason ? { reason } : {}), ...(proposedTime ? { proposedTime } : {}) }),
+  });
+  return res.data!;
+}
+
+// SRD 2.6.4 — submit teacher post-interview feedback (1-5 stars + optional comment)
+export async function submitInterviewFeedback(
+  interviewId: string,
+  rating: number,
+  comment?: string,
+): Promise<Interview> {
+  const res = await apiFetch<Interview>(`/api/interviews/${interviewId}/feedback`, {
+    method: 'POST',
+    body: JSON.stringify({ rating, ...(comment ? { comment } : {}) }),
   });
   return res.data!;
 }
