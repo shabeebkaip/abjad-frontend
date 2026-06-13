@@ -22,8 +22,9 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { listApplications, getApplicationStats, withdrawApplication, respondToOffer, listOffers } from "@/lib/api/teacher";
+import { listApplications, getApplicationStats, withdrawApplication, respondToOffer, listOffers, submitFeedback } from "@/lib/api/teacher";
 import type { Offer } from "@/lib/api/teacher";
+import { PostHireFeedbackModal, type PostHireFeedbackPayload } from "@/components/teacher/PostHireFeedbackModal";
 import type { Application, ApplicationStats } from "@/lib/api/teacher";
 
 // ── Status display config ─────────────────────────────────────────────────────
@@ -127,6 +128,34 @@ export default function ApplicationsPage() {
   // SRD 2.7.3 — keep offers keyed by applicationId so the Hired card can show
   // a "Download Contract" link without an extra round-trip per card.
   const [offersByApp, setOffersByApp] = useState<Record<string, Offer>>({});
+
+  // SRD 2.9.5 — post-hire feedback modal state. Tracks both which application
+  // we're submitting for AND which ones the teacher has already given feedback
+  // for in this session (no server state for the latter yet).
+  const [feedbackAppId, setFeedbackAppId]                 = useState<string | null>(null);
+  const [submittingFeedback, setSubmittingFeedback]       = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted]         = useState<Set<string>>(new Set());
+
+  const handleSubmitPostHireFeedback = async (payload: PostHireFeedbackPayload) => {
+    if (!feedbackAppId) return;
+    setSubmittingFeedback(true);
+    try {
+      await submitFeedback({
+        type: "post_hire",
+        rating: payload.rating,
+        content: payload.content,
+        isAnonymous: payload.isAnonymous,
+        relatedId: feedbackAppId,
+        relatedModel: "Application",
+      });
+      setFeedbackSubmitted((prev) => new Set([...prev, feedbackAppId]));
+      setFeedbackAppId(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
 
   const load = useCallback(async () => {
     try {
@@ -301,8 +330,10 @@ export default function ApplicationsPage() {
                       expanded={expandedId === app._id}
                       withdrawing={withdrawing === app._id}
                       respondingOffer={respondingOffer === app._id}
+                      hasFeedback={feedbackSubmitted.has(app._id)}
                       onToggle={() => setExpandedId(expandedId === app._id ? null : app._id)}
                       onWithdraw={handleWithdraw}
+                      onOpenFeedback={() => setFeedbackAppId(app._id)}
                     />
                   ))
                 )}
@@ -311,6 +342,22 @@ export default function ApplicationsPage() {
           </>
         )}
       </div>
+
+      {/* SRD 2.9.5 — post-hire feedback modal */}
+      {feedbackAppId && (() => {
+        const app = applications.find((a) => a._id === feedbackAppId);
+        if (!app) return null;
+        return (
+          <PostHireFeedbackModal
+            jobTitle={app.jobId?.title}
+            schoolName={undefined}
+            isOpen
+            isSubmitting={submittingFeedback}
+            onClose={() => { if (!submittingFeedback) setFeedbackAppId(null); }}
+            onConfirm={handleSubmitPostHireFeedback}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -323,16 +370,20 @@ function ApplicationCard({
   expanded,
   withdrawing,
   respondingOffer,
+  hasFeedback,
   onToggle,
   onWithdraw,
+  onOpenFeedback,
 }: {
   app: Application;
   offer?: Offer;
   expanded: boolean;
   withdrawing: boolean;
   respondingOffer: boolean;
+  hasFeedback: boolean;
   onToggle: () => void;
   onWithdraw: (id: string) => void;
+  onOpenFeedback: () => void;
 }) {
   const uiStatus = toUIStatus(app.status);
   const isActive = !["Rejected", "Withdrawn"].includes(uiStatus);
@@ -437,21 +488,37 @@ function ApplicationCard({
                     Congratulations! You were hired for this position{hiredOn ? ` on ${hiredOn}` : ""}.
                   </span>
                 </div>
-                {contractHref ? (
-                  <a
-                    href={contractHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    {offer?.contractUrl ? "Download Contract" : "Download Offer Letter"}
-                  </a>
-                ) : (
-                  <span className="text-xs text-emerald-600/70 italic">
-                    Contract document will appear here when the school uploads it.
-                  </span>
-                )}
+                <div className="flex items-center gap-2 shrink-0">
+                  {contractHref ? (
+                    <a
+                      href={contractHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      {offer?.contractUrl ? "Download Contract" : "Download Offer Letter"}
+                    </a>
+                  ) : (
+                    <span className="text-xs text-emerald-600/70 italic">
+                      Contract document will appear here when the school uploads it.
+                    </span>
+                  )}
+                  {/* SRD 2.9.5 — post-hire feedback */}
+                  {hasFeedback ? (
+                    <span className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-700">
+                      <CheckCircle2 className="w-3 h-3" /> Feedback shared
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={onOpenFeedback}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-emerald-600 text-emerald-700 bg-white hover:bg-emerald-100 transition-colors"
+                    >
+                      <Star className="w-3.5 h-3.5" /> Share Feedback
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })()}

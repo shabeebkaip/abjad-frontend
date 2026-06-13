@@ -226,6 +226,9 @@ export interface SupportTicket {
   attachments?: Array<{ url: string; name: string }>;
   createdAt: string;
   updatedAt?: string;
+  // SRD 2.9.3 — 24-hour response SLA timestamps
+  responseDueAt?: string;
+  firstResponseAt?: string;
 }
 
 export interface DashboardData {
