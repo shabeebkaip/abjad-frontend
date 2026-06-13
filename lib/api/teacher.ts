@@ -181,8 +181,12 @@ export interface Offer {
   deadline: string;
   status: 'sent' | 'viewed' | 'accepted' | 'declined' | 'negotiating' | 'expired';
   offerLetterUrl?: string;
+  // SRD 2.7.3 — final signed contract uploaded by the school post-acceptance
+  contractUrl?: string;
+  hireConfirmedAt?: string;
   viewedAt?: string;
   negotiationHistory?: Array<{ counterSalary?: number; message: string; createdAt: string }>;
+  applicationId?: string;
   createdAt?: string;
 }
 

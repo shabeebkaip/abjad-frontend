@@ -18,10 +18,12 @@ import {
   TrendingUp,
   Briefcase,
   Award,
+  Download,
   X,
   Loader2,
 } from "lucide-react";
-import { listApplications, getApplicationStats, withdrawApplication, respondToOffer } from "@/lib/api/teacher";
+import { listApplications, getApplicationStats, withdrawApplication, respondToOffer, listOffers } from "@/lib/api/teacher";
+import type { Offer } from "@/lib/api/teacher";
 import type { Application, ApplicationStats } from "@/lib/api/teacher";
 
 // ── Status display config ─────────────────────────────────────────────────────
@@ -122,14 +124,24 @@ export default function ApplicationsPage() {
   const [withdrawing, setWithdrawing] = useState<string | null>(null);
   const [respondingOffer, setRespondingOffer] = useState<string | null>(null);
 
+  // SRD 2.7.3 — keep offers keyed by applicationId so the Hired card can show
+  // a "Download Contract" link without an extra round-trip per card.
+  const [offersByApp, setOffersByApp] = useState<Record<string, Offer>>({});
+
   const load = useCallback(async () => {
     try {
-      const [appsRes, statsRes] = await Promise.all([
+      const [appsRes, statsRes, offersRes] = await Promise.all([
         listApplications({ limit: 50 }),
         getApplicationStats(),
+        listOffers({ limit: 50 }).catch(() => ({ offers: [] as Offer[] })),
       ]);
       setApplications(appsRes.applications);
       setStats(statsRes);
+      const map: Record<string, Offer> = {};
+      for (const o of offersRes.offers ?? []) {
+        if (o.applicationId) map[o.applicationId] = o;
+      }
+      setOffersByApp(map);
     } catch (err) {
       console.error(err);
     } finally {
@@ -285,6 +297,7 @@ export default function ApplicationsPage() {
                     <ApplicationCard
                       key={app._id}
                       app={app}
+                      offer={offersByApp[app._id]}
                       expanded={expandedId === app._id}
                       withdrawing={withdrawing === app._id}
                       respondingOffer={respondingOffer === app._id}
@@ -306,6 +319,7 @@ export default function ApplicationsPage() {
 
 function ApplicationCard({
   app,
+  offer,
   expanded,
   withdrawing,
   respondingOffer,
@@ -313,6 +327,7 @@ function ApplicationCard({
   onWithdraw,
 }: {
   app: Application;
+  offer?: Offer;
   expanded: boolean;
   withdrawing: boolean;
   respondingOffer: boolean;
@@ -406,12 +421,40 @@ function ApplicationCard({
               <span>Offer received — Review and respond</span>
             </div>
           )}
-          {app.status === "hired" && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Congratulations! You were hired for this position.</span>
-            </div>
-          )}
+          {app.status === "hired" && (() => {
+            // SRD 2.7.3 — prefer the school-uploaded signed contract; fall back
+            // to the original offer letter so the teacher always has something
+            // to download if either is present.
+            const contractHref = offer?.contractUrl ?? offer?.offerLetterUrl;
+            const hiredOn = offer?.hireConfirmedAt
+              ? new Date(offer.hireConfirmedAt).toLocaleDateString("en-SA", { dateStyle: "medium" })
+              : null;
+            return (
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span className="font-medium">
+                    Congratulations! You were hired for this position{hiredOn ? ` on ${hiredOn}` : ""}.
+                  </span>
+                </div>
+                {contractHref ? (
+                  <a
+                    href={contractHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    {offer?.contractUrl ? "Download Contract" : "Download Offer Letter"}
+                  </a>
+                ) : (
+                  <span className="text-xs text-emerald-600/70 italic">
+                    Contract document will appear here when the school uploads it.
+                  </span>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Timeline toggle */}
           <button
