@@ -553,6 +553,41 @@ export async function deleteNotification(notificationId: string): Promise<void> 
   await apiFetch(`/api/notifications/${notificationId}`, { method: 'DELETE' });
 }
 
+// SRD 2.8.2 — notification preferences
+export type NotificationTypeKey =
+  | 'job_match'
+  | 'application_status'
+  | 'interview_invitation'
+  | 'interview_reminder'
+  | 'offer_received'
+  | 'message'
+  | 'profile_status'
+  | 'system';
+
+export interface NotificationPreferences {
+  emailNotificationsEnabled: boolean;
+  pushNotificationsEnabled: boolean;
+  soundEnabled: boolean;
+  notificationPreferences: Record<NotificationTypeKey, boolean>;
+}
+
+export async function getNotificationPreferences(): Promise<NotificationPreferences> {
+  const res = await apiFetch<NotificationPreferences>('/api/notifications/preferences');
+  if (!res.data) throw new Error('Invalid response from server');
+  return res.data;
+}
+
+export async function updateNotificationPreferences(
+  patch: Partial<NotificationPreferences>,
+): Promise<NotificationPreferences> {
+  const res = await apiFetch<NotificationPreferences>('/api/notifications/preferences', {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+  if (!res.data) throw new Error('Invalid response from server');
+  return res.data;
+}
+
 // Support
 export async function listTickets(params?: { status?: string; page?: number; limit?: number }): Promise<{ tickets: SupportTicket[]; total: number; page: number; totalPages: number }> {
   const q = new URLSearchParams();

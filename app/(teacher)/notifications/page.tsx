@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   Bell,
   BriefcaseIcon,
@@ -15,6 +16,7 @@ import {
   ChevronRight,
   Filter,
   Loader2,
+  Settings,
 } from "lucide-react";
 import {
   listNotifications,
@@ -169,15 +171,24 @@ export default function NotificationsPage() {
             </div>
             <p className="text-sm text-slate-500 mt-0.5">Stay updated on your applications and job matches</p>
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors hover:bg-brand-primary-light"
-              style={{ color: "var(--brand-primary)" }}
+          <div className="flex items-center gap-2 shrink-0">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllRead}
+                className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors hover:bg-brand-primary-light"
+                style={{ color: "var(--brand-primary)" }}
+              >
+                <Check className="w-4 h-4" /> Mark all as read
+              </button>
+            )}
+            {/* SRD 2.8.2 — preferences link */}
+            <Link
+              href="/notifications/preferences"
+              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
             >
-              <Check className="w-4 h-4" /> Mark all as read
-            </button>
-          )}
+              <Settings className="w-4 h-4" /> Preferences
+            </Link>
+          </div>
         </div>
       </div>
 
