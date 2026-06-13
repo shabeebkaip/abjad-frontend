@@ -24,7 +24,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { getDashboard } from "@/lib/api/teacher";
-import type { DashboardData, Job, Interview, Notification } from "@/lib/api/teacher";
+import type { DashboardData, Job, Interview, Notification, ActivityEntry } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -77,6 +77,77 @@ function WhyThisMatch({ breakdown }: { breakdown?: {
           {CRITERION_LABELS[k] ?? k}
         </span>
       ))}
+    </div>
+  );
+}
+
+// SRD 2.10.3 — Activity Feed (recent applications/interviews/offers/profile updates)
+const ACTIVITY_ICON: Record<ActivityEntry["type"], { Icon: React.ElementType; cls: string }> = {
+  application_submitted: { Icon: Upload,       cls: "text-blue-500    bg-blue-50" },
+  application_status:    { Icon: TrendingUp,   cls: "text-violet-500  bg-violet-50" },
+  interview_scheduled:   { Icon: Calendar,     cls: "text-amber-500   bg-amber-50" },
+  interview_response:    { Icon: CheckCircle2, cls: "text-emerald-500 bg-emerald-50" },
+  offer_received:        { Icon: Award,        cls: "text-pink-500    bg-pink-50" },
+  offer_response:        { Icon: CheckCircle2, cls: "text-emerald-500 bg-emerald-50" },
+  profile_update:        { Icon: User,         cls: "text-slate-500   bg-slate-100" },
+};
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const min  = Math.floor(diff / 60_000);
+  if (min < 1)        return "Just now";
+  if (min < 60)       return `${min}m ago`;
+  const hr  = Math.floor(min / 60);
+  if (hr  < 24)       return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7)        return `${day}d ago`;
+  return new Date(iso).toLocaleDateString("en-SA", { dateStyle: "medium" });
+}
+
+function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100">
+      <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
+        <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+          <Clock size={16} className="text-slate-500" />
+          Recent Activity
+        </h2>
+      </div>
+      <div className="p-4">
+        {entries.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-2">
+              <Clock size={16} className="text-slate-300" />
+            </div>
+            <p className="text-sm text-gray-500">No activity yet</p>
+            <p className="text-xs text-gray-400 mt-0.5">Your recent applications and updates will appear here.</p>
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {entries.map((e, i) => {
+              const { Icon, cls } = ACTIVITY_ICON[e.type];
+              const row = (
+                <div className="flex items-start gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 transition-colors">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${cls}`}>
+                    <Icon size={14} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-slate-800 leading-snug truncate">{e.title}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{relativeTime(e.timestamp)}</p>
+                  </div>
+                </div>
+              );
+              return (
+                <li key={i}>
+                  {e.link ? (
+                    <Link href={e.link} className="block">{row}</Link>
+                  ) : row}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
@@ -435,6 +506,9 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+
+          {/* SRD 2.10.3 — Activity Feed */}
+          <ActivityFeed entries={data?.activity ?? []} />
         </div>
 
         {/* Right column */}

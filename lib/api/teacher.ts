@@ -231,6 +231,21 @@ export interface SupportTicket {
   firstResponseAt?: string;
 }
 
+// SRD 2.10.3 — Activity Feed entry shape (mirrors the backend)
+export interface ActivityEntry {
+  type:
+    | 'application_submitted'
+    | 'application_status'
+    | 'interview_scheduled'
+    | 'interview_response'
+    | 'offer_received'
+    | 'offer_response'
+    | 'profile_update';
+  title: string;
+  timestamp: string;
+  link?: string;
+}
+
 export interface DashboardData {
   profile: {
     completionPercentage: number;
@@ -249,6 +264,7 @@ export interface DashboardData {
     recent: Notification[];
     unreadCount: number;
   };
+  activity?: ActivityEntry[];
 }
 
 // ── API Functions ─────────────────────────────────────────────────────────────
