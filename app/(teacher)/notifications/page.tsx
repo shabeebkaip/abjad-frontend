@@ -17,10 +17,14 @@ import {
   Filter,
   Loader2,
   Settings,
+  Search,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import {
   listNotifications,
   markNotificationRead,
+  markNotificationUnread,
   markAllNotificationsRead,
   deleteNotification,
 } from "@/lib/api/teacher";
@@ -104,6 +108,8 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<UIType | "all">("all");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  // SRD 2.8.3 — case-insensitive search across title + body
+  const [search, setSearch] = useState("");
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -138,6 +144,16 @@ export default function NotificationsPage() {
     }
   };
 
+  // SRD 2.8.3 — flip a notification back to unread
+  const handleMarkUnread = async (id: string) => {
+    try {
+      await markNotificationUnread(id);
+      setNotifications((prev) => prev.map((n) => n._id === id ? { ...n, isRead: false } : n));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleDismiss = async (id: string) => {
     try {
       await deleteNotification(id);
@@ -150,6 +166,10 @@ export default function NotificationsPage() {
   const filtered = notifications.filter((n) => {
     if (showUnreadOnly && n.isRead) return false;
     if (filter !== "all" && uiType(n.type) !== filter) return false;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      if (!n.title.toLowerCase().includes(q) && !n.body.toLowerCase().includes(q)) return false;
+    }
     return true;
   });
 
@@ -194,7 +214,28 @@ export default function NotificationsPage() {
 
       <div className="p-6 space-y-5">
         {/* Filter Bar */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+          {/* SRD 2.8.3 — title/body search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title or message…"
+              className="w-full pl-9 pr-9 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-brand-primary transition-colors"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-slate-600"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5 text-sm text-slate-500">
               <Filter className="w-4 h-4" />
@@ -269,6 +310,7 @@ export default function NotificationsPage() {
                   key={notif._id}
                   notification={notif}
                   onRead={handleMarkRead}
+                  onUnread={handleMarkUnread}
                   onDismiss={handleDismiss}
                 />
               ))}
@@ -307,10 +349,12 @@ export default function NotificationsPage() {
 function NotificationItem({
   notification: n,
   onRead,
+  onUnread,
   onDismiss,
 }: {
   notification: Notification;
   onRead: (id: string) => void;
+  onUnread: (id: string) => void;
   onDismiss: (id: string) => void;
 }) {
   const cfg = TYPE_CONFIG[uiType(n.type)];
@@ -351,9 +395,22 @@ function NotificationItem({
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
+            {/* SRD 2.8.3 — mark a read notification as unread */}
+            {n.isRead && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onUnread(n._id); }}
+                className="p-1 text-slate-300 hover:text-slate-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-1"
+                title="Mark as unread"
+                aria-label="Mark as unread"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
             <button
               onClick={(e) => { e.stopPropagation(); onDismiss(n._id); }}
               className="p-1 text-slate-300 hover:text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-1"
+              title="Delete"
+              aria-label="Delete"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>

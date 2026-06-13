@@ -525,12 +525,14 @@ export async function listNotifications(params?: {
   unreadOnly?: boolean;
   page?: number;
   limit?: number;
+  search?: string;
 }): Promise<NotificationsResponse> {
   const q = new URLSearchParams();
   if (params?.type)                q.set('type', params.type);
   if (params?.unreadOnly)          q.set('unreadOnly', 'true');
   if (params?.page !== undefined)  q.set('page', String(params.page));
   if (params?.limit !== undefined) q.set('limit', String(params.limit));
+  if (params?.search?.trim())      q.set('search', params.search.trim());
   const qs = q.toString();
   const res = await apiFetch<NotificationsResponse>(`/api/notifications${qs ? `?${qs}` : ''}`);
   return res.data!;
@@ -543,6 +545,11 @@ export async function getUnreadCount(): Promise<number> {
 
 export async function markNotificationRead(notificationId: string): Promise<void> {
   await apiFetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
+}
+
+// SRD 2.8.3 — toggle a notification back to unread
+export async function markNotificationUnread(notificationId: string): Promise<void> {
+  await apiFetch(`/api/notifications/${notificationId}/unread`, { method: 'PATCH' });
 }
 
 export async function markAllNotificationsRead(): Promise<void> {
