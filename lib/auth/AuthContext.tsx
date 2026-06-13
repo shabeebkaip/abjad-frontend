@@ -7,6 +7,16 @@ import type { AuthUser, AuthContextValue, OtpSession, VerifyOtpResult } from './
 
 const OTP_SESSION_KEY = 'abjad_otp_session';
 
+// Access tokens are signed for 15 minutes. Refresh one minute earlier so a
+// 401 → silent-retry round-trip is never the user's first signal that
+// something needs to happen. Backed off to 60s to avoid hammering when the
+// tab is in the background — browsers throttle setTimeout for background
+// tabs which means the actual refresh may run a few seconds later, but
+// still well before the token expires.
+const ACCESS_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
+const REFRESH_LEAD_MS          = 60 * 1000;
+const REFRESH_INTERVAL_MS      = ACCESS_TOKEN_LIFETIME_MS - REFRESH_LEAD_MS;
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -15,8 +25,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Ref prevents React Strict Mode's double-invocation from sending the refresh
   // token twice. The second call would find the first token already rotated
-  // (revoked) and log the user out — or in the worst case revoke all sessions.
+  // (revoked) and log the user out.
   const initDone = useRef(false);
+
+  // Track the proactive refresh interval so we can cancel it on logout /
+  // unmount.
+  const refreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearRefreshTimer = () => {
+    if (refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+  };
+
+  // Centralised "tear down the session locally" — called when /me reports the
+  // user no longer exists OR when an explicit logout fires. Calling /logout
+  // is best-effort: even if the network request fails, we still wipe local
+  // state so the UI redirects.
+  const teardown = useCallback(async (callLogoutEndpoint: boolean) => {
+    clearRefreshTimer();
+    if (callLogoutEndpoint) {
+      try { await authApi.logout(); } catch { /* swallow — cookie may already be invalid */ }
+    }
+    setAccessToken(null);
+    setUser(null);
+    sessionStorage.removeItem(OTP_SESSION_KEY);
+  }, []);
+
+  const startProactiveRefresh = useCallback(() => {
+    clearRefreshTimer();
+    refreshTimerRef.current = setInterval(async () => {
+      try {
+        const { accessToken } = await authApi.refreshTokens();
+        setAccessToken(accessToken);
+      } catch {
+        // Refresh failed — session is dead. Tear it down so the layout
+        // redirects to /login instead of silently degrading.
+        await teardown(false);
+      }
+    }, REFRESH_INTERVAL_MS);
+  }, [teardown]);
 
   useEffect(() => {
     if (initDone.current) return;
@@ -24,17 +73,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
+        // Step 1 — restore the access token from the httpOnly refresh cookie.
         const { accessToken } = await authApi.refreshTokens();
         setAccessToken(accessToken);
-        const me = await authApi.getMe();
-        setUser(me);
+
+        // Step 2 — verify the User row still exists. A non-2xx here (commonly
+        // 401 when the row was deleted) MUST tear down the session so we
+        // don't sit on a navbar with no body.
+        try {
+          const me = await authApi.getMe();
+          setUser(me);
+          startProactiveRefresh();
+        } catch {
+          await teardown(true);
+        }
       } catch {
-        // No valid session — stay logged out
+        // No valid refresh cookie — user is simply logged out.
       } finally {
         setIsLoading(false);
       }
     })();
-  }, []);
+
+    return () => { clearRefreshTimer(); };
+  }, [startProactiveRefresh, teardown]);
 
   const sendOtp = useCallback(
     async (email: string, purpose: 'login' | 'signup', rememberDevice: boolean = true) => {
@@ -69,21 +130,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(result.user);
       sessionStorage.removeItem(OTP_SESSION_KEY);
       sessionStorage.removeItem('abjad_reg_data');
+      startProactiveRefresh();
       return result;
     },
-    [],
+    [startProactiveRefresh],
   );
 
   const logout = useCallback(async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      // Ignore errors — clear state regardless
-    }
-    setAccessToken(null);
-    setUser(null);
-    sessionStorage.removeItem(OTP_SESSION_KEY);
-  }, []);
+    await teardown(true);
+  }, [teardown]);
 
   return (
     <AuthContext.Provider
