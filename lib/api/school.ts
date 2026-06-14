@@ -3,6 +3,8 @@ import { apiFetch } from './client';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+export type SchoolCurriculum = 'saudi' | 'british' | 'american' | 'ib' | 'cambridge';
+
 export interface SchoolProfile {
   _id: string;
   userId: string;
@@ -10,6 +12,7 @@ export interface SchoolProfile {
   nameEn?: string;
   type?: 'government' | 'private' | 'international' | 'ahli';
   educationLevel?: 'elementary' | 'middle' | 'high' | 'k12' | 'mixed';
+  curriculum?: SchoolCurriculum;
   gender?: 'male' | 'female' | 'mixed';
   city?: string;
   district?: string;
@@ -21,6 +24,11 @@ export interface SchoolProfile {
   studentsCount?: '<100' | '100-500' | '500-1000' | '1000-5000' | '>5000';
   logoUrl?: string | null;
   adminContact?: { name?: string; jobTitle?: string; phone?: string; email?: string };
+  headOfSchool?: { name?: string; jobTitle?: string; phone?: string; email?: string };
+  defaultSalaryRange?: { min?: number; max?: number };
+  defaultDailyRate?: number;
+  crNumber?: string;
+  licenseNumber?: string;
   documents?: {
     commercialRegistration?: { url: string; key: string; uploadedAt: string } | null;
     ministryLicense?:         { url: string; key: string; uploadedAt: string } | null;
@@ -224,8 +232,11 @@ export interface SupportTicket {
 export async function getSchoolProfile(): Promise<SchoolProfile> {
   return (await apiFetch<SchoolProfile>('/api/school/profile')).data!;
 }
-export async function updateBasicInfo(data: Partial<Pick<SchoolProfile, 'nameAr'|'nameEn'|'type'|'educationLevel'|'gender'|'foundedYear'|'studentsCount'>>): Promise<SchoolProfile> {
+export async function updateBasicInfo(data: Partial<Pick<SchoolProfile, 'nameAr'|'nameEn'|'type'|'educationLevel'|'curriculum'|'gender'|'foundedYear'|'studentsCount'|'defaultSalaryRange'|'defaultDailyRate'>>): Promise<SchoolProfile> {
   return (await apiFetch<SchoolProfile>('/api/school/profile/basic', { method: 'PATCH', body: JSON.stringify(data) })).data!;
+}
+export async function updateSchoolCredentials(data: { crNumber?: string; licenseNumber?: string; headOfSchool?: { name?: string; jobTitle?: string; phone?: string; email?: string } }): Promise<SchoolProfile> {
+  return (await apiFetch<SchoolProfile>('/api/school/profile/credentials', { method: 'PATCH', body: JSON.stringify(data) })).data!;
 }
 export async function updateSchoolLocation(data: { city?: string; district?: string; address?: string }): Promise<SchoolProfile> {
   return (await apiFetch<SchoolProfile>('/api/school/profile/location', { method: 'PATCH', body: JSON.stringify(data) })).data!;

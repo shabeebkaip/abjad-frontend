@@ -58,13 +58,12 @@ const SUBJECT_OPTIONS: { label: string; value: string }[] = [
   { label: "Other",              value: "other" },
 ];
 
+// SRD 3.1.1 — 4 school types; values match backend enum (school-profile.model.ts).
 const SCHOOL_TYPE_OPTIONS: { label: string; value: string }[] = [
-  { label: "Public School",       value: "public" },
-  { label: "Private School",      value: "private" },
-  { label: "International School",value: "international" },
-  { label: "Islamic School",      value: "islamic" },
-  { label: "Special Needs School",value: "special_needs" },
-  { label: "Kindergarten",        value: "kindergarten" },
+  { label: "Government",   value: "government"   },
+  { label: "Private",      value: "private"      },
+  { label: "International",value: "international" },
+  { label: "Ahli",         value: "ahli"         },
 ];
 
 function FieldError({ message }: { message?: string }) {

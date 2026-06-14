@@ -7,6 +7,7 @@ import {
   MapPin,
   Phone,
   UserCog,
+  ShieldCheck,
   FileText,
   CheckCircle2,
   AlertCircle,
@@ -26,11 +27,15 @@ import {
   updateSchoolLocation,
   updateSchoolContact,
   updateAdminContact,
+  updateSchoolCredentials,
   uploadSchoolLogo,
   uploadSchoolDocument,
   submitSchoolProfile,
 } from "@/lib/api/school";
 import type { SchoolProfile } from "@/lib/api/school";
+
+// SRD 3.1.1 — school logo capped at 2MB. Enforced server-side too (uploadLogo middleware).
+const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 import { useAuth } from "@/lib/auth/useAuth";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -48,6 +53,15 @@ const EDUCATION_LEVELS = [
   { value: "high",       label: "High School" },
   { value: "k12",        label: "K-12" },
   { value: "mixed",      label: "Mixed" },
+] as const;
+
+// SRD 3.1.1 — 5 curriculum options taught in KSA schools.
+const CURRICULA = [
+  { value: "saudi",     label: "Saudi National" },
+  { value: "british",   label: "British" },
+  { value: "american",  label: "American" },
+  { value: "ib",        label: "International Baccalaureate (IB)" },
+  { value: "cambridge", label: "Cambridge" },
 ] as const;
 
 const GENDERS = [
@@ -77,23 +91,27 @@ const SAUDI_CITIES = [
   { value: "other",   label: "Other" },
 ] as const;
 
-// Completion score weights
+// Completion score weights — kept in sync with school-profile.service.ts/calculateCompletion.
 const COMPLETION_WEIGHTS = [
   { key: "nameAr",                 weight: 7,  label: "School Name (Arabic)" },
   { key: "nameEn",                 weight: 8,  label: "School Name (English)" },
   { key: "type",                   weight: 5,  label: "School Type" },
   { key: "educationLevel",         weight: 5,  label: "Education Level" },
+  { key: "curriculum",             weight: 3,  label: "Curriculum" },
   { key: "gender",                 weight: 5,  label: "Gender" },
   { key: "city",                   weight: 5,  label: "City" },
   { key: "logo",                   weight: 5,  label: "School Logo" },
-  { key: "adminContact",           weight: 15, label: "Admin Contact" },
+  { key: "adminContact",           weight: 10, label: "Admin Contact" },
+  { key: "headOfSchool",           weight: 5,  label: "Head of School" },
   { key: "phone",                  weight: 3,  label: "Phone" },
   { key: "email",                  weight: 2,  label: "Email" },
-  { key: "commercialRegistration", weight: 20, label: "Commercial Registration" },
-  { key: "ministryLicense",        weight: 15, label: "Ministry License" },
+  { key: "crNumber",               weight: 3,  label: "Commercial Registration #" },
+  { key: "licenseNumber",          weight: 3,  label: "Educational License #" },
+  { key: "commercialRegistration", weight: 18, label: "Commercial Registration (doc)" },
+  { key: "ministryLicense",        weight: 13, label: "Ministry License (doc)" },
 ] as const;
 
-type SectionId = "basic" | "location" | "contact" | "admin" | "documents";
+type SectionId = "basic" | "location" | "contact" | "admin" | "credentials" | "documents";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -114,6 +132,8 @@ function sectionDone(profile: SchoolProfile | null, id: SectionId): boolean {
       return !!(profile.phone && profile.email);
     case "admin":
       return !!(profile.adminContact?.name && profile.adminContact?.phone && profile.adminContact?.email);
+    case "credentials":
+      return !!(profile.crNumber && profile.licenseNumber && profile.headOfSchool?.name);
     case "documents":
       return !!(profile.documents?.commercialRegistration && profile.documents?.ministryLicense);
     default:
@@ -277,12 +297,16 @@ function CompletionBanner({ profile }: { profile: SchoolProfile }) {
       case "nameEn":                 return !profile.nameEn;
       case "type":                   return !profile.type;
       case "educationLevel":         return !profile.educationLevel;
+      case "curriculum":             return !profile.curriculum;
       case "gender":                 return !profile.gender;
       case "city":                   return !profile.city;
       case "logo":                   return !profile.logoUrl;
       case "adminContact":           return !(profile.adminContact?.name && profile.adminContact?.phone);
+      case "headOfSchool":           return !profile.headOfSchool?.name;
       case "phone":                  return !profile.phone;
       case "email":                  return !profile.email;
+      case "crNumber":               return !profile.crNumber;
+      case "licenseNumber":          return !profile.licenseNumber;
       case "commercialRegistration": return !profile.documents?.commercialRegistration;
       case "ministryLicense":        return !profile.documents?.ministryLicense;
       default:                       return false;
@@ -328,8 +352,10 @@ export default function SchoolProfilePage() {
   const [basic, setBasic] = useState({
     nameEn: "", nameAr: "", type: "" as SchoolProfile["type"] | "",
     educationLevel: "" as SchoolProfile["educationLevel"] | "",
+    curriculum: "" as SchoolProfile["curriculum"] | "",
     gender: "" as SchoolProfile["gender"] | "",
     foundedYear: "", studentsCount: "" as SchoolProfile["studentsCount"] | "",
+    defaultSalaryMin: "", defaultSalaryMax: "", defaultDailyRate: "",
   });
   const [location, setLocation] = useState({
     city: "", district: "", address: "",
@@ -340,6 +366,12 @@ export default function SchoolProfilePage() {
   const [adminContactForm, setAdminContactForm] = useState({
     name: "", jobTitle: "", phone: "", email: "",
   });
+  const [credentialsForm, setCredentialsForm] = useState({
+    crNumber: "", licenseNumber: "",
+    headOfSchoolName: "", headOfSchoolJobTitle: "",
+    headOfSchoolPhone: "", headOfSchoolEmail: "",
+  });
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   // Document upload states
   const [uploadingCR, setUploadingCR] = useState(false);
@@ -356,13 +388,17 @@ export default function SchoolProfilePage() {
       setProfile(p);
 
       setBasic({
-        nameEn:         p.nameEn         ?? "",
-        nameAr:         p.nameAr         ?? "",
-        type:           p.type           ?? "",
-        educationLevel: p.educationLevel ?? "",
-        gender:         p.gender         ?? "",
-        foundedYear:    p.foundedYear    ? String(p.foundedYear) : "",
-        studentsCount:  p.studentsCount  ?? "",
+        nameEn:           p.nameEn           ?? "",
+        nameAr:           p.nameAr           ?? "",
+        type:             p.type             ?? "",
+        educationLevel:   p.educationLevel   ?? "",
+        curriculum:       p.curriculum       ?? "",
+        gender:           p.gender           ?? "",
+        foundedYear:      p.foundedYear      ? String(p.foundedYear) : "",
+        studentsCount:    p.studentsCount    ?? "",
+        defaultSalaryMin: p.defaultSalaryRange?.min != null ? String(p.defaultSalaryRange.min) : "",
+        defaultSalaryMax: p.defaultSalaryRange?.max != null ? String(p.defaultSalaryRange.max) : "",
+        defaultDailyRate: p.defaultDailyRate != null ? String(p.defaultDailyRate) : "",
       });
       setLocation({
         city:     p.city     ?? "",
@@ -380,6 +416,14 @@ export default function SchoolProfilePage() {
         phone:    p.adminContact?.phone    ?? "",
         email:    p.adminContact?.email    ?? "",
       });
+      setCredentialsForm({
+        crNumber:             p.crNumber                ?? "",
+        licenseNumber:        p.licenseNumber           ?? "",
+        headOfSchoolName:     p.headOfSchool?.name      ?? "",
+        headOfSchoolJobTitle: p.headOfSchool?.jobTitle  ?? "",
+        headOfSchoolPhone:    p.headOfSchool?.phone     ?? "",
+        headOfSchoolEmail:    p.headOfSchool?.email     ?? "",
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -394,14 +438,42 @@ export default function SchoolProfilePage() {
   const saveBasic = async () => {
     setSaving(true);
     try {
+      const min = basic.defaultSalaryMin ? Number(basic.defaultSalaryMin) : undefined;
+      const max = basic.defaultSalaryMax ? Number(basic.defaultSalaryMax) : undefined;
+      const defaultSalaryRange =
+        (min != null || max != null) ? { min, max } : undefined;
       const updated = await updateBasicInfo({
-        nameEn:         basic.nameEn         || undefined,
-        nameAr:         basic.nameAr         || undefined,
-        type:           (basic.type           || undefined) as SchoolProfile["type"] | undefined,
-        educationLevel: (basic.educationLevel || undefined) as SchoolProfile["educationLevel"] | undefined,
-        gender:         (basic.gender         || undefined) as SchoolProfile["gender"] | undefined,
-        foundedYear:    basic.foundedYear     ? parseInt(basic.foundedYear) : undefined,
-        studentsCount:  (basic.studentsCount  || undefined) as SchoolProfile["studentsCount"] | undefined,
+        nameEn:           basic.nameEn           || undefined,
+        nameAr:           basic.nameAr           || undefined,
+        type:             (basic.type             || undefined) as SchoolProfile["type"] | undefined,
+        educationLevel:   (basic.educationLevel   || undefined) as SchoolProfile["educationLevel"] | undefined,
+        curriculum:       (basic.curriculum       || undefined) as SchoolProfile["curriculum"] | undefined,
+        gender:           (basic.gender           || undefined) as SchoolProfile["gender"] | undefined,
+        foundedYear:      basic.foundedYear       ? parseInt(basic.foundedYear) : undefined,
+        studentsCount:    (basic.studentsCount    || undefined) as SchoolProfile["studentsCount"] | undefined,
+        defaultSalaryRange,
+        defaultDailyRate: basic.defaultDailyRate  ? Number(basic.defaultDailyRate) : undefined,
+      });
+      setProfile(updated);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveCredentials = async () => {
+    setSaving(true);
+    try {
+      const updated = await updateSchoolCredentials({
+        crNumber:      credentialsForm.crNumber      || undefined,
+        licenseNumber: credentialsForm.licenseNumber || undefined,
+        headOfSchool: {
+          name:     credentialsForm.headOfSchoolName     || undefined,
+          jobTitle: credentialsForm.headOfSchoolJobTitle || undefined,
+          phone:    credentialsForm.headOfSchoolPhone    || undefined,
+          email:    credentialsForm.headOfSchoolEmail    || undefined,
+        },
       });
       setProfile(updated);
     } catch (err) {
@@ -463,6 +535,11 @@ export default function SchoolProfilePage() {
   // ── File upload handlers ──────────────────────────────────────────────────────
 
   const handleLogoUpload = async (file: File) => {
+    setLogoError(null);
+    if (file.size > LOGO_MAX_BYTES) {
+      setLogoError(`Logo is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max size is 2 MB.`);
+      return;
+    }
     try {
       const result = await uploadSchoolLogo(file);
       setProfile((prev) =>
@@ -470,6 +547,7 @@ export default function SchoolProfilePage() {
       );
     } catch (err) {
       console.error(err);
+      setLogoError(err instanceof Error ? err.message : "Failed to upload logo.");
     }
   };
 
@@ -525,11 +603,12 @@ export default function SchoolProfilePage() {
   const canSubmit     = completion >= 60 && profileStatus === "draft";
 
   const sectionList: { id: SectionId; label: string; icon: React.ElementType; done: boolean }[] = [
-    { id: "basic",     label: "Basic Info",     icon: Building2, done: sectionDone(profile, "basic") },
-    { id: "location",  label: "Location",       icon: MapPin,    done: sectionDone(profile, "location") },
-    { id: "contact",   label: "Contact",        icon: Phone,     done: sectionDone(profile, "contact") },
-    { id: "admin",     label: "Admin Contact",  icon: UserCog,   done: sectionDone(profile, "admin") },
-    { id: "documents", label: "Documents",      icon: FileText,  done: sectionDone(profile, "documents") },
+    { id: "basic",       label: "Basic Info",     icon: Building2,  done: sectionDone(profile, "basic")       },
+    { id: "location",    label: "Location",       icon: MapPin,     done: sectionDone(profile, "location")    },
+    { id: "contact",     label: "Contact",        icon: Phone,      done: sectionDone(profile, "contact")     },
+    { id: "admin",       label: "Admin Contact",  icon: UserCog,    done: sectionDone(profile, "admin")       },
+    { id: "credentials", label: "Credentials",    icon: ShieldCheck, done: sectionDone(profile, "credentials") },
+    { id: "documents",   label: "Documents",      icon: FileText,   done: sectionDone(profile, "documents")   },
   ];
 
   const statusBadge = () => {
@@ -653,6 +732,12 @@ export default function SchoolProfilePage() {
 
             <h3 className="font-semibold text-gray-900 text-sm leading-snug">{schoolName}</h3>
             <p className="text-xs text-gray-400 mt-0.5">{user?.email}</p>
+            <p className="text-[11px] text-gray-400 mt-1">PNG / JPG / WebP — max 2 MB</p>
+            {logoError && (
+              <p className="mt-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2 py-1.5">
+                {logoError}
+              </p>
+            )}
             <div className="mt-3">{statusBadge()}</div>
 
             {/* Completion bar */}
@@ -762,6 +847,18 @@ export default function SchoolProfilePage() {
                       ))}
                     </select>
                   </FormField>
+                  <FormField label="Curriculum">
+                    <select
+                      value={basic.curriculum}
+                      onChange={(e) => setBasic((b) => ({ ...b, curriculum: e.target.value as SchoolProfile["curriculum"] }))}
+                      className={selectCls}
+                    >
+                      <option value="">Select curriculum…</option>
+                      {CURRICULA.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </FormField>
                   <FormField label="School Gender" required>
                     <select
                       value={basic.gender}
@@ -798,6 +895,47 @@ export default function SchoolProfilePage() {
                     </select>
                   </FormField>
                 </div>
+
+                {/* Salary defaults — prefill for new job posts */}
+                <div className="mt-6 pt-5 border-t border-gray-100">
+                  <p className="text-sm font-semibold text-gray-800 mb-1">Compensation defaults</p>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Used as defaults when posting a job. Teachers see these as the school&apos;s typical range.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <FormField label="Min Monthly Salary (SAR)">
+                      <input
+                        type="number"
+                        min={0}
+                        value={basic.defaultSalaryMin}
+                        onChange={(e) => setBasic((b) => ({ ...b, defaultSalaryMin: e.target.value }))}
+                        className={inputCls}
+                        placeholder="e.g. 6000"
+                      />
+                    </FormField>
+                    <FormField label="Max Monthly Salary (SAR)">
+                      <input
+                        type="number"
+                        min={0}
+                        value={basic.defaultSalaryMax}
+                        onChange={(e) => setBasic((b) => ({ ...b, defaultSalaryMax: e.target.value }))}
+                        className={inputCls}
+                        placeholder="e.g. 12000"
+                      />
+                    </FormField>
+                    <FormField label="Default Daily Rate (SAR)">
+                      <input
+                        type="number"
+                        min={0}
+                        value={basic.defaultDailyRate}
+                        onChange={(e) => setBasic((b) => ({ ...b, defaultDailyRate: e.target.value }))}
+                        className={inputCls}
+                        placeholder="for substitute roles"
+                      />
+                    </FormField>
+                  </div>
+                </div>
+
                 <SaveButton saving={saving} onClick={saveBasic} />
               </div>
             )}
@@ -954,6 +1092,88 @@ export default function SchoolProfilePage() {
                   </FormField>
                 </div>
                 <SaveButton saving={saving} onClick={saveAdminContact} />
+              </div>
+            )}
+
+            {/* ── Credentials (CR #, License #, Head of School) ───────── */}
+            {activeSection === "credentials" && (
+              <div>
+                <SectionHeader
+                  title="Credentials & Leadership"
+                  subtitle="Registration numbers and the person in charge of your school"
+                  done={sectionDone(profile, "credentials")}
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField label="Commercial Registration #" required>
+                    <input
+                      value={credentialsForm.crNumber}
+                      onChange={(e) => setCredentialsForm((c) => ({ ...c, crNumber: e.target.value }))}
+                      className={inputCls}
+                      placeholder="e.g. 1010123456"
+                      dir="ltr"
+                    />
+                  </FormField>
+                  <FormField label="Educational License #" required>
+                    <input
+                      value={credentialsForm.licenseNumber}
+                      onChange={(e) => setCredentialsForm((c) => ({ ...c, licenseNumber: e.target.value }))}
+                      className={inputCls}
+                      placeholder="MoE license number"
+                      dir="ltr"
+                    />
+                  </FormField>
+                </div>
+
+                <div className="mt-6 pt-5 border-t border-gray-100">
+                  <p className="text-sm font-semibold text-gray-800 mb-1">Head of School</p>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Principal / Director. Distinct from the platform admin contact above.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField label="Full Name" required>
+                      <input
+                        value={credentialsForm.headOfSchoolName}
+                        onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolName: e.target.value }))}
+                        className={inputCls}
+                        placeholder="e.g. Dr. Sara Al-Mansour"
+                      />
+                    </FormField>
+                    <FormField label="Job Title">
+                      <input
+                        value={credentialsForm.headOfSchoolJobTitle}
+                        onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolJobTitle: e.target.value }))}
+                        className={inputCls}
+                        placeholder="e.g. Principal"
+                      />
+                    </FormField>
+                    <FormField label="Phone Number">
+                      <div className="flex">
+                        <span className="flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-sm text-gray-600 shrink-0">
+                          +966
+                        </span>
+                        <input
+                          type="tel"
+                          value={credentialsForm.headOfSchoolPhone}
+                          onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolPhone: e.target.value }))}
+                          className={`${inputCls} rounded-l-none`}
+                          placeholder="5XXXXXXXX"
+                        />
+                      </div>
+                    </FormField>
+                    <FormField label="Email">
+                      <input
+                        type="email"
+                        value={credentialsForm.headOfSchoolEmail}
+                        onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolEmail: e.target.value }))}
+                        className={inputCls}
+                        placeholder="principal@school.edu.sa"
+                      />
+                    </FormField>
+                  </div>
+                </div>
+
+                <SaveButton saving={saving} onClick={saveCredentials} />
               </div>
             )}
 
