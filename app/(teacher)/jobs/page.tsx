@@ -999,7 +999,19 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
           </div>
         </div>
 
-        <h2 className="text-base font-bold text-slate-900 leading-snug mb-3">{job.title}</h2>
+        <h2 className="text-base font-bold text-slate-900 leading-snug mb-1" dir="ltr">
+          {job.titleEn || job.title}
+        </h2>
+        {job.titleAr && (
+          <p className="text-sm font-semibold text-slate-600 mb-3" dir="rtl">{job.titleAr}</p>
+        )}
+        {!job.titleAr && <div className="mb-3" />}
+        {job.campus && (
+          <p className="text-xs text-slate-500 mb-3 flex items-center gap-1.5">
+            <MapPin size={11} className="text-slate-400" />
+            {job.campus}
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-1.5 mb-4">
           <span className="flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
@@ -1062,42 +1074,111 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
           </div>
         </div>
 
-        {/* Description */}
-        {job.description && (
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">About the Role</p>
-            <p className="text-sm text-slate-600 leading-relaxed">{job.description}</p>
-          </div>
-        )}
+        {/* SRD 3.2.1 — structured description sections (Ar + En). Falls back to legacy fields. */}
+        {(() => {
+          const ds = job.descriptionSections;
+          const hasStructured =
+            ds && (
+              ds.responsibilities?.en || ds.responsibilities?.ar ||
+              ds.requirements?.en     || ds.requirements?.ar     ||
+              ds.culture?.en          || ds.culture?.ar          ||
+              ds.benefits?.en         || ds.benefits?.ar
+            );
 
-        {/* Responsibilities */}
-        {job.responsibilities && job.responsibilities.length > 0 && (
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Responsibilities</p>
-            <ul className="space-y-2">
-              {job.responsibilities.map((r, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                  <ChevronRight size={13} className="shrink-0 mt-0.5" style={{ color: "var(--brand-primary)" }} />
-                  {r}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+          if (hasStructured && ds) {
+            const block = (
+              label: string,
+              en?: string,
+              ar?: string,
+            ) => {
+              if (!en && !ar) return null;
+              return (
+                <div key={label}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{label}</p>
+                  {en && <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap mb-2" dir="ltr">{en}</p>}
+                  {ar && <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap" dir="rtl">{ar}</p>}
+                </div>
+              );
+            };
+            return (
+              <>
+                {block("Responsibilities", ds.responsibilities?.en, ds.responsibilities?.ar)}
+                {block("Requirements",     ds.requirements?.en,     ds.requirements?.ar)}
+                {block("School Culture",   ds.culture?.en,          ds.culture?.ar)}
+                {block("Benefits",         ds.benefits?.en,         ds.benefits?.ar)}
+              </>
+            );
+          }
 
-        {/* Requirements */}
-        {job.requirements && job.requirements.length > 0 && (
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Requirements</p>
-            <ul className="space-y-2">
-              {job.requirements.map((r, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                  <CheckCircle2 size={12} className="shrink-0 mt-0.5 text-emerald-500" />{r}
-                </li>
-              ))}
-            </ul>
+          return (
+            <>
+              {(job.descriptionEn || job.description) && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">About the Role</p>
+                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap" dir="ltr">
+                    {job.descriptionEn || job.description}
+                  </p>
+                  {job.descriptionAr && (
+                    <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap mt-2" dir="rtl">
+                      {job.descriptionAr}
+                    </p>
+                  )}
+                </div>
+              )}
+              {job.responsibilities && job.responsibilities.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Responsibilities</p>
+                  <ul className="space-y-2">
+                    {job.responsibilities.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                        <ChevronRight size={13} className="shrink-0 mt-0.5" style={{ color: "var(--brand-primary)" }} />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {job.requirements && job.requirements.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Requirements</p>
+                  <ul className="space-y-2">
+                    {job.requirements.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                        <CheckCircle2 size={12} className="shrink-0 mt-0.5 text-emerald-500" />{r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
+        {/* Certifications */}
+        {(job.certificationsRequired?.length || job.certificationsPreferred?.length) ? (
+          <div className="space-y-3">
+            {job.certificationsRequired && job.certificationsRequired.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Required Certifications</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {job.certificationsRequired.map((c) => (
+                    <span key={c} className="text-xs px-2 py-1 rounded-lg bg-red-50 border border-red-100 text-red-700">{c}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {job.certificationsPreferred && job.certificationsPreferred.length > 0 && (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Preferred Certifications</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {job.certificationsPreferred.map((c) => (
+                    <span key={c} className="text-xs px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700">{c}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        ) : null}
 
         {job.languageRequirement && (
           <div className="flex items-center gap-2 text-xs text-slate-500 pt-4 border-t border-slate-100">

@@ -39,11 +39,28 @@ export interface SchoolProfile {
   verifiedAt?: string | null;
 }
 
+export interface BilingualText {
+  ar?: string;
+  en?: string;
+}
+
+export interface JobDescriptionSections {
+  responsibilities?: BilingualText;
+  requirements?:     BilingualText;
+  culture?:          BilingualText;
+  benefits?:         BilingualText;
+}
+
 export interface SchoolJob {
   _id: string;
   schoolId?: string | { _id: string; nameEn?: string; nameAr?: string };
   title: string;
+  titleAr?: string;
+  titleEn?: string;
   description?: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
+  descriptionSections?: JobDescriptionSections;
   subjects: string[];
   gradeLevels: string[];
   employmentType: 'full_time' | 'part_time' | 'contract' | 'temporary';
@@ -51,12 +68,15 @@ export interface SchoolJob {
   startDate?: string;
   deadline?: string;
   city: string;
+  campus?: string;
   languageRequirement?: 'arabic' | 'english' | 'bilingual';
   experienceRequired?: string;
   degreeRequired?: string;
   teachingLicenseRequired?: boolean;
-  salary: { min?: number; max?: number; display: 'show' | 'negotiable' | 'hidden' };
-  contractDuration?: { type: 'day' | 'month' | 'year'; value: number };
+  certificationsRequired?: string[];
+  certificationsPreferred?: string[];
+  salary: { min?: number; max?: number; dailyRate?: number; display: 'show' | 'negotiable' | 'hidden' };
+  contractDuration?: { type: 'day' | 'month' | 'year'; value?: number };
   isAnonymous: boolean;
   status: 'draft' | 'active' | 'closed' | 'expired';
   viewsCount: number;

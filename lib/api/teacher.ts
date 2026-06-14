@@ -103,6 +103,21 @@ export interface Job {
   languageRequirement?: string;
   startDate?: string;
   schedule?: string;
+  // SRD 3.2.1 / 6.1.3 — bilingual + structured detail content
+  titleAr?: string;
+  titleEn?: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
+  descriptionSections?: {
+    responsibilities?: { ar?: string; en?: string };
+    requirements?:     { ar?: string; en?: string };
+    culture?:          { ar?: string; en?: string };
+    benefits?:         { ar?: string; en?: string };
+  };
+  campus?: string;
+  certificationsRequired?: string[];
+  certificationsPreferred?: string[];
+  contractDuration?: { type: 'day' | 'month' | 'year'; value?: number };
 }
 
 export interface JobsResponse {
