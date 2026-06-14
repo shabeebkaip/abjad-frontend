@@ -304,6 +304,31 @@ const inputCls =
   "w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition";
 const inputStyle = { ["--tw-ring-color" as string]: "var(--brand-primary)" };
 
+// SRD 3.2.1 — soft cap at 2000 words per description section, hard cap at 2200
+// so accidental long paste isn't outright lost. Visual cue at 1800.
+const WORD_SOFT_CAP = 2000;
+const WORD_HARD_CAP = 2200;
+
+function countWords(s: string): number {
+  if (!s) return 0;
+  return s.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function WordCounter({ count }: { count: number }) {
+  const cls =
+    count > WORD_SOFT_CAP
+      ? "text-red-600"
+      : count > WORD_SOFT_CAP * 0.9
+      ? "text-amber-600"
+      : "text-gray-400";
+  return (
+    <p className={`text-xs ${cls} mt-1 text-right tabular-nums`}>
+      {count.toLocaleString()} / {WORD_SOFT_CAP.toLocaleString()} words
+      {count > WORD_SOFT_CAP && " · over limit"}
+    </p>
+  );
+}
+
 function SectionHeader({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle?: string }) {
   return (
     <div className="flex items-start gap-2.5 pb-2 mb-3 border-b border-gray-100">
@@ -870,6 +895,10 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
                 ] as const).map(({ key, label, placeholder }) => {
                   const enKey = (key + "En") as keyof JobFormData;
                   const arKey = (key + "Ar") as keyof JobFormData;
+                  const enValue = form[enKey] as string;
+                  const arValue = form[arKey] as string;
+                  const enCount = countWords(enValue);
+                  const arCount = countWords(arValue);
                   return (
                     <div key={key} className="mt-4 first:mt-0">
                       <p className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
@@ -878,22 +907,33 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
                       </p>
                       <textarea
                         rows={3}
-                        value={form[enKey] as string}
-                        onChange={(e) => set(enKey, e.target.value as JobFormData[typeof enKey])}
+                        value={enValue}
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          // Hard cap: refuse the update if it would push past WORD_HARD_CAP.
+                          if (countWords(next) > WORD_HARD_CAP && countWords(next) > enCount) return;
+                          set(enKey, next as JobFormData[typeof enKey]);
+                        }}
                         placeholder={`${placeholder} (English)`}
                         dir="ltr"
-                        className={`${inputCls} resize-none mb-2`}
-                        style={inputStyle}
-                      />
-                      <textarea
-                        rows={3}
-                        value={form[arKey] as string}
-                        onChange={(e) => set(arKey, e.target.value as JobFormData[typeof arKey])}
-                        placeholder={`${placeholder} (العربية)`}
-                        dir="rtl"
                         className={`${inputCls} resize-none`}
                         style={inputStyle}
                       />
+                      <WordCounter count={enCount} />
+                      <textarea
+                        rows={3}
+                        value={arValue}
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          if (countWords(next) > WORD_HARD_CAP && countWords(next) > arCount) return;
+                          set(arKey, next as JobFormData[typeof arKey]);
+                        }}
+                        placeholder={`${placeholder} (العربية)`}
+                        dir="rtl"
+                        className={`${inputCls} resize-none mt-2`}
+                        style={inputStyle}
+                      />
+                      <WordCounter count={arCount} />
                     </div>
                   );
                 })}
