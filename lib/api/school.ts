@@ -78,6 +78,9 @@ export interface SchoolJob {
   salary: { min?: number; max?: number; dailyRate?: number; display: 'show' | 'negotiable' | 'hidden' };
   contractDuration?: { type: 'day' | 'month' | 'year'; value?: number };
   isAnonymous: boolean;
+  // SRD 3.2.4 — cap + auto-close on cap
+  maxApplications?: number;
+  autoCloseOnMax?: boolean;
   status: 'draft' | 'active' | 'closed' | 'expired';
   viewsCount: number;
   applicationsCount: number;

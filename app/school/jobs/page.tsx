@@ -141,6 +141,8 @@ interface JobFormData {
   employmentType: string;
   positions: string;
   isAnonymous: boolean;
+  maxApplications: string;
+  autoCloseOnMax: boolean;
   // Schedule
   startDate: string;
   deadline: string;
@@ -174,6 +176,8 @@ const EMPTY_FORM: JobFormData = {
   employmentType: "full_time",
   positions: "1",
   isAnonymous: false,
+  maxApplications: "",
+  autoCloseOnMax: false,
   startDate: "",
   deadline: "",
   contractDurationType: "month",
@@ -209,6 +213,8 @@ function jobToForm(job: SchoolJob): JobFormData {
     employmentType: job.employmentType ?? "full_time",
     positions: String(job.positions ?? 1),
     isAnonymous: job.isAnonymous ?? false,
+    maxApplications: job.maxApplications != null ? String(job.maxApplications) : "",
+    autoCloseOnMax: job.autoCloseOnMax ?? false,
     startDate: job.startDate ? job.startDate.slice(0, 10) : "",
     deadline:  job.deadline  ? job.deadline.slice(0, 10)  : "",
     contractDurationType:  (job.contractDuration?.type ?? "month") as "day" | "month" | "year",
@@ -523,6 +529,8 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
         certificationsRequired:  form.certificationsRequired,
         certificationsPreferred: form.certificationsPreferred,
         isAnonymous: form.isAnonymous,
+        maxApplications: form.maxApplications ? Number(form.maxApplications) : undefined,
+        autoCloseOnMax: form.autoCloseOnMax,
       };
 
       let job: SchoolJob;
@@ -1044,9 +1052,10 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
                 </div>
               </section>
 
-              {/* ── Visibility ───────────────────────────────────────── */}
+              {/* ── Visibility & Application Settings ─────────────────── */}
               <section>
-                <SectionHeader icon={Users} title="Visibility" />
+                <SectionHeader icon={Users} title="Visibility & Applications" subtitle="Control who sees the post and how many candidates can apply." />
+
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <button
                     type="button"
@@ -1067,6 +1076,49 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
                     <p className="text-xs text-gray-500">Hide school name from public job listing</p>
                   </div>
                 </label>
+
+                {/* SRD 3.2.4 — application cap + auto-close */}
+                <div className="mt-5 pt-5 border-t border-gray-100">
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                    Maximum Applications
+                    <span className="ml-2 text-xs text-gray-400 font-normal">optional cap</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.maxApplications}
+                    onChange={(e) => set("maxApplications", e.target.value)}
+                    placeholder="e.g. 50 — leave blank for unlimited"
+                    className={inputCls}
+                    style={inputStyle}
+                  />
+
+                  <label className={`mt-3 flex items-start gap-3 ${form.maxApplications ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
+                    <button
+                      type="button"
+                      onClick={() => form.maxApplications && set("autoCloseOnMax", !form.autoCloseOnMax)}
+                      disabled={!form.maxApplications}
+                      className={`relative w-10 h-5.5 rounded-full border transition-all shrink-0 mt-0.5 ${
+                        form.autoCloseOnMax && form.maxApplications ? "border-transparent" : "border-gray-300 bg-gray-100"
+                      }`}
+                      style={form.autoCloseOnMax && form.maxApplications ? { background: "var(--brand-gradient)" } : {}}
+                    >
+                      <span
+                        className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                          form.autoCloseOnMax && form.maxApplications ? "translate-x-5" : "translate-x-0.5"
+                        }`}
+                      />
+                    </button>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">Auto-close when full</p>
+                      <p className="text-xs text-gray-500">
+                        {form.maxApplications
+                          ? "Job will be moved to Closed automatically once it reaches the application cap."
+                          : "Set a cap above to enable auto-close."}
+                      </p>
+                    </div>
+                  </label>
+                </div>
               </section>
             </>
           )}
@@ -1154,6 +1206,14 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
                   <div>
                     <p className="text-xs text-gray-500">Daily rate</p>
                     <p className="text-sm font-semibold text-gray-800">{form.dailyRate} SAR/day</p>
+                  </div>
+                )}
+                {form.maxApplications && (
+                  <div>
+                    <p className="text-xs text-gray-500">Application cap</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {form.maxApplications}{form.autoCloseOnMax ? " · auto-closes" : ""}
+                    </p>
                   </div>
                 )}
               </div>
