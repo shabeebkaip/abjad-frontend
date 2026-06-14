@@ -7,6 +7,7 @@ import {
   Download, Star, StickyNote, BookmarkPlus, Eye,
   CheckSquare, Square, Plus, FileText, Globe,
   Award, ChevronLeft, ChevronRight,
+  History, MessageSquare, FileSignature, Calendar as CalendarIcon,
 } from "lucide-react";
 import {
   searchCandidates,
@@ -16,8 +17,9 @@ import {
   createShortlist,
   addCandidateNote,
   exportCandidatesPdf,
+  getCandidateHistory,
 } from "@/lib/api/school";
-import type { CandidateProfile, Shortlist } from "@/lib/api/school";
+import type { CandidateProfile, Shortlist, CandidateHistory } from "@/lib/api/school";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -424,6 +426,237 @@ function CandidateCard({
   );
 }
 
+// ─── Candidate History Tab (SRD 3.4.3) ────────────────────────────────────────
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit",
+  });
+}
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+const APPLICATION_STATUS_COLORS: Record<string, string> = {
+  submitted:           "bg-slate-100 text-slate-700",
+  reviewing:           "bg-blue-100 text-blue-700",
+  shortlisted:         "bg-purple-100 text-purple-700",
+  interview_scheduled: "bg-amber-100 text-amber-700",
+  offer_extended:      "bg-emerald-100 text-emerald-700",
+  hired:               "bg-green-100 text-green-700",
+  rejected:            "bg-red-100 text-red-600",
+  withdrawn:           "bg-gray-100 text-gray-500",
+};
+const INTERVIEW_STATUS_COLORS: Record<string, string> = {
+  invited:     "bg-blue-100 text-blue-700",
+  accepted:    "bg-emerald-100 text-emerald-700",
+  rescheduled: "bg-amber-100 text-amber-700",
+  declined:    "bg-red-100 text-red-600",
+  completed:   "bg-green-100 text-green-700",
+  cancelled:   "bg-gray-100 text-gray-500",
+};
+const OFFER_STATUS_COLORS: Record<string, string> = {
+  sent:                 "bg-blue-100 text-blue-700",
+  viewed:               "bg-purple-100 text-purple-700",
+  accepted:             "bg-green-100 text-green-700",
+  declined:             "bg-red-100 text-red-600",
+  negotiation_requested:"bg-amber-100 text-amber-700",
+  expired:              "bg-gray-100 text-gray-500",
+};
+
+function HistoryTabBody({
+  loading, error, history,
+}: {
+  loading: boolean;
+  error: string | null;
+  history: CandidateHistory | null;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 size={24} className="animate-spin text-gray-300" />
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-2">
+        <AlertCircle size={26} className="text-red-400" />
+        <p className="text-sm text-gray-500">{error}</p>
+      </div>
+    );
+  }
+  if (!history) return null;
+
+  const hasAny =
+    history.applications.length > 0 ||
+    history.interviews.length > 0 ||
+    history.offers.length > 0 ||
+    history.notes.length > 0 ||
+    history.shortlistMemberships.length > 0;
+
+  if (!hasAny) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-2">
+        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+          <History size={20} className="text-gray-400" />
+        </div>
+        <p className="text-sm text-gray-500">No prior interactions with this candidate yet.</p>
+        <p className="text-xs text-gray-400">Once you shortlist them, schedule an interview, or extend an offer, it&apos;ll show up here.</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Applications */}
+      {history.applications.length > 0 && (
+        <section>
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+            <FileText size={12} />
+            Applications ({history.applications.length})
+          </h3>
+          <div className="space-y-2">
+            {history.applications.map((a) => (
+              <div key={a._id} className="border border-gray-100 rounded-xl p-3 bg-white">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-sm font-semibold text-gray-900">{a.job?.title ?? "Job no longer available"}</p>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${APPLICATION_STATUS_COLORS[a.status] ?? "bg-gray-100 text-gray-600"}`}>
+                    {a.status.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-500">
+                  <span>Ref: {a.referenceNumber ?? "—"}</span>
+                  {a.matchScore != null && <span>· Match: {a.matchScore}%</span>}
+                  <span>· {formatDate(a.createdAt)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Interviews */}
+      {history.interviews.length > 0 && (
+        <section>
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+            <CalendarIcon size={12} />
+            Interviews ({history.interviews.length})
+          </h3>
+          <div className="space-y-2">
+            {history.interviews.map((i) => (
+              <div key={i._id} className="border border-gray-100 rounded-xl p-3 bg-white">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-sm font-semibold text-gray-900">{i.job?.title ?? "—"}</p>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${INTERVIEW_STATUS_COLORS[i.status] ?? "bg-gray-100 text-gray-600"}`}>
+                    {i.status}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-500">
+                  <span className="capitalize">{i.type.replace(/_/g, " ")}</span>
+                  <span>· {formatDateTime(i.scheduledAt)}</span>
+                  {i.duration && <span>· {i.duration} min</span>}
+                </div>
+                {i.feedback && (i.feedback.rating != null || i.feedback.recommendation) && (
+                  <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-600 flex items-center gap-2">
+                    {i.feedback.rating != null && (
+                      <span className="flex items-center gap-0.5">
+                        <Star size={11} className="text-amber-400 fill-amber-400" />
+                        {i.feedback.rating}/5
+                      </span>
+                    )}
+                    {i.feedback.recommendation && (
+                      <span className="capitalize">· {i.feedback.recommendation}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Offers */}
+      {history.offers.length > 0 && (
+        <section>
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+            <FileSignature size={12} />
+            Offers ({history.offers.length})
+          </h3>
+          <div className="space-y-2">
+            {history.offers.map((o) => (
+              <div key={o._id} className="border border-gray-100 rounded-xl p-3 bg-white">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-sm font-semibold text-gray-900">{o.position ?? o.job?.title ?? "—"}</p>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${OFFER_STATUS_COLORS[o.status] ?? "bg-gray-100 text-gray-600"}`}>
+                    {o.status.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-500">
+                  {o.salary?.amount != null && (
+                    <span>{o.salary.amount.toLocaleString()} {o.salary.currency ?? "SAR"} / {o.salary.period ?? "month"}</span>
+                  )}
+                  {o.sentAt && <span>· Sent {formatDate(o.sentAt)}</span>}
+                  {o.respondedAt && <span>· Responded {formatDate(o.respondedAt)}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Shortlist memberships */}
+      {history.shortlistMemberships.length > 0 && (
+        <section>
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+            <BookmarkPlus size={12} />
+            On {history.shortlistMemberships.length} Shortlist{history.shortlistMemberships.length === 1 ? "" : "s"}
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {history.shortlistMemberships.map((m) => (
+              <span
+                key={m.shortlistId}
+                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-white border border-gray-200"
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color ?? "#3B82F6" }} />
+                {m.shortlistName}
+                <span className="text-gray-400">· {formatDate(m.addedAt)}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Notes */}
+      {history.notes.length > 0 && (
+        <section>
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+            <MessageSquare size={12} />
+            Internal Notes ({history.notes.length})
+          </h3>
+          <div className="space-y-2">
+            {history.notes.map((n) => (
+              <div key={n._id} className="border border-gray-100 rounded-xl p-3 bg-amber-50/30">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{n.content}</p>
+                <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-400">
+                  <span>{formatDateTime(n.createdAt)}</span>
+                  {(n.tags ?? []).map((t) => (
+                    <span key={t} className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
 // ─── Candidate Profile Modal ──────────────────────────────────────────────────
 
 interface CandidateProfileModalProps {
@@ -446,6 +679,26 @@ function CandidateProfileModal({
   const [noteSaved, setNoteSaved] = useState(false);
   const [showShortlistDrop, setShowShortlistDrop] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+
+  // SRD 3.4.3 — Profile History tab
+  const [activeTab, setActiveTab] = useState<"profile" | "history">("profile");
+  const [history, setHistory] = useState<CandidateHistory | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab !== "history" || history) return;
+    let cancelled = false;
+    setHistoryLoading(true);
+    setHistoryError(null);
+    getCandidateHistory(c._id)
+      .then((h) => { if (!cancelled) setHistory(h); })
+      .catch((e: unknown) => {
+        if (!cancelled) setHistoryError(e instanceof Error ? e.message : "Failed to load history");
+      })
+      .finally(() => { if (!cancelled) setHistoryLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeTab, history, c._id]);
 
   const handleSaveNote = async () => {
     if (!noteText.trim()) return;
@@ -512,8 +765,46 @@ function CandidateProfileModal({
           </button>
         </div>
 
+        {/* SRD 3.4.3 — tab strip */}
+        <div className="flex items-center gap-1 px-6 border-b border-gray-100 shrink-0">
+          {([
+            { id: "profile", label: "Profile", icon: Eye },
+            { id: "history", label: "History", icon: History },
+          ] as const).map(({ id, label, icon: Icon }) => {
+            const active = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`relative flex items-center gap-1.5 px-3 py-3 text-sm font-semibold transition-colors ${
+                  active ? "" : "text-gray-500 hover:text-gray-800"
+                }`}
+                style={active ? { color: "var(--brand-primary)" } : {}}
+              >
+                <Icon size={14} />
+                {label}
+                {active && (
+                  <span
+                    className="absolute inset-x-2 -bottom-px h-0.5 rounded-full"
+                    style={{ background: "var(--brand-gradient)" }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          {activeTab === "history" && (
+            <HistoryTabBody
+              loading={historyLoading}
+              error={historyError}
+              history={history}
+            />
+          )}
+          {activeTab === "profile" && (
+            <>
           {/* Professional */}
           {c.professional && (
             <section>
@@ -700,6 +991,8 @@ function CandidateProfileModal({
               )}
             </div>
           </section>
+            </>
+          )}
         </div>
 
         {/* Footer */}

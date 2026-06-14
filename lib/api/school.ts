@@ -400,6 +400,37 @@ export async function addToShortlistBulk(shortlistId: string, teacherIds: string
 export async function removeFromShortlist(shortlistId: string, teacherId: string): Promise<void> {
   await apiFetch(`/api/school/shortlists/${shortlistId}/teachers/${teacherId}`, { method: 'DELETE' });
 }
+// SRD 3.4.3 — Profile history for a candidate, scoped to the current school.
+export interface CandidateHistory {
+  applications: Array<{
+    _id: string; status: string; matchScore?: number; coverLetter?: string;
+    referenceNumber?: string; createdAt: string; updatedAt?: string;
+    job: { _id: string; title: string; city?: string } | null;
+  }>;
+  interviews: Array<{
+    _id: string; type: string; status: string; scheduledAt: string;
+    duration?: number; meetingLink?: string;
+    feedback?: { rating?: number; recommendation?: string; notes?: string } | null;
+    job: { _id: string; title: string } | null;
+  }>;
+  offers: Array<{
+    _id: string; status: string; position?: string;
+    salary?: { amount?: number; currency?: string; period?: string };
+    sentAt?: string; respondedAt?: string; expiresAt?: string;
+    job: { _id: string; title: string } | null;
+  }>;
+  notes: Array<{
+    _id: string; content: string; tags?: string[]; applicationId?: string;
+    createdAt: string;
+  }>;
+  shortlistMemberships: Array<{
+    shortlistId: string; shortlistName: string; color?: string; addedAt: string;
+  }>;
+}
+export async function getCandidateHistory(teacherId: string): Promise<CandidateHistory> {
+  return (await apiFetch<CandidateHistory>(`/api/school/candidates/${teacherId}/history`)).data!;
+}
+
 // SRD 3.3.5 — export selected candidates as PDF. Returns the raw blob; caller triggers the download.
 // Uses raw fetch (not apiFetch) because apiFetch always parses JSON. Auth: bearer header + cookie.
 // If the access token expires mid-download the user re-clicks; the proactive refresh on next regular
