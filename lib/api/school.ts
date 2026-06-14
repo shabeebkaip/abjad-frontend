@@ -321,21 +321,26 @@ export async function getJobStats(jobId: string): Promise<JobStats> {
 export async function searchCandidates(params?: {
   subjects?: string[]; gradeLevels?: string[]; experienceRange?: string;
   city?: string[]; gender?: string; nationality?: string; degreeType?: string;
-  language?: string; employmentStatus?: string; sortBy?: string; page?: number; limit?: number;
+  language?: string; languageProficiency?: string; employmentStatus?: string;
+  certificationsKeyword?: string; salaryMaxAcceptable?: number;
+  sortBy?: string; page?: number; limit?: number;
 }): Promise<{ teachers: CandidateProfile[]; total: number; page: number; totalPages: number }> {
   const q = new URLSearchParams();
   params?.subjects?.forEach(s  => q.append('subjects',    s));
   params?.gradeLevels?.forEach(g => q.append('gradeLevels', g));
   params?.city?.forEach(c       => q.append('city',        c));
-  if (params?.experienceRange) q.set('experienceRange', params.experienceRange);
-  if (params?.gender)          q.set('gender',          params.gender);
-  if (params?.nationality)     q.set('nationality',     params.nationality);
-  if (params?.degreeType)      q.set('degreeType',      params.degreeType);
-  if (params?.language)        q.set('language',        params.language);
-  if (params?.employmentStatus)q.set('employmentStatus',params.employmentStatus);
-  if (params?.sortBy)          q.set('sortBy',          params.sortBy);
-  if (params?.page)            q.set('page',            String(params.page));
-  if (params?.limit)           q.set('limit',           String(params.limit));
+  if (params?.experienceRange)      q.set('experienceRange',      params.experienceRange);
+  if (params?.gender)               q.set('gender',               params.gender);
+  if (params?.nationality)          q.set('nationality',          params.nationality);
+  if (params?.degreeType)           q.set('degreeType',           params.degreeType);
+  if (params?.language)              q.set('language',             params.language);
+  if (params?.languageProficiency)   q.set('languageProficiency',  params.languageProficiency);
+  if (params?.employmentStatus)      q.set('employmentStatus',     params.employmentStatus);
+  if (params?.certificationsKeyword) q.set('certificationsKeyword',params.certificationsKeyword);
+  if (params?.salaryMaxAcceptable != null) q.set('salaryMaxAcceptable', String(params.salaryMaxAcceptable));
+  if (params?.sortBy)               q.set('sortBy',               params.sortBy);
+  if (params?.page)                 q.set('page',                 String(params.page));
+  if (params?.limit)                q.set('limit',                String(params.limit));
   return (await apiFetch<{ teachers: CandidateProfile[]; total: number; page: number; totalPages: number }>(`/api/school/candidates?${q}`)).data!;
 }
 export async function getCandidate(teacherId: string): Promise<CandidateProfile> {

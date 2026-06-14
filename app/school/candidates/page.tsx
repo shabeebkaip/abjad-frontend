@@ -115,6 +115,12 @@ interface FilterState {
   city: string[];
   gender: string;
   degreeType: string;
+  // SRD 3.3.2 — added 2026-06-15
+  certificationsKeyword: string;
+  language: string;
+  languageProficiency: string;
+  employmentStatus: string;       // serves as "Availability"
+  salaryMaxAcceptable: string;
   sortBy: string;
 }
 
@@ -125,8 +131,36 @@ const DEFAULT_FILTERS: FilterState = {
   city: [],
   gender: "",
   degreeType: "",
+  certificationsKeyword: "",
+  language: "",
+  languageProficiency: "",
+  employmentStatus: "",
+  salaryMaxAcceptable: "",
   sortBy: "newest",
 };
+
+// SRD 3.3.2 — option lists for the new filter controls
+const LANGUAGE_OPTIONS = [
+  { label: "Any",        value: ""        },
+  { label: "Arabic",     value: "arabic"  },
+  { label: "English",    value: "english" },
+  { label: "French",     value: "french"  },
+  { label: "Urdu",       value: "urdu"    },
+  { label: "Other",      value: "other"   },
+];
+const PROFICIENCY_OPTIONS = [
+  { label: "Any",         value: ""        },
+  { label: "Basic",       value: "basic"   },
+  { label: "Intermediate",value: "intermediate" },
+  { label: "Fluent",      value: "fluent"  },
+  { label: "Native",      value: "native"  },
+];
+const AVAILABILITY_OPTIONS = [
+  { label: "Any",                 value: ""           },
+  { label: "Available immediately", value: "unemployed" },
+  { label: "Currently employed",    value: "employed"   },
+  { label: "Freelance / Open",      value: "freelance"  },
+];
 
 // ─── Add-to-Shortlist Dropdown ────────────────────────────────────────────────
 
@@ -980,6 +1014,94 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
           </div>
         </div>
 
+        {/* SRD 3.3.2 — Certifications keyword */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+            Certifications
+          </label>
+          <input
+            type="text"
+            value={filters.certificationsKeyword}
+            onChange={(e) => set("certificationsKeyword", e.target.value)}
+            placeholder="e.g. TEFL, IB Educator…"
+            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
+            style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
+          />
+          <p className="text-[10px] text-gray-400 mt-1">Matches any cert containing this text.</p>
+        </div>
+
+        {/* SRD 3.3.2 — Language + proficiency */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+            Language
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="relative">
+              <select
+                value={filters.language}
+                onChange={(e) => set("language", e.target.value)}
+                className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+                style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
+              >
+                {LANGUAGE_OPTIONS.map(({ label, value }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+            <div className="relative">
+              <select
+                value={filters.languageProficiency}
+                onChange={(e) => set("languageProficiency", e.target.value)}
+                className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+                style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
+              >
+                {PROFICIENCY_OPTIONS.map(({ label, value }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* SRD 3.3.2 — Availability (maps to employmentStatus) */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+            Availability
+          </label>
+          <div className="relative">
+            <select
+              value={filters.employmentStatus}
+              onChange={(e) => set("employmentStatus", e.target.value)}
+              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+              style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
+            >
+              {AVAILABILITY_OPTIONS.map(({ label, value }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+            <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          </div>
+        </div>
+
+        {/* SRD 3.3.2 — Salary expectations (school's budget ceiling) */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+            Max Budget (SAR/mo)
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={filters.salaryMaxAcceptable}
+            onChange={(e) => set("salaryMaxAcceptable", e.target.value)}
+            placeholder="e.g. 10000"
+            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
+            style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
+          />
+          <p className="text-[10px] text-gray-400 mt-1">Shows teachers whose min expectation fits this budget.</p>
+        </div>
+
         {/* Sort */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
@@ -1055,15 +1177,20 @@ export default function CandidatesPage() {
     setError(null);
     try {
       const res = await searchCandidates({
-        subjects:       f.subjects.length > 0 ? f.subjects : undefined,
-        gradeLevels:    f.gradeLevels.length > 0 ? f.gradeLevels : undefined,
-        experienceRange: f.experienceRange || undefined,
-        city:           f.city.length > 0 ? f.city : undefined,
-        gender:         f.gender || undefined,
-        degreeType:     f.degreeType || undefined,
-        sortBy:         f.sortBy || undefined,
-        page:           pageNum,
-        limit:          PAGE_SIZE,
+        subjects:              f.subjects.length > 0 ? f.subjects : undefined,
+        gradeLevels:           f.gradeLevels.length > 0 ? f.gradeLevels : undefined,
+        experienceRange:       f.experienceRange || undefined,
+        city:                  f.city.length > 0 ? f.city : undefined,
+        gender:                f.gender || undefined,
+        degreeType:            f.degreeType || undefined,
+        certificationsKeyword: f.certificationsKeyword.trim() || undefined,
+        language:              f.language || undefined,
+        languageProficiency:   f.languageProficiency || undefined,
+        employmentStatus:      f.employmentStatus || undefined,
+        salaryMaxAcceptable:   f.salaryMaxAcceptable ? Number(f.salaryMaxAcceptable) : undefined,
+        sortBy:                f.sortBy || undefined,
+        page:                  pageNum,
+        limit:                 PAGE_SIZE,
       });
       setCandidates(res.teachers ?? []);
       setTotal(res.total ?? 0);
