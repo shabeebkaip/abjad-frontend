@@ -306,6 +306,9 @@ export async function publishJob(jobId: string): Promise<SchoolJob> {
 export async function closeJob(jobId: string): Promise<SchoolJob> {
   return (await apiFetch<SchoolJob>(`/api/school/jobs/${jobId}/close`, { method: 'POST' })).data!;
 }
+export async function extendJobDeadline(jobId: string, deadline: string): Promise<SchoolJob> {
+  return (await apiFetch<SchoolJob>(`/api/school/jobs/${jobId}/extend-deadline`, { method: 'POST', body: JSON.stringify({ deadline }) })).data!;
+}
 export async function deleteJob(jobId: string): Promise<void> {
   await apiFetch(`/api/school/jobs/${jobId}`, { method: 'DELETE' });
 }

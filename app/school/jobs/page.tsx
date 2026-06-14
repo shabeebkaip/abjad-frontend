@@ -8,6 +8,7 @@ import {
   Square, MapPin, Clock, DollarSign, ChevronDown, ChevronLeft,
   BookOpen, GraduationCap, Globe, Shield, Users, Calendar,
   Building, Languages, Tag, Sparkles, BookCheck,
+  CalendarPlus, RotateCcw, Copy,
 } from "lucide-react";
 import {
   listSchoolJobs,
@@ -16,6 +17,7 @@ import {
   publishJob,
   closeJob,
   deleteJob,
+  extendJobDeadline,
 } from "@/lib/api/school";
 import type { SchoolJob } from "@/lib/api/school";
 
@@ -421,14 +423,31 @@ function PreviewBlock({ label, en, ar }: { label: string; en?: string; ar?: stri
 
 interface JobModalProps {
   editJob: SchoolJob | null;
+  // SRD 3.2.7 — Repost / Duplicate: pre-fill the form from an existing job but save as a new one.
+  templateJob?: SchoolJob | null;
+  // When templated as Repost, pre-set the deadline to today + 30 days. Duplicate clears it.
+  templateMode?: "repost" | "duplicate";
   onClose: () => void;
   onSaved: (job: SchoolJob, published: boolean) => void;
 }
 
-function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
-  const [form, setForm] = useState<JobFormData>(
-    editJob ? jobToForm(editJob) : EMPTY_FORM
-  );
+function buildTemplateForm(source: SchoolJob, mode: "repost" | "duplicate"): JobFormData {
+  const base = jobToForm(source);
+  if (mode === "repost") {
+    // 30 days out, ISO date string
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    return { ...base, deadline: d.toISOString().slice(0, 10) };
+  }
+  // Duplicate: clear schedule dates so the school sets fresh ones.
+  return { ...base, deadline: "", startDate: "" };
+}
+
+function JobModal({ editJob, templateJob, templateMode, onClose, onSaved }: JobModalProps) {
+  const [form, setForm] = useState<JobFormData>(() => {
+    if (editJob) return jobToForm(editJob);
+    if (templateJob) return buildTemplateForm(templateJob, templateMode ?? "duplicate");
+    return EMPTY_FORM;
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
   const [mode, setMode]     = useState<"edit" | "preview">("edit");
@@ -566,12 +585,22 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
             <h2 className="text-lg font-bold text-gray-900">
               {mode === "preview"
                 ? "Review & Publish"
-                : (editJob ? "Edit Job" : "Post a New Job")}
+                : editJob
+                ? "Edit Job"
+                : templateJob
+                ? (templateMode === "repost" ? "Repost Job" : "Duplicate Job")
+                : "Post a New Job"}
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
               {mode === "preview"
                 ? "This is how teachers will see your job. Go back to edit anything."
-                : (editJob ? "Update your job posting details" : "Fill in the details to create a job posting")}
+                : editJob
+                ? "Update your job posting details"
+                : templateJob
+                ? (templateMode === "repost"
+                    ? "Reposting with a fresh 30-day deadline. Edit anything before publishing."
+                    : "Pre-filled from the original. Update what's different.")
+                : "Fill in the details to create a job posting"}
             </p>
           </div>
           <button
@@ -1349,10 +1378,14 @@ interface JobCardProps {
   onPublish: (jobId: string) => void;
   onClose: (jobId: string) => void;
   onDelete: (jobId: string) => void;
+  // SRD 3.2.7
+  onExtendDeadline: (job: SchoolJob) => void;
+  onRepost: (job: SchoolJob) => void;
+  onDuplicate: (job: SchoolJob) => void;
   actionLoading: string | null;
 }
 
-function JobCard({ job, onEdit, onPublish, onClose, onDelete, actionLoading }: JobCardProps) {
+function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, onRepost, onDuplicate, actionLoading }: JobCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const isLoading = actionLoading === job._id;
@@ -1433,6 +1466,31 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, actionLoading }: J
                   <X size={13} className="text-amber-400" /> Close Job
                 </button>
               )}
+              {/* SRD 3.2.7 — Extend deadline (active + expired) */}
+              {(job.status === "active" || job.status === "expired") && (
+                <button
+                  onClick={() => { setMenuOpen(false); onExtendDeadline(job); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <CalendarPlus size={13} className="text-emerald-400" /> Extend deadline
+                </button>
+              )}
+              {/* SRD 3.2.7 — Repost (expired only) */}
+              {job.status === "expired" && (
+                <button
+                  onClick={() => { setMenuOpen(false); onRepost(job); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <RotateCcw size={13} className="text-purple-400" /> Repost
+                </button>
+              )}
+              {/* SRD 3.2.7 — Duplicate (any status) */}
+              <button
+                onClick={() => { setMenuOpen(false); onDuplicate(job); }}
+                className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Copy size={13} className="text-sky-400" /> Duplicate
+              </button>
               <Link
                 href={`/school/applications?jobId=${job._id}`}
                 className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -1575,6 +1633,11 @@ export default function JobsPage() {
   const [filter, setFilter]           = useState<StatusFilter>("all");
   const [showModal, setShowModal]     = useState(false);
   const [editJob, setEditJob]         = useState<SchoolJob | null>(null);
+  // SRD 3.2.7 — Repost / Duplicate share JobModal with editJob=null + templateJob set
+  const [templateJob, setTemplateJob] = useState<SchoolJob | null>(null);
+  const [templateMode, setTemplateMode] = useState<"repost" | "duplicate">("duplicate");
+  // SRD 3.2.7 — Extend deadline inline popover
+  const [extendTarget, setExtendTarget] = useState<SchoolJob | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const loadJobs = useCallback(async () => {
@@ -1615,6 +1678,7 @@ export default function JobsPage() {
     });
     setShowModal(false);
     setEditJob(null);
+    setTemplateJob(null);
   };
 
   const handlePublish = async (jobId: string) => {
@@ -1654,8 +1718,29 @@ export default function JobsPage() {
     }
   };
 
-  const openCreate = () => { setEditJob(null); setShowModal(true); };
-  const openEdit   = (job: SchoolJob) => { setEditJob(job); setShowModal(true); };
+  const openCreate = () => { setEditJob(null); setTemplateJob(null); setShowModal(true); };
+  const openEdit   = (job: SchoolJob) => { setEditJob(job); setTemplateJob(null); setShowModal(true); };
+
+  // SRD 3.2.7 — open the modal as a Repost / Duplicate flow
+  const openRepost    = (job: SchoolJob) => { setEditJob(null); setTemplateJob(job); setTemplateMode("repost");    setShowModal(true); };
+  const openDuplicate = (job: SchoolJob) => { setEditJob(null); setTemplateJob(job); setTemplateMode("duplicate"); setShowModal(true); };
+
+  // SRD 3.2.7 — extend deadline inline
+  const handleExtendDeadline = async (jobId: string, deadline: string) => {
+    setActionLoading(jobId);
+    try {
+      const updated = await extendJobDeadline(jobId, deadline);
+      setJobs((prev) => prev.map((j) => (j._id === jobId ? updated : j)));
+      setExtendTarget(null);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to extend deadline";
+      alert(msg);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const closeModal = () => { setShowModal(false); setEditJob(null); setTemplateJob(null); };
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -1738,6 +1823,9 @@ export default function JobsPage() {
               onPublish={handlePublish}
               onClose={handleClose}
               onDelete={handleDelete}
+              onExtendDeadline={(j) => setExtendTarget(j)}
+              onRepost={openRepost}
+              onDuplicate={openDuplicate}
               actionLoading={actionLoading}
             />
           ))}
@@ -1748,10 +1836,96 @@ export default function JobsPage() {
       {showModal && (
         <JobModal
           editJob={editJob}
-          onClose={() => { setShowModal(false); setEditJob(null); }}
+          templateJob={templateJob}
+          templateMode={templateMode}
+          onClose={closeModal}
           onSaved={handleSaved}
         />
       )}
+
+      {/* ── Extend-deadline popover (SRD 3.2.7) ─────────────────────── */}
+      {extendTarget && (
+        <ExtendDeadlineDialog
+          job={extendTarget}
+          saving={actionLoading === extendTarget._id}
+          onCancel={() => setExtendTarget(null)}
+          onConfirm={(d) => handleExtendDeadline(extendTarget._id, d)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Extend Deadline Dialog (SRD 3.2.7) ───────────────────────────────────────
+
+function ExtendDeadlineDialog({
+  job,
+  saving,
+  onCancel,
+  onConfirm,
+}: {
+  job: SchoolJob;
+  saving: boolean;
+  onCancel: () => void;
+  onConfirm: (deadline: string) => void;
+}) {
+  // Default to 14 days from today.
+  const defaultDeadline = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 14);
+    return d.toISOString().slice(0, 10);
+  })();
+  const [deadline, setDeadline] = useState(defaultDeadline);
+  const today = new Date().toISOString().slice(0, 10);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-start gap-3 mb-4">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg shrink-0"
+            style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}>
+            <CalendarPlus size={16} />
+          </span>
+          <div>
+            <h3 className="text-base font-bold text-gray-900">Extend deadline</h3>
+            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{job.title}</p>
+          </div>
+        </div>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">New deadline</label>
+        <input
+          type="date"
+          value={deadline}
+          min={today}
+          onChange={(e) => setDeadline(e.target.value)}
+          className={inputCls}
+          style={inputStyle}
+        />
+        {job.status === "expired" && (
+          <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            This job will be re-activated and visible to teachers again.
+          </p>
+        )}
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={saving}
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(deadline)}
+            disabled={saving || !deadline}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60"
+            style={{ background: "var(--brand-gradient)" }}
+          >
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <CalendarPlus size={14} />}
+            Extend
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
