@@ -457,6 +457,11 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
     form.employmentType === "contract" ||
     form.contractDurationType === "day";
 
+  // SRD 3.2.1 — contract duration is only meaningful for fixed-term roles.
+  // Full-time / part-time roles are open-ended; hide the duration block for them.
+  const needsContractDuration =
+    form.employmentType === "contract" || form.employmentType === "temporary";
+
   const validate = (): string | null => {
     if (!form.titleEn.trim() && !form.titleAr.trim()) return "Add a job title in English or Arabic.";
     if (form.subjects.length === 0) return "Select at least one subject.";
@@ -490,10 +495,13 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
         positions: form.positions ? Number(form.positions) : undefined,
         startDate: form.startDate || undefined,
         deadline: form.deadline || undefined,
-        contractDuration: {
-          type: form.contractDurationType,
-          value: form.contractDurationValue ? Number(form.contractDurationValue) : undefined,
-        },
+        // Only persist duration for Contract / Temporary roles.
+        contractDuration: needsContractDuration
+          ? {
+              type: form.contractDurationType,
+              value: form.contractDurationValue ? Number(form.contractDurationValue) : undefined,
+            }
+          : undefined,
         salary: {
           min: form.salaryMin ? Number(form.salaryMin) : undefined,
           max: form.salaryMax ? Number(form.salaryMax) : undefined,
@@ -757,39 +765,41 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
                   </div>
                 </div>
 
-                {/* Contract duration */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Contract Duration Mode</label>
-                    <div className="relative">
-                      <select
-                        value={form.contractDurationType}
-                        onChange={(e) => set("contractDurationType", e.target.value as JobFormData["contractDurationType"])}
-                        className={`${inputCls} appearance-none pr-9 bg-white`}
+                {/* Contract duration — only shown for Contract / Temporary roles */}
+                {needsContractDuration && (
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">Contract Duration Mode</label>
+                      <div className="relative">
+                        <select
+                          value={form.contractDurationType}
+                          onChange={(e) => set("contractDurationType", e.target.value as JobFormData["contractDurationType"])}
+                          className={`${inputCls} appearance-none pr-9 bg-white`}
+                          style={inputStyle}
+                        >
+                          <option value="day">By Day (substitute)</option>
+                          <option value="month">By Month</option>
+                          <option value="year">By Year</option>
+                        </select>
+                        <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                        Duration ({form.contractDurationType === "day" ? "days" : form.contractDurationType === "month" ? "months" : "years"})
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={form.contractDurationValue}
+                        onChange={(e) => set("contractDurationValue", e.target.value)}
+                        placeholder="optional"
+                        className={inputCls}
                         style={inputStyle}
-                      >
-                        <option value="day">By Day (substitute)</option>
-                        <option value="month">By Month</option>
-                        <option value="year">By Year</option>
-                      </select>
-                      <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                      Duration ({form.contractDurationType === "day" ? "days" : form.contractDurationType === "month" ? "months" : "years"})
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={form.contractDurationValue}
-                      onChange={(e) => set("contractDurationValue", e.target.value)}
-                      placeholder="optional"
-                      className={inputCls}
-                      style={inputStyle}
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Salary */}
                 <div className="mt-5">
@@ -1118,14 +1128,16 @@ function JobModal({ editJob, onClose, onSaved }: JobModalProps) {
                   <p className="text-xs text-gray-500">Application deadline</p>
                   <p className="text-sm font-semibold text-gray-800">{form.deadline || "—"}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500">Contract</p>
-                  <p className="text-sm font-semibold text-gray-800">
-                    {form.contractDurationValue
-                      ? `${form.contractDurationValue} ${form.contractDurationType}${form.contractDurationValue === "1" ? "" : "s"}`
-                      : `By ${form.contractDurationType}`}
-                  </p>
-                </div>
+                {needsContractDuration && (
+                  <div>
+                    <p className="text-xs text-gray-500">Contract</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {form.contractDurationValue
+                        ? `${form.contractDurationValue} ${form.contractDurationType}${form.contractDurationValue === "1" ? "" : "s"}`
+                        : `By ${form.contractDurationType}`}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-gray-500">Salary</p>
                   <p className="text-sm font-semibold text-gray-800">
