@@ -1,5 +1,5 @@
 // School API client — typed wrappers around apiFetch for all school endpoints
-import { apiFetch } from './client';
+import { apiFetch, getAccessToken } from './client';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -393,8 +393,34 @@ export async function deleteShortlist(id: string): Promise<void> {
 export async function addToShortlist(shortlistId: string, teacherId: string, data?: { notes?: string; tags?: string[] }): Promise<Shortlist> {
   return (await apiFetch<Shortlist>(`/api/school/shortlists/${shortlistId}/teachers`, { method: 'POST', body: JSON.stringify({ teacherId, ...data }) })).data!;
 }
+// SRD 3.3.5 — bulk add to shortlist
+export async function addToShortlistBulk(shortlistId: string, teacherIds: string[]): Promise<{ shortlist: Shortlist; added: number; skipped: number }> {
+  return (await apiFetch<{ shortlist: Shortlist; added: number; skipped: number }>(`/api/school/shortlists/${shortlistId}/teachers/bulk`, { method: 'POST', body: JSON.stringify({ teacherIds }) })).data!;
+}
 export async function removeFromShortlist(shortlistId: string, teacherId: string): Promise<void> {
   await apiFetch(`/api/school/shortlists/${shortlistId}/teachers/${teacherId}`, { method: 'DELETE' });
+}
+// SRD 3.3.5 — export selected candidates as PDF. Returns the raw blob; caller triggers the download.
+// Uses raw fetch (not apiFetch) because apiFetch always parses JSON. Auth: bearer header + cookie.
+// If the access token expires mid-download the user re-clicks; the proactive refresh on next regular
+// API call will replace it.
+export async function exportCandidatesPdf(teacherIds: string[]): Promise<Blob> {
+  const token = getAccessToken();
+  const res = await fetch('/api/school/candidates/export-pdf', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ teacherIds }),
+  });
+  if (!res.ok) {
+    let msg = 'Failed to export candidates';
+    try { const j = await res.json(); msg = j.message ?? msg; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  return res.blob();
 }
 
 // ── Interviews ─────────────────────────────────────────────────────────────────

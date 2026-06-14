@@ -12,8 +12,10 @@ import {
   searchCandidates,
   listShortlists,
   addToShortlist,
+  addToShortlistBulk,
   createShortlist,
   addCandidateNote,
+  exportCandidatesPdf,
 } from "@/lib/api/school";
 import type { CandidateProfile, Shortlist } from "@/lib/api/school";
 
@@ -253,6 +255,9 @@ interface CandidateCardProps {
   onViewProfile: (c: CandidateProfile) => void;
   onShortlistAdded: () => void;
   onCreateShortlist: (teacherId: string) => void;
+  // SRD 3.3.5 — bulk selection
+  selected: boolean;
+  onToggleSelect: (id: string) => void;
 }
 
 function CandidateCard({
@@ -261,6 +266,8 @@ function CandidateCard({
   onViewProfile,
   onShortlistAdded,
   onCreateShortlist,
+  selected,
+  onToggleSelect,
 }: CandidateCardProps) {
   const [showShortlistDrop, setShowShortlistDrop] = useState(false);
   const displaySubjects = (c.professional?.subjects ?? []).slice(0, 3);
@@ -268,9 +275,27 @@ function CandidateCard({
   const cities = c.locationPreferences?.preferredCities ?? [];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all flex flex-col gap-3">
+    <div
+      className={`bg-white rounded-2xl border p-5 hover:shadow-md transition-all flex flex-col gap-3 relative ${
+        selected ? "border-transparent ring-2" : "border-gray-100 hover:border-gray-200"
+      }`}
+      style={selected ? { ["--tw-ring-color" as string]: "var(--brand-primary)" } : {}}
+    >
+      {/* SRD 3.3.5 — selection checkbox */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onToggleSelect(c._id); }}
+        aria-label={selected ? "Deselect candidate" : "Select candidate"}
+        className={`absolute top-3 right-3 w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
+          selected ? "border-transparent text-white" : "border-gray-300 bg-white text-transparent hover:border-gray-400"
+        }`}
+        style={selected ? { background: "var(--brand-gradient)" } : {}}
+      >
+        <CheckSquare size={12} />
+      </button>
+
       {/* Avatar + name row */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 pr-8">
         {c.personal?.photoUrl ? (
           <img
             src={c.personal.photoUrl}
@@ -1163,6 +1188,59 @@ export default function CandidatesPage() {
   const [profileModal, setProfileModal] = useState<CandidateProfile | null>(null);
   const [newSlTeacherId, setNewSlTeacherId] = useState<string | null>(null);
 
+  // SRD 3.3.5 — bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkShortlistOpen, setBulkShortlistOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState<"shortlist" | "pdf" | null>(null);
+
+  const toggleSelected = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleBulkShortlist = useCallback(async (shortlistId: string) => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy("shortlist");
+    try {
+      const r = await addToShortlistBulk(shortlistId, Array.from(selectedIds));
+      // Refresh counts in the dropdown
+      void loadShortlists();
+      setBulkShortlistOpen(false);
+      clearSelection();
+      alert(`${r.added} added${r.skipped > 0 ? `, ${r.skipped} already on this shortlist` : ""}.`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to add to shortlist";
+      alert(msg);
+    } finally {
+      setBulkBusy(null);
+    }
+  }, [selectedIds, clearSelection]);
+
+  const handleExportPdf = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy("pdf");
+    try {
+      const blob = await exportCandidatesPdf(Array.from(selectedIds));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `abjad-candidates-${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to export PDF";
+      alert(msg);
+    } finally {
+      setBulkBusy(null);
+    }
+  }, [selectedIds]);
+
   const loadShortlists = useCallback(async () => {
     try {
       const sl = await listShortlists();
@@ -1304,6 +1382,75 @@ export default function CandidatesPage() {
             </div>
           ) : (
             <>
+              {/* SRD 3.3.5 — selection toolbar */}
+              {selectedIds.size > 0 && (
+                <div className="sticky top-0 z-10 mb-4 bg-white rounded-xl shadow-md border border-gray-100 p-3 flex items-center gap-3"
+                  style={{ borderLeftWidth: 3, borderLeftColor: "var(--brand-primary)" }}>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {selectedIds.size} selected
+                  </span>
+                  <div className="h-5 w-px bg-gray-200" />
+
+                  {/* Bulk add to shortlist */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setBulkShortlistOpen((v) => !v)}
+                      disabled={bulkBusy !== null}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-all hover:shadow-sm disabled:opacity-60"
+                      style={{ background: "var(--brand-gradient)" }}
+                    >
+                      {bulkBusy === "shortlist" ? <Loader2 size={12} className="animate-spin" /> : <BookmarkPlus size={12} />}
+                      Add to Shortlist
+                    </button>
+                    {bulkShortlistOpen && (
+                      <div className="absolute left-0 top-full mt-1 w-60 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-30">
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">
+                          Choose Shortlist
+                        </p>
+                        {shortlists.filter((s) => !s.isArchived).length === 0 ? (
+                          <p className="text-xs text-gray-500 px-3 py-2">No shortlists yet.</p>
+                        ) : (
+                          shortlists.filter((s) => !s.isArchived).map((sl) => (
+                            <button
+                              key={sl._id}
+                              onClick={() => handleBulkShortlist(sl._id)}
+                              disabled={bulkBusy !== null}
+                              className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                            >
+                              <span className="flex items-center gap-2 truncate">
+                                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: sl.color ?? "#3B82F6" }} />
+                                <span className="truncate">{sl.name}</span>
+                              </span>
+                              <span className="text-xs text-gray-400 shrink-0">{sl.teachers.length}</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Export PDF */}
+                  <button
+                    onClick={handleExportPdf}
+                    disabled={bulkBusy !== null}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
+                  >
+                    {bulkBusy === "pdf" ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                    Export PDF
+                  </button>
+
+                  <div className="flex-1" />
+
+                  <button
+                    onClick={clearSelection}
+                    disabled={bulkBusy !== null}
+                    className="text-xs text-gray-400 hover:text-gray-700 px-2"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
                 {displayedCandidates.map((c) => (
                   <CandidateCard
@@ -1313,6 +1460,8 @@ export default function CandidatesPage() {
                     onViewProfile={setProfileModal}
                     onShortlistAdded={loadShortlists}
                     onCreateShortlist={(tid) => setNewSlTeacherId(tid)}
+                    selected={selectedIds.has(c._id)}
+                    onToggleSelect={toggleSelected}
                   />
                 ))}
               </div>
