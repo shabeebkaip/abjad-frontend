@@ -77,6 +77,17 @@ function RegisterPage() {
   const searchParams = useSearchParams();
   const rawRole = searchParams.get("role");
   const role: Role = rawRole === "school" ? "school" : "teacher";
+  // Carry ?next= and ?selected= through to /verify-otp so the post-register
+  // redirect honours the original intent (typically a checkout page).
+  const forwardQuery = (() => {
+    const qs = new URLSearchParams();
+    const next = searchParams.get("next");
+    const selected = searchParams.get("selected");
+    if (next) qs.set("next", next);
+    if (selected) qs.set("selected", selected);
+    const s = qs.toString();
+    return s ? `?${s}` : "";
+  })();
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const { sendOtp } = useAuth();
@@ -97,7 +108,7 @@ function RegisterPage() {
       // role comes from the URL param — never hardcoded
       sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role }));
       await sendOtp(data.email, "signup");
-      router.push("/verify-otp");
+      router.push(`/verify-otp${forwardQuery}`);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -112,7 +123,7 @@ function RegisterPage() {
       // role comes from the URL param — never hardcoded
       sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role }));
       await sendOtp(data.email, "signup");
-      router.push("/verify-otp");
+      router.push(`/verify-otp${forwardQuery}`);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

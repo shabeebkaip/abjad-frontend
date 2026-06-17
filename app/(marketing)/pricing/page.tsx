@@ -8,7 +8,9 @@ import {
   GraduationCap, Building2, Loader2, AlertCircle,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useAuth } from "@/lib/auth/useAuth";
 import { getPricingPagePayload, type PricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
+import { resolveCheckoutTarget } from "@/lib/auth/checkout-target";
 
 // Public /pricing page. Single round-trip to /api/pricing/page?locale=...
 // then renders top-to-bottom. Architecture matches the strategy doc:
@@ -31,6 +33,26 @@ function halalaToSARDecimal(halala: number): string {
 const ICONS: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
   Clock, ShieldCheck, Sparkles, GraduationCap, Building2, CheckCircle2, Star,
 };
+
+// Localised copy for the dynamic CTA strings produced by resolveCheckoutTarget.
+// Kept inline since the strings are short and the page already has bilingual
+// content elsewhere as direct ternaries — adding a full i18n key just for
+// these would be overkill.
+function translateCtaToAr(s: string): string {
+  if (s === "Login to continue")              return "سجّل الدخول للمتابعة";
+  if (s === "Manage subscription")            return "إدارة الاشتراك";
+  if (s === "View Teacher Premium")           return "تصفّح باقة المعلمين المميزة";
+  if (s === "View School plans")              return "تصفّح باقات المدارس";
+  if (s === "Not available for admins")       return "غير متاح للمسؤولين";
+  return s;
+}
+function translateWarningToAr(s: string): string {
+  if (s.startsWith("Admins manage"))     return "المسؤولون يديرون الاشتراكات للآخرين — لا يشترون بأنفسهم.";
+  if (s.startsWith("School plans are")) return "باقات المدارس مخصصة لحسابات المدارس. تصفّح باقة المعلمين المميزة بدلاً من ذلك.";
+  if (s.startsWith("Teacher Premium")) return "باقة المعلمين المميزة مخصصة لحسابات المعلمين. تصفّح باقات المدارس بدلاً من ذلك.";
+  if (s.startsWith("You already have")) return "لديك اشتراك فعّال بالفعل. أدِر اشتراكك أو غيّر الباقة من صفحة الفوترة.";
+  return s;
+}
 
 // ── Page ─────────────────────────────────────────────────────────────────
 
@@ -213,6 +235,7 @@ function WhyAbjad({ reasons }: { reasons: PricingPagePayload["whyAbjad"] }) {
 // ── Pricing Section ──────────────────────────────────────────────────────
 
 function PricingSection({ payload, locale }: { payload: PricingPagePayload; locale: "en" | "ar" }) {
+  const { user } = useAuth();
   const schoolPlans = useMemo(
     () => [...payload.plans.school].sort((a, b) => a.durationMonths - b.durationMonths),
     [payload.plans.school],
@@ -342,13 +365,50 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                 </div>
               )}
 
-              <Link
-                href={`/register?role=${activePlan.audience === "school" ? "school" : "teacher"}&plan=${activePlan.code}`}
-                className="block w-full text-center px-6 py-3.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all mb-6"
-                style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
-              >
-                {activePlan.ctaText ?? (locale === "ar" ? "ابدأ التجربة المجانية" : "Start free trial")}
-              </Link>
+              {(() => {
+                // Auth-aware CTA. Resolves the right destination + CTA copy
+                // based on user state (anon / school / teacher / admin) and
+                // whether this plan matches their role.
+                const target = resolveCheckoutTarget({
+                  planCode: activePlan.code,
+                  audience: activePlan.audience,
+                  user: user ?? null,
+                });
+
+                const baseCta = activePlan.ctaText ?? (locale === "ar" ? "ابدأ التجربة المجانية" : "Start free trial");
+                const ctaLabel = target.ctaText
+                  ? (locale === "ar" ? translateCtaToAr(target.ctaText) : target.ctaText)
+                  : baseCta;
+
+                const isDisabled = target.kind === "admin-blocked";
+
+                return (
+                  <>
+                    {target.warning && (
+                      <div className="mb-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-2.5 text-xs text-amber-800 text-center">
+                        {locale === "ar" ? translateWarningToAr(target.warning) : target.warning}
+                      </div>
+                    )}
+                    {isDisabled ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="block w-full text-center px-6 py-3.5 text-sm font-semibold text-slate-400 bg-slate-100 rounded-xl mb-6 cursor-not-allowed"
+                      >
+                        {ctaLabel}
+                      </button>
+                    ) : (
+                      <Link
+                        href={target.href}
+                        className="block w-full text-center px-6 py-3.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all mb-6"
+                        style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
+                      >
+                        {ctaLabel}
+                      </Link>
+                    )}
+                  </>
+                );
+              })()}
 
               {activePlan.description && (
                 <p className="text-sm text-gray-600 text-center mb-5">{activePlan.description}</p>

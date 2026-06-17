@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Briefcase, FileText, Users, BookMarked,
   Calendar, Gift, UserCog, Building2, MessageSquare,
-  Bell, LogOut, ChevronDown, Settings, Loader2,
+  Bell, LogOut, ChevronDown, Settings, Loader2, CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getSchoolNotificationUnreadCount } from "@/lib/api/school";
@@ -21,6 +21,7 @@ const navItems = [
   { href: "/school/offers",          icon: Gift,             label: "Offers"        },
   { href: "/school/team",            icon: UserCog,          label: "Team"          },
   { href: "/school/profile",         icon: Building2,        label: "School Profile"},
+  { href: "/school/billing",         icon: CreditCard,       label: "Billing"       },
   { href: "/school/support",         icon: MessageSquare,    label: "Support"       },
 ];
 

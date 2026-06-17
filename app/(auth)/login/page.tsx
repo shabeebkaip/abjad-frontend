@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -20,9 +20,21 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginInner() {
   const { t } = useTranslation();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Carry ?next= and ?selected= through to /verify-otp so the post-login
+  // redirect lands the user where they intended (typically a checkout page).
+  const forwardQuery = (() => {
+    const qs = new URLSearchParams();
+    const next = searchParams.get("next");
+    const selected = searchParams.get("selected");
+    if (next) qs.set("next", next);
+    if (selected) qs.set("selected", selected);
+    const s = qs.toString();
+    return s ? `?${s}` : "";
+  })();
   const { sendOtp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -43,7 +55,7 @@ export default function LoginPage() {
     try {
       await sendOtp(data.email, "login", rememberDevice);
       setSent(true);
-      setTimeout(() => router.push("/verify-otp"), 800);
+      setTimeout(() => router.push(`/verify-otp${forwardQuery}`), 800);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -139,5 +151,16 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+// Suspense wrapper required for Next.js static rendering when useSearchParams
+// is called inside the page (the carry of ?next= / ?selected= from the public
+// pricing page through to /verify-otp).
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
   );
 }

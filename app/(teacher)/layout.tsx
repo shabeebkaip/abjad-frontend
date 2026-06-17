@@ -16,6 +16,7 @@ import {
   Calendar,
   Loader2,
   Bookmark,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getUnreadCount } from "@/lib/api/teacher";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/applications",  icon: FileText,        label: "My Applications" },
   { href: "/interviews",    icon: Calendar,        label: "Interviews" },
   { href: "/profile",       icon: User,            label: "My Profile" },
+  { href: "/billing",       icon: Sparkles,        label: "Premium" },
   { href: "/notifications", icon: Bell,            label: "Notifications" },
   { href: "/support",       icon: MessageSquare,   label: "Support" },
 ];

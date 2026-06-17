@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, MailCheck, RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { OTP_SESSION_KEY } from "@/lib/auth/AuthContext";
 import type { OtpSession } from "@/lib/auth/types";
+import { parseNext } from "@/lib/auth/checkout-target";
 
 const OTP_LENGTH = 6;
 
@@ -15,8 +16,9 @@ function getDashboardPath(role?: string): string {
   return "/dashboard";
 }
 
-export default function VerifyOtpPage() {
+function VerifyOtpInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { verifyOtp, sendOtp } = useAuth();
 
   const [session, setSession] = useState<OtpSession | null>(null);
@@ -88,7 +90,11 @@ export default function VerifyOtpPage() {
     setError("");
     try {
       const result = await verifyOtp(session.email, code, session.purpose);
-      const destination = getDashboardPath(result.user.role);
+      // Honour ?next= if present (carried through from /pricing → /login →
+      // here). Defaults to the role-appropriate dashboard. parseNext blocks
+      // open-redirect injection — only same-origin paths under /api are
+      // allowed through.
+      const destination = parseNext(searchParams.get("next"), getDashboardPath(result.user.role));
       router.push(destination);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code. Please try again.");
@@ -225,5 +231,14 @@ export default function VerifyOtpPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+// Suspense wrapper — useSearchParams requires it for static rendering.
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyOtpInner />
+    </Suspense>
   );
 }
