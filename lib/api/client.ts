@@ -79,11 +79,26 @@ export async function apiFetch<T = unknown>(
     }
   }
 
-  const json = (await res.json()) as ApiResponse<T>;
-
-  if (!res.ok) {
-    throw new Error(json.message ?? `Request failed (${res.status})`);
+  // Defensively parse the body. Upstream intermediaries (rate limiter,
+  // proxy, gateway timeout) might return non-JSON; res.json() throws a
+  // cryptic "Unexpected token" error in that case. Read text first.
+  const rawText = await res.text();
+  let json: ApiResponse<T> | undefined;
+  try {
+    json = rawText ? (JSON.parse(rawText) as ApiResponse<T>) : undefined;
+  } catch {
+    json = undefined;
   }
 
+  if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error(json?.message ?? 'Too many requests. Please wait a moment and try again.');
+    }
+    throw new Error(json?.message ?? (rawText.trim() || `Request failed (${res.status})`));
+  }
+
+  if (!json) {
+    throw new Error('Server returned an empty or non-JSON response.');
+  }
   return json;
 }
