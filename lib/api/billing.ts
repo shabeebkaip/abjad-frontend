@@ -67,3 +67,63 @@ export async function cancelMySubscription(reason?: string): Promise<MySubscript
   });
   return r.data!;
 }
+
+// ── Checkout / Payments ────────────────────────────────────────────────────
+
+export type CheckoutMethod = "moyasar_card" | "mada" | "apple_pay" | "stcpay" | "bank_transfer";
+
+export interface InitiatePaymentResponse {
+  invoice: {
+    _id: string;
+    number: string;
+    status: string;
+    paymentMethod: string;
+    subtotalHalala: number;
+    vatHalala: number;
+    totalHalala: number;
+    issuedAt: string;
+    dueAt?: string;
+    sellerNameEn: string;
+    sellerNameAr: string;
+    buyerName: string;
+    buyerEmail?: string;
+  };
+  payment: {
+    _id: string;
+    status: string;
+    method: string;
+    amountHalala: number;
+  };
+  providerPaymentId: string;
+  publishableKey: string;
+  amountHalala: number;
+  currency: "SAR";
+}
+
+export async function initiatePayment(payload: {
+  planCode: string;
+  method?: CheckoutMethod;
+  callbackUrl?: string;
+}): Promise<InitiatePaymentResponse> {
+  const r = await apiFetch<InitiatePaymentResponse>("/api/payments/initiate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: { "Content-Type": "application/json" },
+  });
+  return r.data!;
+}
+
+export async function getInvoice(invoiceId: string): Promise<MyInvoice & {
+  sellerNameEn: string;
+  sellerNameAr: string;
+  buyerName: string;
+  buyerEmail?: string;
+}> {
+  // The backend's GET /invoices/:id endpoint isn't exposed directly to teachers/
+  // schools as a single-record fetch — we list and find. This is fine for v1 at
+  // small volume; a dedicated route is a v1.1 polish item.
+  const list = await listMyInvoices(1, 50);
+  const found = list.invoices.find((i) => i._id === invoiceId);
+  if (!found) throw new Error("Invoice not found");
+  return found as MyInvoice & { sellerNameEn: string; sellerNameAr: string; buyerName: string };
+}

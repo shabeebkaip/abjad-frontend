@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getUnreadCount } from "@/lib/api/teacher";
+import { PlanBadge } from "@/components/billing/PlanBadge";
 
 const navItems = [
   { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
@@ -87,8 +88,9 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             <img src="/ABJAD.png" alt="Abjad" className="h-8 w-auto" />
           </Link>
 
-          {/* Right: bell + profile */}
-          <div className="flex items-center gap-1">
+          {/* Right: plan + bell + profile */}
+          <div className="flex items-center gap-2">
+            <PlanBadge billingHref="/billing" />
             <Link
               href="/notifications"
               className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"

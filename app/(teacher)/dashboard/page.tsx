@@ -26,6 +26,7 @@ import {
 import { getDashboard } from "@/lib/api/teacher";
 import type { DashboardData, Job, Interview, Notification, ActivityEntry } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
+import { TrialBanner } from "@/components/billing/TrialBanner";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -301,6 +302,9 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Premium upgrade banner — hidden when already subscribed */}
+      <TrialBanner audience="teacher_premium" plansHref="/billing/plans" />
+
       {/* Welcome */}
       <div className="flex items-center justify-between">
         <div>

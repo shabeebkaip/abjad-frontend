@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getSchoolNotificationUnreadCount } from "@/lib/api/school";
+import { PlanBadge } from "@/components/billing/PlanBadge";
 
 const navItems = [
   { href: "/school/dashboard",       icon: LayoutDashboard, label: "Dashboard"     },
@@ -76,7 +77,8 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
             <img src="/ABJAD.png" alt="Abjad" className="h-8 w-auto" />
           </Link>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            <PlanBadge billingHref="/school/billing" />
             <Link
               href="/school/notifications"
               className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"

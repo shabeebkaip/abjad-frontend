@@ -23,6 +23,7 @@ import {
   Plus,
   BarChart2,
 } from "lucide-react";
+import { TrialBanner } from "@/components/billing/TrialBanner";
 import { getSchoolDashboard } from "@/lib/api/school";
 import type {
   DashboardData,
@@ -290,6 +291,9 @@ export default function SchoolDashboardPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
+
+      {/* ── Trial / subscription banner — hidden when paid ───────────── */}
+      <TrialBanner audience="school" plansHref="/school/billing/plans" />
 
       {/* ── Welcome header ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
