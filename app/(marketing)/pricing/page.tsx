@@ -343,7 +343,7 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
               )}
 
               <Link
-                href={`/signup?role=${activePlan.audience === "school" ? "school" : "teacher"}&plan=${activePlan.code}`}
+                href={`/register?role=${activePlan.audience === "school" ? "school" : "teacher"}&plan=${activePlan.code}`}
                 className="block w-full text-center px-6 py-3.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all mb-6"
                 style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
               >
