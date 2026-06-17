@@ -83,22 +83,41 @@ export async function apiFetch<T = unknown>(
   // proxy, gateway timeout) might return non-JSON; res.json() throws a
   // cryptic "Unexpected token" error in that case. Read text first.
   const rawText = await res.text();
-  let json: ApiResponse<T> | undefined;
+  let json: (ApiResponse<T> & Record<string, unknown>) | undefined;
   try {
-    json = rawText ? (JSON.parse(rawText) as ApiResponse<T>) : undefined;
+    json = rawText ? (JSON.parse(rawText) as ApiResponse<T> & Record<string, unknown>) : undefined;
   } catch {
     json = undefined;
   }
 
   if (!res.ok) {
     if (res.status === 429) {
-      throw new Error(json?.message ?? 'Too many requests. Please wait a moment and try again.');
+      throw new ApiError(json?.message ?? 'Too many requests. Please wait a moment and try again.', res.status, json);
     }
-    throw new Error(json?.message ?? (rawText.trim() || `Request failed (${res.status})`));
+    throw new ApiError(
+      json?.message ?? (rawText.trim() || `Request failed (${res.status})`),
+      res.status,
+      json,
+    );
   }
 
   if (!json) {
     throw new Error('Server returned an empty or non-JSON response.');
   }
   return json;
+}
+
+// ApiError preserves the structured details from the backend response so
+// callers can branch on machine-readable codes (e.g. ENTITLEMENT_BLOCKED)
+// rather than parse the free-text message. Plain `throw new Error()` for
+// non-HTTP failures still works — instanceof ApiError narrows the type.
+export class ApiError extends Error {
+  status: number;
+  payload?: Record<string, unknown>;
+  constructor(message: string, status: number, payload?: Record<string, unknown>) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.payload = payload;
+  }
 }

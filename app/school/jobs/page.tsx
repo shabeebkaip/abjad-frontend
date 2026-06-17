@@ -20,6 +20,8 @@ import {
   extendJobDeadline,
 } from "@/lib/api/school";
 import type { SchoolJob } from "@/lib/api/school";
+import { ApiError } from "@/lib/api/client";
+import { PaywallModal } from "@/components/billing/PaywallModal";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -429,6 +431,9 @@ interface JobModalProps {
   templateMode?: "repost" | "duplicate";
   onClose: () => void;
   onSaved: (job: SchoolJob, published: boolean) => void;
+  // Called when an action hits an entitlement gate (maxActiveJobs cap during
+  // trial / free tier). The parent renders the paywall modal in response.
+  onPaywall: (payload: { fromKey: string; message?: string; limit?: number }) => void;
 }
 
 function buildTemplateForm(source: SchoolJob, mode: "repost" | "duplicate"): JobFormData {
@@ -442,7 +447,7 @@ function buildTemplateForm(source: SchoolJob, mode: "repost" | "duplicate"): Job
   return { ...base, deadline: "", startDate: "" };
 }
 
-function JobModal({ editJob, templateJob, templateMode, onClose, onSaved }: JobModalProps) {
+function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPaywall }: JobModalProps) {
   const [form, setForm] = useState<JobFormData>(() => {
     if (editJob) return jobToForm(editJob);
     if (templateJob) return buildTemplateForm(templateJob, templateMode ?? "duplicate");
@@ -563,6 +568,19 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved }: JobM
       }
       onSaved(job, publish);
     } catch (e: unknown) {
+      // Entitlement gate (HTTP 402) — surface the paywall instead of an
+      // inline error so the user gets a clear path to upgrade.
+      if (e instanceof ApiError && e.status === 402 && (e.payload?.code === "ENTITLEMENT_BLOCKED")) {
+        // Save the draft if we already created it — close the modal cleanly.
+        // The cap is on *publishing*, so any draft already exists in the DB.
+        onClose();
+        onPaywall({
+          fromKey: "post_a_job",
+          message: e.message,
+          limit: typeof e.payload.limit === "number" ? e.payload.limit : undefined,
+        });
+        return;
+      }
       setError((e as Error)?.message ?? "Something went wrong.");
     } finally {
       setSaving(false);
@@ -1639,6 +1657,10 @@ export default function JobsPage() {
   // SRD 3.2.7 — Extend deadline inline popover
   const [extendTarget, setExtendTarget] = useState<SchoolJob | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  // Paywall surface — flipped on when any job action returns the backend's
+  // 402 ENTITLEMENT_BLOCKED response. Carries the source key so we can
+  // attribute the conversion back to the action that triggered it.
+  const [paywall, setPaywall] = useState<{ fromKey: string; message?: string; limit?: number } | null>(null);
 
   const loadJobs = useCallback(async () => {
     setLoading(true);
@@ -1686,8 +1708,15 @@ export default function JobsPage() {
     try {
       const updated = await publishJob(jobId);
       setJobs((prev) => prev.map((j) => (j._id === jobId ? updated : j)));
-    } catch {
-      // silently fail; could toast here
+    } catch (e: unknown) {
+      if (e instanceof ApiError && e.status === 402 && e.payload?.code === "ENTITLEMENT_BLOCKED") {
+        setPaywall({
+          fromKey: "publish_draft",
+          message: e.message,
+          limit: typeof e.payload.limit === "number" ? e.payload.limit : undefined,
+        });
+      }
+      // Other failures: keep current row-silent behaviour for now.
     } finally {
       setActionLoading(null);
     }
@@ -1733,6 +1762,15 @@ export default function JobsPage() {
       setJobs((prev) => prev.map((j) => (j._id === jobId ? updated : j)));
       setExtendTarget(null);
     } catch (e: unknown) {
+      if (e instanceof ApiError && e.status === 402 && e.payload?.code === "ENTITLEMENT_BLOCKED") {
+        setExtendTarget(null);
+        setPaywall({
+          fromKey: "extend_deadline",
+          message: e.message,
+          limit: typeof e.payload.limit === "number" ? e.payload.limit : undefined,
+        });
+        return;
+      }
       const msg = e instanceof Error ? e.message : "Failed to extend deadline";
       alert(msg);
     } finally {
@@ -1840,6 +1878,7 @@ export default function JobsPage() {
           templateMode={templateMode}
           onClose={closeModal}
           onSaved={handleSaved}
+          onPaywall={setPaywall}
         />
       )}
 
@@ -1852,6 +1891,25 @@ export default function JobsPage() {
           onConfirm={(d) => handleExtendDeadline(extendTarget._id, d)}
         />
       )}
+
+      {/* ── Paywall (fires on ENTITLEMENT_BLOCKED responses) ────────── */}
+      <PaywallModal
+        open={!!paywall}
+        onClose={() => setPaywall(null)}
+        audience="school"
+        plansHref="/school/billing/plans"
+        fromKey={paywall?.fromKey}
+        message={paywall?.message}
+        title={paywall && paywall.limit
+          ? `Trial accounts can post ${paywall.limit} job at a time`
+          : undefined}
+        bullets={[
+          "Unlimited active job posts",
+          "Unlimited candidate CV views",
+          "Bulk candidate export (PDF)",
+          "Best Match (AI) ranking",
+        ]}
+      />
     </div>
   );
 }
