@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import authApi from '@/lib/api/auth';
 import { setAccessToken } from '@/lib/api/client';
 import type { AuthUser, AuthContextValue, OtpSession, VerifyOtpResult } from './types';
@@ -126,8 +127,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch { /* default to true */ }
 
       const result = await authApi.verifyOtp(email, otp, purpose, registrationData, rememberDevice);
+      // FlushSync forces React to commit the setUser before this callback
+      // returns. Without it, React 18's automatic batching may defer the
+      // commit past the caller's `router.push(destination)`, which makes
+      // the destination layout's first render see user=null. The layout's
+      // useEffect then bounces the user back to /login?next=... — exactly
+      // the regression that keeps surfacing here. flushSync is the supported
+      // escape hatch for "this state update must be visible to the next
+      // synchronous action."
       setAccessToken(result.tokens.accessToken);
-      setUser(result.user);
+      flushSync(() => {
+        setUser(result.user);
+      });
       sessionStorage.removeItem(OTP_SESSION_KEY);
       sessionStorage.removeItem('abjad_reg_data');
       startProactiveRefresh();
