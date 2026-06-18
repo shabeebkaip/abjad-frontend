@@ -98,6 +98,18 @@ export interface InitiatePaymentResponse {
   publishableKey: string;
   amountHalala: number;
   currency: "SAR";
+  // True when the backend has no Moyasar credentials configured and the
+  // demo provider is in use. Frontend renders a "simulate successful
+  // payment" button instead of the Moyasar.js form.
+  demoMode?: boolean;
+}
+
+export async function demoCompletePayment(providerPaymentId: string): Promise<{ activated: boolean; subscriptionId?: string }> {
+  const r = await apiFetch<{ activated: boolean; subscriptionId?: string }>(
+    `/api/payments/demo/${encodeURIComponent(providerPaymentId)}/complete`,
+    { method: "POST" },
+  );
+  return r.data!;
 }
 
 export async function initiatePayment(payload: {
