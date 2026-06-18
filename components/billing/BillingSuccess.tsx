@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ArrowRight, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { getMySubscription, type MySubscription } from "@/lib/api/billing";
+import { getMySubscription, reconcilePayment, type MySubscription } from "@/lib/api/billing";
 
 interface Props {
   audience: "school" | "teacher_premium";
@@ -31,14 +31,33 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
   const [tooLong, setTooLong] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
-  // Poll every 1.5s for up to ~15s while waiting for webhook to fire.
+  // Poll every 1.5s for up to ~20s while waiting for the webhook to fire.
+  // After the first tick, also call POST /payments/:id/reconcile so the
+  // backend pulls the latest status from Moyasar directly — required on
+  // localhost (webhook can't reach our backend) and a useful safety net in
+  // production for missed/delayed webhooks.
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const start = Date.now();
+    let tickCount = 0;
 
     const tick = async () => {
+      tickCount++;
       try {
+        // From the 2nd poll onward, also reconcile against Moyasar. We skip
+        // the first tick to give the webhook a fast-path chance (saves one
+        // round trip when the webhook is reachable).
+        if (tickCount >= 2 && paymentId) {
+          try {
+            await reconcilePayment(paymentId);
+          } catch {
+            // Reconcile may 404 / 403 for unrelated reasons (admin-issued
+            // payment, etc.) — fall through to the regular subscription
+            // poll so we still surface state.
+          }
+        }
+
         const me = await getMySubscription();
         if (cancelled) return;
         if (me.subscription && (me.subscription.status === "active" || me.subscription.status === "trialing")) {
@@ -46,7 +65,7 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
           setPending(false);
           return;
         }
-        if (Date.now() - start > 15_000) {
+        if (Date.now() - start > 20_000) {
           if (!cancelled) { setTooLong(true); setPending(false); setSub(me.subscription); }
           return;
         }
@@ -63,7 +82,7 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, []);
+  }, [paymentId]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">

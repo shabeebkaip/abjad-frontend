@@ -112,6 +112,26 @@ export async function demoCompletePayment(providerPaymentId: string): Promise<{ 
   return r.data!;
 }
 
+/**
+ * Ask the backend to check Moyasar directly for this payment's current
+ * status, and (if Moyasar says paid) run the same activation hot-path the
+ * webhook would. Used by /billing/success to recover from missed webhooks —
+ * always on localhost (webhook can't reach localhost), occasionally in
+ * production during a provider blip.
+ */
+export async function reconcilePayment(providerPaymentId: string): Promise<{
+  status: "pending" | "succeeded" | "failed" | "unknown";
+  activated: boolean;
+  subscriptionId?: string;
+}> {
+  const r = await apiFetch<{
+    status: "pending" | "succeeded" | "failed" | "unknown";
+    activated: boolean;
+    subscriptionId?: string;
+  }>(`/api/payments/${encodeURIComponent(providerPaymentId)}/reconcile`, { method: "POST" });
+  return r.data!;
+}
+
 export async function initiatePayment(payload: {
   planCode: string;
   method?: CheckoutMethod;
