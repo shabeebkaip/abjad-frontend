@@ -2,34 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import {
-  CheckCircle2, Loader2, AlertCircle, Star, Building2, ArrowLeft, CreditCard,
-} from "lucide-react";
+import { Loader2, AlertCircle, ArrowLeft, Sparkles } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { useAuth } from "@/lib/auth/useAuth";
 import { getPricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
-import { getMySubscription, type MySubscription } from "@/lib/api/billing";
-import { resolveCheckoutTarget } from "@/lib/auth/checkout-target";
-
-// /school/billing/plans — in-app plan picker. Same single-card-with-
-// duration-toggle pattern as the public /pricing, but:
-//   - CTA always routes to /school/billing/checkout/[planCode]
-//   - Auto-selects a duration if ?selected=... is in the URL (the carry
-//     from /pricing → /login → /school/billing/checkout)
-//   - Disables duplicate-plan purchases (backend would 409 anyway)
-
-function halalaToSAR(h: number): string {
-  return (h / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
-function halalaToSARDecimal(h: number): string {
-  return (h / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { getMySubscription, startTrial, type MySubscription } from "@/lib/api/billing";
+import { PlanCard } from "@/components/billing/PlanCard";
 
 export default function SchoolPlansPage() {
   const { lang } = useLanguage();
   const locale = lang === "ar" ? "ar" : "en";
-  const { user } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const preselected = searchParams.get("selected") ?? undefined;
 
@@ -37,6 +21,8 @@ export default function SchoolPlansPage() {
   const [sub, setSub]     = useState<MySubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
+  const [trialBusy, setTrialBusy] = useState(false);
+  const [trialError, setTrialError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -76,6 +62,20 @@ export default function SchoolPlansPage() {
 
   const activePlan = plans[activeIdx];
   const hasActive = !!sub && (sub.status === "active" || sub.status === "trialing" || sub.status === "past_due");
+  const canTrial = !sub; // trial only for schools with no subscription at all
+
+  async function handleStartTrial() {
+    setTrialBusy(true);
+    setTrialError(null);
+    try {
+      await startTrial();
+      router.push("/school/billing");
+    } catch (e) {
+      setTrialError(e instanceof Error ? e.message : "Failed to start trial");
+    } finally {
+      setTrialBusy(false);
+    }
+  }
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-5xl mx-auto">
@@ -99,6 +99,38 @@ export default function SchoolPlansPage() {
       {error && (
         <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
           <AlertCircle size={16} className="shrink-0" /> {error}
+        </div>
+      )}
+
+      {!loading && canTrial && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+              <Sparkles size={18} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-900">
+                {locale === "ar" ? "ابدأ تجربتك المجانية 5 أيام" : "Start your 5-day free trial"}
+              </p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                {locale === "ar"
+                  ? "جرّب جميع ميزات المنصة بدون أي رسوم. لا حاجة لبطاقة."
+                  : "Try all platform features for free. No card required."}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col items-start sm:items-end gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={handleStartTrial}
+              disabled={trialBusy}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 transition-colors"
+            >
+              {trialBusy && <Loader2 size={14} className="animate-spin" />}
+              {locale === "ar" ? "ابدأ التجربة المجانية" : "Start free trial"}
+            </button>
+            {trialError && <p className="text-xs text-red-600">{trialError}</p>}
+          </div>
         </div>
       )}
 
@@ -135,120 +167,10 @@ export default function SchoolPlansPage() {
             </div>
           </div>
 
-          {/* Plan card */}
-          <PlanCard plan={activePlan} locale={locale} user={user} hasActive={hasActive} sub={sub} />
+          <PlanCard plan={activePlan} locale={locale} hasActive={hasActive} sub={sub} billingHref="/school/billing" />
         </>
       ) : null}
     </div>
   );
 }
 
-function PlanCard({ plan, locale, user, hasActive, sub }: {
-  plan: PricingPlan;
-  locale: "en" | "ar";
-  user: ReturnType<typeof useAuth>["user"];
-  hasActive: boolean;
-  sub: MySubscription | null;
-}) {
-  const target = resolveCheckoutTarget({
-    planCode: plan.code,
-    audience: plan.audience,
-    user: user ?? null,
-    hasActiveSubscription: hasActive,
-    inAppContext: true,
-  });
-
-  // Same-plan duplicate detection — block but with explanatory copy
-  const samePlanAlready = sub?.planCode === plan.code && (sub.status === "active" || sub.status === "trialing");
-
-  return (
-    <div className="max-w-2xl mx-auto">
-      <div className={`bg-white rounded-3xl border shadow-sm p-8 sm:p-10 ${
-        plan.isHighlighted ? "border-[var(--brand-primary)] ring-2 ring-[var(--brand-primary)]/20" : "border-gray-100"
-      }`}>
-        {plan.isHighlighted && (
-          <div className="flex justify-center -mt-12 mb-6">
-            <span className="inline-flex items-center gap-1 text-xs font-bold tracking-wide uppercase text-white px-3 py-1.5 rounded-full shadow-sm" style={{ background: "var(--brand-gradient, var(--brand-primary))" }}>
-              <Star size={11} fill="currentColor" />
-              {locale === "ar" ? "الأكثر شعبية" : "Most Popular"}
-            </span>
-          </div>
-        )}
-
-        <div className="text-center mb-6">
-          <p className="text-sm font-semibold text-gray-500 mb-1 capitalize">{plan.name}</p>
-          <div className="flex items-baseline justify-center gap-2 mb-1">
-            <span className="text-5xl font-bold text-gray-900 tabular-nums">
-              {halalaToSAR(plan.effectiveMonthlyHalala)}
-            </span>
-            <span className="text-base font-medium text-gray-500">SAR/{locale === "ar" ? "شهر" : "month"}</span>
-          </div>
-          <p className="text-xs text-gray-400">
-            {locale === "ar"
-              ? `يُفوتر ${plan.durationLabel} كـ ${halalaToSARDecimal(plan.priceHalala)} ر.س · لا تشمل 15% ضريبة قيمة مضافة`
-              : `Billed ${plan.durationLabel.toLowerCase()} as ${halalaToSARDecimal(plan.priceHalala)} SAR · excl. 15% VAT`}
-          </p>
-        </div>
-
-        {plan.savings && !samePlanAlready && (
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-6 text-center">
-            <p className="text-sm font-semibold text-emerald-700">
-              💰 {locale === "ar"
-                ? `توفّر ${halalaToSAR(plan.savings.vsMonthlyHalala)} ر.س مقارنةً بالدفع شهرياً`
-                : `Save ${halalaToSAR(plan.savings.vsMonthlyHalala)} SAR vs paying monthly`}
-            </p>
-          </div>
-        )}
-
-        {samePlanAlready && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-6 text-center">
-            <p className="text-sm font-semibold text-blue-700">
-              {locale === "ar" ? "أنت مشترك في هذه الباقة حالياً" : "You're already on this plan"}
-            </p>
-            <Link href="/school/billing" className="text-xs text-blue-600 underline mt-1 inline-block">
-              {locale === "ar" ? "إدارة الاشتراك" : "Manage subscription"}
-            </Link>
-          </div>
-        )}
-
-        {!samePlanAlready && target.kind === "checkout" && (
-          <Link
-            href={target.href}
-            className="flex items-center justify-center gap-2 w-full text-center px-6 py-3.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all mb-6"
-            style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
-          >
-            <CreditCard size={16} />
-            {sub?.status === "trialing" ? (locale === "ar" ? "ترقية الآن" : "Upgrade now") : (locale === "ar" ? "اشترك" : "Continue to checkout")}
-          </Link>
-        )}
-
-        {target.warning && !samePlanAlready && (
-          <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 px-4 py-2.5 text-xs text-amber-800 text-center">
-            {target.warning}
-          </div>
-        )}
-
-        {plan.description && (
-          <p className="text-sm text-gray-600 text-center mb-5">{plan.description}</p>
-        )}
-
-        {plan.bullets.length > 0 && (
-          <>
-            <div className="border-t border-gray-100 my-4" />
-            <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center mb-3">
-              {locale === "ar" ? "كل ما هو مشمول" : "Everything included"}
-            </p>
-            <ul className="space-y-2.5">
-              {plan.bullets.map((b, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={16} />
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
