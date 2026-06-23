@@ -91,10 +91,11 @@
 
 **TC-001 — Teacher plans page loads**
 - **User:** U1 · **URL:** `/billing/plans`
-- [ ] 3 plan cards visible: Monthly / 6-month / Annual
-- [ ] Prices match the table above (incl. VAT note)
-- [ ] "Most popular" highlight on correct plan
-- [ ] CTA links to `/billing/checkout/<planCode>`
+- [x] 3 plan cards visible: Monthly / 6-month / Annual
+- [x] Prices match the table above (incl. VAT note)
+- [x] "Most popular" highlight on correct plan
+- [x] CTA links to `/billing/checkout/<planCode>`
+- [x] Feature list visible (fallback bullets added 2026-06-23)
 
 ---
 
@@ -320,8 +321,8 @@
 
 **TC-070 — Teacher with no subscription sees upgrade banner**
 - **User:** U1 · **URL:** `/dashboard`
-- [ ] Amber "Upgrade to Premium Teacher" banner at top
-- [ ] "Upgrade now" CTA links to `/billing/plans`
+- [x] Amber "Upgrade to Premium Teacher" banner at top
+- [x] "Upgrade now" CTA links to `/billing/plans`
 
 ---
 
@@ -357,7 +358,7 @@
 
 **TC-080 — No subscription → "Start trial" amber pill**
 - **User:** U1
-- [ ] Amber "🌟 Start trial" pill in top-right header
+- [x] Amber "🌟 Start trial" pill in top-right header
 
 ---
 

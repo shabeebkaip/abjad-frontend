@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   CheckCircle2, Loader2, AlertCircle, Star, ArrowLeft, CreditCard, GraduationCap,
+  TrendingUp, BadgeCheck, Eye, Zap, HeadphonesIcon, RefreshCcw,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuth } from "@/lib/auth/useAuth";
@@ -136,6 +137,16 @@ export default function TeacherPlansPage() {
   );
 }
 
+// Shown when admin hasn't set marketingBullets on the plan yet
+const FALLBACK_FEATURES: { Icon: React.ElementType; en: string; ar: string }[] = [
+  { Icon: TrendingUp,      en: "Priority placement — appear before free teachers in school searches", ar: "ظهور أولوي — تظهر قبل المعلمين المجانيين في نتائج بحث المدارس" },
+  { Icon: BadgeCheck,      en: "Verified Premium Teacher badge on your public profile", ar: "شارة معلم مميز موثّقة على ملفك الشخصي العام" },
+  { Icon: Eye,             en: "Up to 3× more profile views from hiring schools", ar: "ما يصل إلى 3× مشاهدات أكثر لملفك من المدارس" },
+  { Icon: Zap,             en: "Get shortlisted and contacted faster by active schools", ar: "يتم اختيارك والتواصل معك بشكل أسرع من المدارس الناشطة" },
+  { Icon: HeadphonesIcon,  en: "Priority support — responses within 24 hours", ar: "دعم بأولوية — ردود خلال 24 ساعة" },
+  { Icon: RefreshCcw,      en: "Cancel anytime — no long-term commitment", ar: "إلغاء في أي وقت — لا التزام طويل الأمد" },
+];
+
 function PlanCard({ plan, locale, user, hasActive, sub }: {
   plan: PricingPlan;
   locale: "en" | "ar";
@@ -222,21 +233,31 @@ function PlanCard({ plan, locale, user, hasActive, sub }: {
           <p className="text-sm text-gray-600 text-center mb-5">{plan.description}</p>
         )}
 
-        {plan.bullets.length > 0 && (
-          <>
-            <div className="border-t border-gray-100 my-4" />
-            <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center mb-3">
-              {locale === "ar" ? "كل ما هو مشمول" : "Everything included"}
-            </p>
-            <ul className="space-y-2.5">
-              {plan.bullets.map((b, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={16} />
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          </>
+        {/* Feature list — uses admin-set bullets when available, falls back to hardcoded list */}
+        <div className="border-t border-gray-100 my-4" />
+        <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center mb-4">
+          {locale === "ar" ? "كل ما هو مشمول" : "Everything included"}
+        </p>
+        {plan.bullets.length > 0 ? (
+          <ul className="space-y-2.5">
+            {plan.bullets.map((b, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
+                <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={16} />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="space-y-3">
+            {FALLBACK_FEATURES.map(({ Icon, en, ar }, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-lg bg-[var(--brand-primary-light,#e6f9fd)] flex items-center justify-center shrink-0 mt-0.5">
+                  <Icon size={14} style={{ color: "var(--brand-primary,#00ACD3)" }} />
+                </div>
+                <span className="text-sm text-gray-700 leading-snug">{locale === "ar" ? ar : en}</span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
