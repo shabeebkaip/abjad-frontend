@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,12 +20,23 @@ import {
 // Order matches our KSA-first strategy: mada → apple_pay → stcpay → card →
 // bank_transfer.
 const METHODS: { value: CheckoutMethod; labelEn: string; labelAr: string; Icon: React.ElementType; hint?: string }[] = [
-  { value: "mada",          labelEn: "Mada",            labelAr: "مدى",        Icon: CreditCard, hint: "Saudi debit card" },
-  { value: "apple_pay",     labelEn: "Apple Pay",       labelAr: "آبل باي",     Icon: CreditCard, hint: "Touch / Face ID" },
-  { value: "stcpay",        labelEn: "STC Pay",         labelAr: "STC Pay",     Icon: CreditCard, hint: "Mobile wallet" },
+  { value: "mada",          labelEn: "Mada",              labelAr: "مدى",              Icon: CreditCard, hint: "Saudi debit card" },
+  { value: "apple_pay",     labelEn: "Apple Pay",         labelAr: "آبل باي",           Icon: CreditCard, hint: "Touch / Face ID" },
+  { value: "stcpay",        labelEn: "STC Pay",           labelAr: "STC Pay",           Icon: CreditCard, hint: "Mobile wallet" },
   { value: "moyasar_card",  labelEn: "Visa / Mastercard", labelAr: "فيزا / ماستركارد", Icon: CreditCard },
-  { value: "bank_transfer", labelEn: "Bank Transfer",   labelAr: "تحويل بنكي",   Icon: Landmark, hint: "Manual, verified within 1–2 business days" },
+  { value: "bank_transfer", labelEn: "Bank Transfer",     labelAr: "تحويل بنكي",        Icon: Landmark, hint: "Manual, verified within 1–2 business days" },
 ];
+
+const MOYASAR_JS  = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.js";
+const MOYASAR_CSS = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.css";
+
+// Maps our internal method names to the values Moyasar.init() expects
+const MOYASAR_METHOD_MAP: Partial<Record<CheckoutMethod, string>> = {
+  moyasar_card: "creditcard",
+  mada:         "creditcard",
+  apple_pay:    "applepay",
+  stcpay:       "stcpay",
+};
 
 function halalaToSAR(h: number): string {
   return (h / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -41,11 +53,8 @@ declare global {
 interface Props {
   planCode: string;
   audience: "school" | "teacher_premium";
-  // Where the "back to plans" link should point
   backHref: string;
-  // Where /billing/success lives for this audience
   successPath: string;
-  // Where the pending bank-transfer flow lives
   pendingPath: string;
 }
 
@@ -60,11 +69,17 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
 
   const [method, setMethod]   = useState<CheckoutMethod>("mada");
   const [submitting, setSubmitting] = useState(false);
-  const [initResp, setInitResp] = useState<InitiatePaymentResponse | null>(null);
+  const [initResp, setInitResp]     = useState<InitiatePaymentResponse | null>(null);
 
-  // Load the plan from the public pricing payload (which is cached + locale-
-  // aware). Same source the /pricing page uses, so name + price + bullets are
-  // consistent.
+  // Becomes true when the Moyasar CDN script fires onReady.
+  // next/script's onReady fires on every component mount even when the
+  // browser has already cached the script — so this is reliable.
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  // Guards against calling Moyasar.init() more than once per checkout flow.
+  const moyasarInitDone = useRef(false);
+
+  // Load plan from the shared pricing payload (same source as /pricing page).
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -85,6 +100,44 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
     return () => { alive = false; };
   }, [planCode, audience, locale]);
 
+  // Passed to <Script onReady> — called on every mount, even when the script
+  // is already cached. This is the recommended pattern per Next.js docs.
+  const handleScriptReady = useCallback(() => {
+    setScriptLoaded(true);
+  }, []);
+
+  // Initialize the Moyasar payment form once BOTH conditions are met:
+  //   1. The initiate-payment API response has arrived (initResp is set)
+  //   2. The Moyasar CDN script has loaded (scriptLoaded is true)
+  // useEffect runs after React commits to the DOM, so .mysr-form is present
+  // when window.Moyasar.init() looks for it.
+  useEffect(() => {
+    if (!initResp || !scriptLoaded) return;
+    if (method === "bank_transfer" || initResp.demoMode) return;
+    if (moyasarInitDone.current) return;
+    if (!window.Moyasar) return;
+
+    const moyasarMethod = MOYASAR_METHOD_MAP[method];
+    if (!moyasarMethod) return;
+
+    moyasarInitDone.current = true;
+    try {
+      window.Moyasar.init({
+        element: ".mysr-form",
+        amount: initResp.amountHalala,
+        currency: "SAR",
+        description: `Abjad — Invoice ${initResp.invoice.number}`,
+        publishable_api_key: initResp.publishableKey,
+        callback_url: `${window.location.origin}${successPath}?invoiceId=${encodeURIComponent(initResp.invoice._id)}`,
+        methods: [moyasarMethod],
+        supported_networks: ["visa", "mastercard", "mada", "unionpay"],
+        metadata: { invoiceId: initResp.invoice._id },
+      });
+    } catch (e) {
+      setError(e instanceof Error ? `Payment form error: ${e.message}` : "Failed to initialize payment form");
+    }
+  }, [initResp, scriptLoaded, method, successPath]);
+
   const handleSubmit = useCallback(async () => {
     if (!plan) return;
     setSubmitting(true);
@@ -97,92 +150,15 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
       setInitResp(resp);
 
       if (method === "bank_transfer") {
-        // Bank transfer skips the provider — route to the pending page where
-        // the IBAN + reference are displayed.
         window.location.href = `${pendingPath}/${resp.invoice._id}`;
         return;
       }
-
-      // Non-bank-transfer: Moyasar.js renders the card form (or demo simulator).
-      // The useEffect below initialises Moyasar.js once the script loads.
     } catch (e) {
       setError(e instanceof Error ? e.message : "Checkout failed");
     } finally {
       setSubmitting(false);
     }
   }, [plan, method, pendingPath, successPath]);
-
-  // Dynamically load Moyasar.js + CSS then initialise the form.
-  // Manual DOM injection is more reliable than Next.js <Script> in App Router
-  // dev mode — onLoad fires consistently and the element is guaranteed to be
-  // in the DOM before init() is called.
-  const MOYASAR_JS  = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.js";
-  const MOYASAR_CSS = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.css";
-  const [moyasarReady, setMoyasarReady] = useState(false);
-  const moyasarInitDone = useRef(false);
-
-  useEffect(() => {
-    if (!initResp || method === "bank_transfer" || initResp.demoMode) return;
-    if (moyasarInitDone.current) return;
-
-    const METHOD_MAP: Record<CheckoutMethod, string | null> = {
-      moyasar_card:  "creditcard",
-      mada:          "creditcard",
-      apple_pay:     "applepay",
-      stcpay:        "stcpay",
-      bank_transfer: null,
-    };
-    const moyasarMethod = METHOD_MAP[method];
-    if (!moyasarMethod) return;
-
-    const initForm = () => {
-      if (!window.Moyasar || moyasarInitDone.current) return;
-      moyasarInitDone.current = true;
-      setMoyasarReady(true);
-      try {
-        window.Moyasar.init({
-          element: "#moyasar-form",
-          amount: initResp.amountHalala,
-          currency: "SAR",
-          description: `Abjad — Invoice ${initResp.invoice.number}`,
-          publishable_api_key: initResp.publishableKey,
-          callback_url: `${window.location.origin}${successPath}?invoiceId=${encodeURIComponent(initResp.invoice._id)}`,
-          methods: [moyasarMethod],
-          metadata: { invoiceId: initResp.invoice._id },
-        });
-      } catch (e) {
-        setError(e instanceof Error ? `Moyasar init failed: ${e.message}` : "Moyasar init failed");
-      }
-    };
-
-    // Inject CSS once
-    if (!document.querySelector(`link[href="${MOYASAR_CSS}"]`)) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = MOYASAR_CSS;
-      document.head.appendChild(link);
-    }
-
-    // If Moyasar.js already on window (cached), init immediately
-    if (window.Moyasar) {
-      initForm();
-      return;
-    }
-
-    // If script tag already injected (but not yet loaded), listen for its load
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${MOYASAR_JS}"]`);
-    if (existing) {
-      existing.addEventListener("load", initForm, { once: true });
-      return () => existing.removeEventListener("load", initForm);
-    }
-
-    // Fresh inject
-    const script = document.createElement("script");
-    script.src = MOYASAR_JS;
-    script.addEventListener("load", initForm, { once: true });
-    document.head.appendChild(script);
-    return () => script.removeEventListener("load", initForm);
-  }, [initResp, method, successPath]);
 
   if (loading) {
     return (
@@ -204,8 +180,26 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
 
   if (!plan) return null;
 
+  const showMoyasarForm = !!initResp && method !== "bank_transfer" && !initResp.demoMode;
+
   return (
     <div className="space-y-5">
+      {/*
+        Load Moyasar CSS + JS unconditionally — don't wait for initResp.
+        Loading eagerly means the script is ready (or near-ready) by the time
+        the user clicks "Continue to payment", so the form appears instantly.
+
+        next/script strategy="afterInteractive" defers until after hydration.
+        onReady fires on every component mount (including when script is cached)
+        which is why we use it instead of onLoad.
+      */}
+      <link rel="stylesheet" href={MOYASAR_CSS} />
+      <Script
+        src={MOYASAR_JS}
+        strategy="afterInteractive"
+        onReady={handleScriptReady}
+      />
+
       <div>
         <Link href={backHref} className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700">
           <ArrowLeft size={12} /> {locale === "ar" ? "العودة إلى الباقات" : "Back to plans"}
@@ -232,7 +226,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
             </div>
           )}
 
-          {/* Step 1 — method picker (only before initiation) */}
+          {/* Step 1 — method picker (shown before the user clicks Continue) */}
           {!initResp && (
             <div className="p-6 space-y-2">
               <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-3">
@@ -244,7 +238,9 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
                   <label
                     key={value}
                     className={`flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition-all ${
-                      selected ? "border-[var(--brand-primary)] bg-[var(--brand-primary-light)]/40" : "border-gray-200 hover:border-gray-300"
+                      selected
+                        ? "border-[var(--brand-primary)] bg-[var(--brand-primary-light)]/40"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <input
@@ -286,7 +282,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
             </div>
           )}
 
-          {/* Step 2 — Moyasar inline form OR demo simulator (after initiate) */}
+          {/* Step 2a — demo simulator (no Moyasar credentials configured) */}
           {initResp && method !== "bank_transfer" && initResp.demoMode && (
             <DemoSimulator
               providerPaymentId={initResp.providerPaymentId}
@@ -296,14 +292,28 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
               router={router}
             />
           )}
-          {initResp && method !== "bank_transfer" && !initResp.demoMode && (
+
+          {/* Step 2b — Moyasar inline card form */}
+          {showMoyasarForm && (
             <div className="p-6">
-              <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-3">
+              <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-4">
                 {locale === "ar" ? "أكمل البيانات" : "Enter your details"}
               </p>
-              {/* Moyasar.js injects the card form here via window.Moyasar.init() */}
-              <div id="moyasar-form" />
-              {!moyasarReady && (
+
+              {/*
+                Moyasar.js targets this div by class name ".mysr-form".
+                It must be in the DOM before window.Moyasar.init() is called —
+                our useEffect guarantees this because effects run after commit.
+                Do NOT change this to an id selector; the Moyasar MPF API
+                requires the class "mysr-form" as the mount point.
+              */}
+              <div className="mysr-form" />
+
+              {/* Spinner shown only while the CDN script is still loading.
+                  Once scriptLoaded is true, Moyasar.init() fires immediately
+                  and the form appears. This spinner renders as a sibling of
+                  .mysr-form so removing it doesn't touch Moyasar's DOM. */}
+              {!scriptLoaded && (
                 <div className="flex items-center justify-center py-8 text-sm text-gray-400">
                   <Loader2 size={18} className="animate-spin me-2" />
                   {locale === "ar" ? "جارٍ تحميل نموذج الدفع…" : "Loading payment form…"}
@@ -313,15 +323,21 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
           )}
         </section>
 
-        {/* Right column — plan summary */}
+        {/* Right column — order summary */}
         <aside className="bg-white rounded-2xl border border-gray-100 h-fit lg:sticky lg:top-6">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
-            {audience === "school" ? <Building2 size={14} className="text-gray-400" /> : <GraduationCap size={14} className="text-gray-400" />}
+            {audience === "school"
+              ? <Building2 size={14} className="text-gray-400" />
+              : <GraduationCap size={14} className="text-gray-400" />}
             <h2 className="text-sm font-semibold text-gray-900">{locale === "ar" ? "ملخّص الطلب" : "Order summary"}</h2>
           </div>
           <div className="px-5 py-4 space-y-4">
             <div>
-              <p className="text-xs text-gray-400">{audience === "school" ? (locale === "ar" ? "باقة المدرسة" : "School plan") : (locale === "ar" ? "باقة المعلم المميز" : "Premium Teacher")}</p>
+              <p className="text-xs text-gray-400">
+                {audience === "school"
+                  ? (locale === "ar" ? "باقة المدرسة" : "School plan")
+                  : (locale === "ar" ? "باقة المعلم المميز" : "Premium Teacher")}
+              </p>
               <p className="text-base font-semibold text-gray-900 capitalize mt-0.5">{plan.name}</p>
               <p className="text-[11px] text-gray-400">
                 {plan.durationLabel} · {locale === "ar" ? "اشتراك" : "Subscription"}
@@ -352,15 +368,17 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
 }
 
 function Summary({ plan, locale }: { plan: PricingPlan; locale: "en" | "ar" }) {
-  const vatHalala = Math.round(plan.priceHalala * 0.15);
+  const vatHalala   = Math.round(plan.priceHalala * 0.15);
   const totalHalala = plan.priceHalala + vatHalala;
 
   return (
     <div className="space-y-2 text-sm">
-      <Row label={locale === "ar" ? "السعر" : "Subtotal"} value={`${halalaToSAR(plan.priceHalala)} SAR`} />
+      <Row label={locale === "ar" ? "السعر" : "Subtotal"}                   value={`${halalaToSAR(plan.priceHalala)} SAR`} />
       <Row label={locale === "ar" ? "ضريبة القيمة المضافة (15%)" : "VAT (15%)"} value={`${halalaToSAR(vatHalala)} SAR`} />
       <div className="border-t border-gray-100 mt-2 pt-3 flex items-baseline justify-between">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{locale === "ar" ? "الإجمالي" : "Total"}</span>
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          {locale === "ar" ? "الإجمالي" : "Total"}
+        </span>
         <span className="text-2xl font-bold text-gray-900 tabular-nums">{halalaToSAR(totalHalala)} SAR</span>
       </div>
     </div>
@@ -376,10 +394,10 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-// ── Demo simulator ───────────────────────────────────────────────────────
-// Renders in place of the Moyasar inline form when the backend is running
-// without Moyasar credentials. Posts to the demo-complete endpoint which
-// simulates the Moyasar webhook server-side, then redirects to /success.
+// ── Demo simulator ─────────────────────────────────────────────────────────
+// Rendered instead of the Moyasar form when the backend is running without
+// live Moyasar credentials. Calls the demo-complete endpoint which simulates
+// the Moyasar webhook server-side, then redirects to /success.
 function DemoSimulator({ providerPaymentId, successPath, invoiceId, locale, router }: {
   providerPaymentId: string;
   successPath: string;

@@ -1,5 +1,5 @@
 // Auth-specific API calls
-import { apiFetch } from './client';
+import { apiFetch, doRefresh } from './client';
 import type { AuthUser, VerifyOtpResult } from '@/lib/auth/types';
 
 const authApi = {
@@ -26,11 +26,10 @@ const authApi = {
   },
 
   async refreshTokens(): Promise<{ accessToken: string }> {
-    const res = await apiFetch<{ accessToken: string }>('/api/auth/refresh', {
-      method: 'POST',
-    });
-    if (!res.data) throw new Error('Invalid response from server');
-    return res.data;
+    // Use the shared mutex so this and any concurrent 401-triggered refresh
+    // coalesce onto a single in-flight request (prevents rotation token reuse).
+    const accessToken = await doRefresh();
+    return { accessToken };
   },
 
   async logout(): Promise<void> {

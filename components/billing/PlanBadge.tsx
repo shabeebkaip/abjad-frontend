@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Sparkles, CheckCircle2, Clock, AlertCircle, XCircle } from "lucide-react";
 import { useMySubscription } from "@/lib/billing/useMySubscription";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -81,7 +83,12 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
 export function PlanBadge({ billingHref }: Props) {
   const { lang } = useLanguage();
   const locale = lang === "ar" ? "ar" : "en";
-  const { subscription, isTrialing, isPaid, isLegacy, loading } = useMySubscription();
+  const pathname = usePathname();
+  const { subscription, isTrialing, isPaid, isLegacy, loading, refetch } = useMySubscription();
+
+  // The layout stays mounted across navigations, so the initial fetch can be
+  // stale after a checkout completes. Re-validate on every route change.
+  useEffect(() => { void refetch(); }, [pathname, refetch]);
 
   if (loading || isLegacy) return null;
 

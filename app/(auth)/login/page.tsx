@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -35,11 +35,31 @@ function LoginInner() {
     const s = qs.toString();
     return s ? `?${s}` : "";
   })();
-  const { sendOtp } = useAuth();
+  const { sendOtp, user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [apiError, setApiError] = useState("");
   const [rememberDevice, setRememberDevice] = useState(true);
+
+  // If the user lands on /login while already authenticated (back button,
+  // bookmark, direct nav, etc.) — bounce them to ?next= or the role-based
+  // dashboard. Without this, a valid session is invisible: the user sees a
+  // login form despite being logged in, and the loop of "I see my cookie but
+  // I'm still on /login" surfaces.
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
+    const next = searchParams.get("next");
+    if (next && next.startsWith("/")) {
+      router.replace(next);
+      return;
+    }
+    const fallback =
+      user.role === "school" ? "/school/dashboard" :
+      user.role === "admin"  ? "/admin/dashboard"  :
+      "/dashboard";
+    router.replace(fallback);
+  }, [authLoading, user, router, searchParams]);
 
   const {
     register,

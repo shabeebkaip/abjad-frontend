@@ -6,7 +6,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // In-memory store — XSS-safe, restored on page load via refresh endpoint
 let _accessToken: string | null = null;
-let _isRefreshing = false;
+// Shared promise mutex: all concurrent refresh callers coalesce onto the
+// same in-flight fetch so the rotation token is only consumed once.
+let _refreshPromise: Promise<string> | null = null;
 
 export function getAccessToken(): string | null {
   return _accessToken;
@@ -29,16 +31,22 @@ export interface ApiResponse<T = unknown> {
   data?: T;
 }
 
-async function doRefresh(): Promise<string> {
-  const res = await fetch(`${API_BASE}/api/auth/refresh`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+export function doRefresh(): Promise<string> {
+  if (_refreshPromise) return _refreshPromise;
+  _refreshPromise = (async () => {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) throw new AuthError();
+    const json: ApiResponse<{ accessToken: string }> = await res.json();
+    if (!json.data?.accessToken) throw new AuthError();
+    return json.data.accessToken;
+  })().finally(() => {
+    _refreshPromise = null;
   });
-  if (!res.ok) throw new AuthError();
-  const json: ApiResponse<{ accessToken: string }> = await res.json();
-  if (!json.data?.accessToken) throw new AuthError();
-  return json.data.accessToken;
+  return _refreshPromise;
 }
 
 export async function apiFetch<T = unknown>(
@@ -62,18 +70,16 @@ export async function apiFetch<T = unknown>(
     headers,
   });
 
-  // Token expired — attempt silent refresh once then retry
-  // Skip retry when the failing request IS the refresh endpoint (avoids infinite loop)
+  // Token expired — attempt one silent refresh then retry.
+  // All concurrent 401-triggered callers share the same _refreshPromise so
+  // the rotation cookie is only consumed once.
   const isRefreshEndpoint = path.includes('/auth/refresh');
-  if (res.status === 401 && !_isRefreshing && !isRefreshEndpoint) {
-    _isRefreshing = true;
+  if (res.status === 401 && !isRefreshEndpoint) {
     try {
       const newToken = await doRefresh();
       setAccessToken(newToken);
-      _isRefreshing = false;
       return apiFetch<T>(path, options);
     } catch {
-      _isRefreshing = false;
       setAccessToken(null);
       throw new AuthError();
     }

@@ -131,7 +131,7 @@ export default function HeroSection() {
         <h1
           className="fade-in-up-2 font-extrabold text-gray-950 leading-[1.06] mb-6 max-w-4xl"
           style={{
-            fontSize: "clamp(2.6rem, 6vw, 5rem)",
+            fontSize: "clamp(2rem, 4vw, 3.5rem)",
             letterSpacing: isRTL ? "0" : "-0.03em",
           }}
         >

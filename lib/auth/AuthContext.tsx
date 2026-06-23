@@ -8,6 +8,12 @@ import type { AuthUser, AuthContextValue, OtpSession, VerifyOtpResult } from './
 
 const OTP_SESSION_KEY = 'abjad_otp_session';
 
+// Module-level guard: persists for the lifetime of the page session.
+// Unlike useRef, this is NOT reset when React Strict Mode unmounts and
+// remounts the component — so the init refresh only ever fires once per
+// page load, even in dev Strict Mode.
+let _authInitDone = false;
+
 // Access tokens are signed for 15 minutes. Refresh one minute earlier so a
 // 401 → silent-retry round-trip is never the user's first signal that
 // something needs to happen. Backed off to 60s to avoid hammering when the
@@ -24,10 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Ref prevents React Strict Mode's double-invocation from sending the refresh
-  // token twice. The second call would find the first token already rotated
-  // (revoked) and log the user out.
-  const initDone = useRef(false);
+  // initDone is intentionally module-level (_authInitDone above), not a ref.
+  // See the declaration for why.
 
   // Track the proactive refresh interval so we can cancel it on logout /
   // unmount.
@@ -69,8 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [teardown]);
 
   useEffect(() => {
-    if (initDone.current) return;
-    initDone.current = true;
+    if (_authInitDone) return;
+    _authInitDone = true;
 
     (async () => {
       try {
@@ -85,11 +89,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const me = await authApi.getMe();
           setUser(me);
           startProactiveRefresh();
-        } catch {
+        } catch (e) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('[auth] /me failed during init → tearing down session', e);
+          }
           await teardown(true);
         }
-      } catch {
-        // No valid refresh cookie — user is simply logged out.
+      } catch (e) {
+        // No valid refresh cookie — user is simply logged out. In dev we still
+        // log it so genuine refresh failures (network, server down) don't
+        // disappear silently.
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[auth] init refresh failed (no/expired cookie?):', e);
+        }
       } finally {
         setIsLoading(false);
       }
