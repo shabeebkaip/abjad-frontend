@@ -19,15 +19,23 @@ import {
 
 // ── Payment brand logos (inline SVG — no external deps) ──────────────────
 function MadaLogo() {
+  // Official Mada mark: two colour blocks (blue + green) beside Arabic + Latin text
   return (
-    <svg viewBox="0 0 64 36" fill="none" className="w-full h-full">
-      <rect width="64" height="36" rx="6" fill="#EB2226"/>
-      <text x="32" y="22" textAnchor="middle" fill="white"
+    <svg viewBox="0 0 96 40" fill="none" className="w-full h-full">
+      {/* blue block */}
+      <rect x="2" y="2"  width="18" height="16" rx="1" fill="#3B9FE4"/>
+      {/* green block */}
+      <rect x="2" y="22" width="18" height="16" rx="1" fill="#7FBB2A"/>
+      {/* Arabic مدى */}
+      <text x="26" y="16"
+        fill="#222222"
         fontFamily="'Noto Kufi Arabic','Tahoma','Arial',sans-serif"
-        fontWeight="800" fontSize="18">مدى</text>
-      <text x="32" y="32" textAnchor="middle" fill="white"
-        fontFamily="'Arial','sans-serif'"
-        fontWeight="600" fontSize="8" letterSpacing="1.5" opacity="0.85">mada</text>
+        fontWeight="700" fontSize="14">مدى</text>
+      {/* Latin mada */}
+      <text x="26" y="35"
+        fill="#222222"
+        fontFamily="'Arial','Helvetica',sans-serif"
+        fontWeight="400" fontSize="14">mada</text>
     </svg>
   );
 }
