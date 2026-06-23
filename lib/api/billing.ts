@@ -122,16 +122,20 @@ export async function demoCompletePayment(providerPaymentId: string): Promise<{ 
  * always on localhost (webhook can't reach localhost), occasionally in
  * production during a provider blip.
  */
-export async function reconcilePayment(providerPaymentId: string): Promise<{
+export async function reconcilePayment(
+  providerPaymentId: string,
+  invoiceId?: string | null,
+): Promise<{
   status: "pending" | "succeeded" | "failed" | "unknown";
   activated: boolean;
   subscriptionId?: string;
 }> {
+  const qs = invoiceId ? `?invoiceId=${encodeURIComponent(invoiceId)}` : "";
   const r = await apiFetch<{
     status: "pending" | "succeeded" | "failed" | "unknown";
     activated: boolean;
     subscriptionId?: string;
-  }>(`/api/payments/${encodeURIComponent(providerPaymentId)}/reconcile`, { method: "POST" });
+  }>(`/api/payments/${encodeURIComponent(providerPaymentId)}/reconcile${qs}`, { method: "POST" });
   return r.data!;
 }
 

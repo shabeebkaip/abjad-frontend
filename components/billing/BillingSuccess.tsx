@@ -50,7 +50,7 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
         // round trip when the webhook is reachable).
         if (tickCount >= 2 && paymentId) {
           try {
-            await reconcilePayment(paymentId);
+            await reconcilePayment(paymentId, invoiceId);
           } catch {
             // Reconcile may 404 / 403 for unrelated reasons (admin-issued
             // payment, etc.) — fall through to the regular subscription

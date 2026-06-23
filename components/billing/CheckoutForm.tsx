@@ -104,15 +104,8 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
         return;
       }
 
-      // Moyasar hosted checkout: redirect the user to Moyasar's payment page.
-      // Moyasar will redirect back to callbackUrl with ?id=<payment_id>&status=paid
-      // after the user completes payment.
-      if (resp.transactionUrl) {
-        window.location.href = resp.transactionUrl;
-        return;
-      }
-
-      // No transactionUrl = demo mode. The DemoSimulator block below handles it.
+      // Non-bank-transfer: Moyasar.js renders the card form (or demo simulator).
+      // The useEffect below initialises Moyasar.js once the script loads.
     } catch (e) {
       setError(e instanceof Error ? e.message : "Checkout failed");
     } finally {
@@ -144,8 +137,14 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
         currency: "SAR",
         description: `Abjad — Invoice ${initResp.invoice.number}`,
         publishable_api_key: initResp.publishableKey,
-        callback_url: `${window.location.origin}${successPath}?paymentId=${encodeURIComponent(initResp.providerPaymentId)}&invoiceId=${encodeURIComponent(initResp.invoice._id)}`,
+        // Moyasar appends ?id=<MOYASAR_PAYMENT_ID>&status=paid to this URL.
+        // invoiceId lets the success page pass it to our reconcile endpoint
+        // so we can correlate the Moyasar payment to our invoice record.
+        callback_url: `${window.location.origin}${successPath}?invoiceId=${encodeURIComponent(initResp.invoice._id)}`,
         methods: [methodForMoyasar],
+        // metadata is included in the Moyasar payment and forwarded in webhooks,
+        // giving the webhook handler an alternative correlation path.
+        metadata: { invoiceId: initResp.invoice._id },
       });
     } catch (e) {
       setError(e instanceof Error ? `Moyasar init failed: ${e.message}` : "Moyasar init failed");
