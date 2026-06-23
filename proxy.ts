@@ -5,7 +5,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const REFRESH_COOKIE = 'refreshToken';
+// Must match backend config.cookie.refreshTokenName (src/config/index.ts)
+const REFRESH_COOKIE = process.env.NODE_ENV === 'production' ? '__Host-abjad_session' : 'abjad_session';
 
 // Route groups (teacher), (school) are stripped from URLs in Next.js App Router
 const PROTECTED_PREFIXES = ['/dashboard', '/jobs', '/applications', '/interviews', '/profile', '/notifications', '/support'];

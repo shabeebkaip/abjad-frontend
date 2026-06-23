@@ -98,6 +98,9 @@ export interface InitiatePaymentResponse {
   publishableKey: string;
   amountHalala: number;
   currency: "SAR";
+  // Moyasar hosted-checkout URL. When present, redirect the user here
+  // instead of rendering the Moyasar.js embedded form.
+  transactionUrl?: string;
   // True when the backend has no Moyasar credentials configured and the
   // demo provider is in use. Frontend renders a "simulate successful
   // payment" button instead of the Moyasar.js form.

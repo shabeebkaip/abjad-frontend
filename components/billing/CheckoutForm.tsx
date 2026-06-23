@@ -104,11 +104,15 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
         return;
       }
 
-      // For Moyasar methods, the Moyasar.js script (loaded below) renders the
-      // inline form into #moyasar-form. We pass the providerPaymentId so the
-      // submit completes the existing pending payment server-side.
-      // The init happens in the useEffect below once Moyasar global is ready
-      // AND we have the response.
+      // Moyasar hosted checkout: redirect the user to Moyasar's payment page.
+      // Moyasar will redirect back to callbackUrl with ?id=<payment_id>&status=paid
+      // after the user completes payment.
+      if (resp.transactionUrl) {
+        window.location.href = resp.transactionUrl;
+        return;
+      }
+
+      // No transactionUrl = demo mode. The DemoSimulator block below handles it.
     } catch (e) {
       setError(e instanceof Error ? e.message : "Checkout failed");
     } finally {
