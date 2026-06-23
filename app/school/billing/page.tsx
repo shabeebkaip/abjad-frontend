@@ -8,6 +8,25 @@ import {
 } from "lucide-react";
 import { getMySubscription, listMyInvoices, startTrial, cancelMySubscription, type MySubscription, type MyInvoice } from "@/lib/api/billing";
 import { useAuth } from "@/lib/auth/useAuth";
+import { getAccessToken, doRefresh } from "@/lib/api/client";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
+
+async function downloadReceipt(invoiceId: string, filename: string) {
+  let token = getAccessToken();
+  if (!token) token = await doRefresh();
+  const res = await fetch(`${API_URL}/api/invoices/${invoiceId}/receipt`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Download failed");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // /school/billing — the school's billing home. Shows current subscription
 // state with the right CTA for that state (start trial / upgrade / manage /
@@ -351,15 +370,14 @@ function InvoiceRow({ inv }: { inv: MyInvoice }) {
         <span className={`text-[10px] font-semibold uppercase tracking-wider rounded-full px-2 py-1 ${INVOICE_STATUS_TONE[inv.status] ?? "bg-slate-100 text-slate-500"}`}>
           {inv.status}
         </span>
-        <a
-          href={`/api/invoices/${inv._id}/receipt`}
-          target="_blank"
-          rel="noreferrer"
+        <button
+          type="button"
+          onClick={() => downloadReceipt(inv._id, `${inv.number}.pdf`)}
           className="text-gray-400 hover:text-gray-700 transition-colors"
           aria-label="Download receipt"
         >
           <Download size={14} />
-        </a>
+        </button>
       </div>
     </li>
   );

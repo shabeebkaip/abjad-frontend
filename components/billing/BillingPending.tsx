@@ -5,6 +5,25 @@ import Link from "next/link";
 import { Landmark, Copy, CheckCircle2, AlertCircle, Loader2, ArrowRight, Download } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { listMyInvoices, type MyInvoice } from "@/lib/api/billing";
+import { getAccessToken, doRefresh } from "@/lib/api/client";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
+
+async function downloadReceipt(invoiceId: string, filename: string) {
+  let token = getAccessToken();
+  if (!token) token = await doRefresh();
+  const res = await fetch(`${API_URL}/api/invoices/${invoiceId}/receipt`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Download failed");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // Bank-transfer landing — shown after the user picks "Bank Transfer" on the
 // checkout. The invoice is created in `pending` status; admin marks it paid
@@ -188,15 +207,14 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
               <span className="text-xs text-gray-500">{locale === "ar" ? "الإجمالي" : "Total"}</span>
               <span className="text-xl font-bold text-gray-900 tabular-nums">{halalaToSAR(invoice.totalHalala)} SAR</span>
             </div>
-            <a
-              href={`/api/invoices/${invoice._id}/receipt`}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => downloadReceipt(invoice._id, `${invoice.invoiceNumber}.pdf`)}
               className="flex items-center justify-center gap-1.5 w-full px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               <Download size={13} />
               {locale === "ar" ? "تحميل PDF" : "Download PDF"}
-            </a>
+            </button>
           </div>
         </aside>
       </div>

@@ -25,18 +25,24 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
   const sp = useSearchParams();
   const paymentId = sp.get("paymentId") ?? sp.get("id");
   const invoiceId = sp.get("invoiceId");
+  // Moyasar passes status=failed + message when the payment is declined.
+  const moyasarStatus = sp.get("status");
+  const moyasarMessage = sp.get("message");
+  const isDeclined = moyasarStatus === "failed";
 
   const [sub, setSub] = useState<MySubscription | null>(null);
-  const [pending, setPending] = useState(true);
+  const [pending, setPending] = useState(!isDeclined);
   const [tooLong, setTooLong] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(isDeclined ? (moyasarMessage ?? "Payment was declined") : null);
 
   // Poll every 1.5s for up to ~20s while waiting for the webhook to fire.
   // After the first tick, also call POST /payments/:id/reconcile so the
   // backend pulls the latest status from Moyasar directly — required on
   // localhost (webhook can't reach our backend) and a useful safety net in
   // production for missed/delayed webhooks.
+  // Skip polling entirely when Moyasar already told us the payment failed.
   useEffect(() => {
+    if (isDeclined) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const start = Date.now();
@@ -168,12 +174,32 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
               <AlertCircle className="text-red-600" size={28} />
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-1">
-              {locale === "ar" ? "تعذّر التحقّق" : "Couldn't verify"}
+              {isDeclined
+                ? (locale === "ar" ? "رُفضت عملية الدفع" : "Payment declined")
+                : (locale === "ar" ? "تعذّر التحقّق" : "Couldn't verify")}
             </h1>
-            <p className="text-sm text-gray-500 mb-5">{error}</p>
-            <Link href={billingHref} className="text-sm text-gray-700 underline">
-              {locale === "ar" ? "إلى صفحة الفوترة" : "Go to billing"}
-            </Link>
+            <p className="text-sm text-gray-500 mb-5">
+              {isDeclined
+                ? (locale === "ar"
+                    ? "لم تتم معالجة الدفعة. يُرجى التحقّق من بيانات البطاقة والمحاولة مرة أخرى."
+                    : "Your payment was not processed. Please check your card details and try again.")
+                : error}
+            </p>
+            <div className="flex flex-col gap-2">
+              {isDeclined ? (
+                <Link
+                  href={`${billingHref}/plans`}
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all"
+                  style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
+                >
+                  {locale === "ar" ? "حاول مرة أخرى" : "Try again"}
+                  <ArrowRight size={14} />
+                </Link>
+              ) : null}
+              <Link href={billingHref} className="text-sm text-gray-500 hover:text-gray-700 underline">
+                {locale === "ar" ? "إلى صفحة الفوترة" : "Go to billing"}
+              </Link>
+            </div>
           </>
         )}
 
