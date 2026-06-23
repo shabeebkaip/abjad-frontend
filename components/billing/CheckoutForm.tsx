@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Loader2, AlertCircle, ArrowLeft, Building2, GraduationCap,
-  ShieldCheck, CheckCircle2, CreditCard, Landmark, Lock, Sparkles,
+  ShieldCheck, CheckCircle2, Landmark, Lock, Sparkles,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getPricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
@@ -17,14 +17,67 @@ import {
 // Reusable checkout form — same UX for school + teacher. The only thing that
 // changes per audience is the "back" link target and the small audience pill.
 
+// ── Payment brand logos (inline SVG — no external deps) ──────────────────
+function MadaLogo() {
+  return (
+    <svg viewBox="0 0 56 36" fill="none" className="w-full h-full">
+      <rect width="56" height="36" rx="6" fill="#EB2226"/>
+      <path d="M8 22 Q8 14 18 11 L20 13 Q13 15 13 22 Q13 29 20 31 L18 33 Q8 30 8 22Z" fill="white" opacity="0.15"/>
+      <text x="30" y="24" textAnchor="middle" fill="white" fontFamily="'Noto Kufi Arabic','Arial',sans-serif" fontWeight="bold" fontSize="16">مدى</text>
+    </svg>
+  );
+}
+
+function ApplePayLogo() {
+  return (
+    <svg viewBox="0 0 60 28" fill="none" className="w-full h-full">
+      {/* Apple glyph */}
+      <path d="M15.5 8.6c.9-1.1.8-2.6.8-2.6s-1.4.1-2.4 1.1C13 8 12.9 9.5 12.9 9.5s1.5 0 2.6-0.9z" fill="#000"/>
+      <path d="M17.7 9.8c-1.3 0-2.4.8-3 .8-.7 0-1.7-.7-2.8-.7C9.7 9.9 8 11.6 8 14.4c0 1.8.7 3.7 1.5 4.9.7 1 1.4 1.9 2.4 1.9s1.3-.6 2.5-.6c1.2 0 1.5.6 2.6.6s1.8-1 2.5-2.1c.5-.8.9-1.7 1.1-2.6-1.3-.5-2.2-1.8-2.2-3.2 0-1.3.7-2.4 1.8-3.1-.7-.9-1.7-1.4-2.5-1.4z" fill="#000"/>
+      {/* "Pay" text */}
+      <text x="34" y="19" textAnchor="middle" fill="#000" fontFamily="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif" fontWeight="500" fontSize="13">Pay</text>
+    </svg>
+  );
+}
+
+function StcPayLogo() {
+  return (
+    <svg viewBox="0 0 64 28" fill="none" className="w-full h-full">
+      <rect width="64" height="28" rx="5" fill="#6B3FA0"/>
+      <text x="32" y="19" textAnchor="middle" fill="white" fontFamily="'Arial Rounded MT Bold','Arial',sans-serif" fontWeight="700" fontSize="12" letterSpacing="0.3">STC Pay</text>
+    </svg>
+  );
+}
+
+function VisaMastercardLogo() {
+  return (
+    <svg viewBox="0 0 70 24" fill="none" className="w-full h-full">
+      {/* Visa */}
+      <text x="2" y="18" fill="#1A1F71" fontFamily="'Arial Black','Arial',sans-serif" fontWeight="900" fontSize="16" fontStyle="italic">VISA</text>
+      {/* Divider */}
+      <line x1="38" y1="3" x2="38" y2="21" stroke="#E5E7EB" strokeWidth="1"/>
+      {/* Mastercard circles */}
+      <circle cx="50" cy="12" r="9" fill="#EB001B"/>
+      <circle cx="60" cy="12" r="9" fill="#F79E1B" opacity="0.9"/>
+    </svg>
+  );
+}
+
 // Order matches our KSA-first strategy: mada → apple_pay → stcpay → card →
 // bank_transfer.
-const METHODS: { value: CheckoutMethod; labelEn: string; labelAr: string; Icon: React.ElementType; hint?: string }[] = [
-  { value: "mada",          labelEn: "Mada",              labelAr: "مدى",              Icon: CreditCard, hint: "Saudi debit card" },
-  { value: "apple_pay",     labelEn: "Apple Pay",         labelAr: "آبل باي",           Icon: CreditCard, hint: "Touch / Face ID" },
-  { value: "stcpay",        labelEn: "STC Pay",           labelAr: "STC Pay",           Icon: CreditCard, hint: "Mobile wallet" },
-  { value: "moyasar_card",  labelEn: "Visa / Mastercard", labelAr: "فيزا / ماستركارد", Icon: CreditCard },
-  { value: "bank_transfer", labelEn: "Bank Transfer",     labelAr: "تحويل بنكي",        Icon: Landmark, hint: "Manual, verified within 1–2 business days" },
+type PaymentMethod = {
+  value: CheckoutMethod;
+  labelEn: string;
+  labelAr: string;
+  hint?: string;
+} & ({ Logo: React.ComponentType; Icon?: never } | { Icon: React.ElementType; Logo?: never });
+
+const METHODS: PaymentMethod[] = [
+  { value: "mada",          labelEn: "Mada",              labelAr: "مدى",              Logo: MadaLogo,            hint: "Saudi debit card" },
+  { value: "apple_pay",     labelEn: "Apple Pay",         labelAr: "آبل باي",           Logo: ApplePayLogo,        hint: "Touch / Face ID" },
+  { value: "stcpay",        labelEn: "STC Pay",           labelAr: "STC Pay",           Logo: StcPayLogo,          hint: "Mobile wallet" },
+  { value: "moyasar_card",  labelEn: "Visa / Mastercard", labelAr: "فيزا / ماستركارد", Logo: VisaMastercardLogo },
+  { value: "bank_transfer", labelEn: "Bank Transfer",     labelAr: "تحويل بنكي",        Icon: Landmark,            hint: "Manual, verified within 1–2 business days" },
 ];
 
 const MOYASAR_JS  = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.js";
@@ -232,8 +285,10 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
               <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-3">
                 {locale === "ar" ? "طريقة الدفع" : "Payment method"}
               </p>
-              {METHODS.map(({ value, labelEn, labelAr, Icon, hint }) => {
+              {METHODS.map(({ value, labelEn, labelAr, hint, ...rest }) => {
                 const selected = method === value;
+                const Logo = "Logo" in rest ? rest.Logo : undefined;
+                const Icon = "Icon" in rest ? rest.Icon : undefined;
                 return (
                   <label
                     key={value}
@@ -251,9 +306,17 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
                       onChange={() => setMethod(value)}
                       className="sr-only"
                     />
-                    <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${selected ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
-                      <Icon size={16} />
-                    </div>
+                    {Logo ? (
+                      /* Brand logo — white pill, fixed width so all logos align */
+                      <div className="h-9 w-16 rounded-lg flex items-center justify-center shrink-0 bg-white border border-gray-200 overflow-hidden p-1">
+                        <Logo />
+                      </div>
+                    ) : Icon ? (
+                      /* Fallback icon (Bank Transfer) */
+                      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${selected ? "bg-[var(--brand-primary)] text-white" : "bg-gray-100 text-gray-500"}`}>
+                        <Icon size={16} />
+                      </div>
+                    ) : null}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{locale === "ar" ? labelAr : labelEn}</p>
                       {hint && <p className="text-[11px] text-gray-400 mt-0.5">{hint}</p>}
