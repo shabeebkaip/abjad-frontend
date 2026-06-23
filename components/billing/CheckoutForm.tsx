@@ -20,10 +20,14 @@ import {
 // ── Payment brand logos (inline SVG — no external deps) ──────────────────
 function MadaLogo() {
   return (
-    <svg viewBox="0 0 56 36" fill="none" className="w-full h-full">
-      <rect width="56" height="36" rx="6" fill="#EB2226"/>
-      <path d="M8 22 Q8 14 18 11 L20 13 Q13 15 13 22 Q13 29 20 31 L18 33 Q8 30 8 22Z" fill="white" opacity="0.15"/>
-      <text x="30" y="24" textAnchor="middle" fill="white" fontFamily="'Noto Kufi Arabic','Arial',sans-serif" fontWeight="bold" fontSize="16">مدى</text>
+    <svg viewBox="0 0 64 36" fill="none" className="w-full h-full">
+      <rect width="64" height="36" rx="6" fill="#EB2226"/>
+      <text x="32" y="22" textAnchor="middle" fill="white"
+        fontFamily="'Noto Kufi Arabic','Tahoma','Arial',sans-serif"
+        fontWeight="800" fontSize="18">مدى</text>
+      <text x="32" y="32" textAnchor="middle" fill="white"
+        fontFamily="'Arial','sans-serif'"
+        fontWeight="600" fontSize="8" letterSpacing="1.5" opacity="0.85">mada</text>
     </svg>
   );
 }
