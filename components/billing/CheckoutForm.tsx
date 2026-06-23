@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Script from "next/script";
 import { useRouter } from "next/navigation";
 import {
   Loader2, AlertCircle, ArrowLeft, Building2, GraduationCap,
@@ -113,43 +112,77 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
     }
   }, [plan, method, pendingPath, successPath]);
 
-  // Initialise Moyasar.js once we have a response AND the script has loaded.
+  // Dynamically load Moyasar.js + CSS then initialise the form.
+  // Manual DOM injection is more reliable than Next.js <Script> in App Router
+  // dev mode — onLoad fires consistently and the element is guaranteed to be
+  // in the DOM before init() is called.
+  const MOYASAR_JS  = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.js";
+  const MOYASAR_CSS = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.css";
   const [moyasarReady, setMoyasarReady] = useState(false);
-  useEffect(() => {
-    if (!initResp || !moyasarReady || method === "bank_transfer") return;
-    if (typeof window === "undefined" || !window.Moyasar) return;
+  const moyasarInitDone = useRef(false);
 
-    const allowed: Record<CheckoutMethod, "creditcard" | "applepay" | "stcpay" | null> = {
-      moyasar_card: "creditcard",
-      mada:         "creditcard",
-      apple_pay:    "applepay",
-      stcpay:       "stcpay",
+  useEffect(() => {
+    if (!initResp || method === "bank_transfer" || initResp.demoMode) return;
+    if (moyasarInitDone.current) return;
+
+    const METHOD_MAP: Record<CheckoutMethod, string | null> = {
+      moyasar_card:  "creditcard",
+      mada:          "creditcard",
+      apple_pay:     "applepay",
+      stcpay:        "stcpay",
       bank_transfer: null,
     };
+    const moyasarMethod = METHOD_MAP[method];
+    if (!moyasarMethod) return;
 
-    const methodForMoyasar = allowed[method];
-    if (!methodForMoyasar) return;
+    const initForm = () => {
+      if (!window.Moyasar || moyasarInitDone.current) return;
+      moyasarInitDone.current = true;
+      setMoyasarReady(true);
+      try {
+        window.Moyasar.init({
+          element: "#moyasar-form",
+          amount: initResp.amountHalala,
+          currency: "SAR",
+          description: `Abjad — Invoice ${initResp.invoice.number}`,
+          publishable_api_key: initResp.publishableKey,
+          callback_url: `${window.location.origin}${successPath}?invoiceId=${encodeURIComponent(initResp.invoice._id)}`,
+          methods: [moyasarMethod],
+          metadata: { invoiceId: initResp.invoice._id },
+        });
+      } catch (e) {
+        setError(e instanceof Error ? `Moyasar init failed: ${e.message}` : "Moyasar init failed");
+      }
+    };
 
-    try {
-      window.Moyasar.init({
-        element: "#moyasar-form",
-        amount: initResp.amountHalala,
-        currency: "SAR",
-        description: `Abjad — Invoice ${initResp.invoice.number}`,
-        publishable_api_key: initResp.publishableKey,
-        // Moyasar appends ?id=<MOYASAR_PAYMENT_ID>&status=paid to this URL.
-        // invoiceId lets the success page pass it to our reconcile endpoint
-        // so we can correlate the Moyasar payment to our invoice record.
-        callback_url: `${window.location.origin}${successPath}?invoiceId=${encodeURIComponent(initResp.invoice._id)}`,
-        methods: [methodForMoyasar],
-        // metadata is included in the Moyasar payment and forwarded in webhooks,
-        // giving the webhook handler an alternative correlation path.
-        metadata: { invoiceId: initResp.invoice._id },
-      });
-    } catch (e) {
-      setError(e instanceof Error ? `Moyasar init failed: ${e.message}` : "Moyasar init failed");
+    // Inject CSS once
+    if (!document.querySelector(`link[href="${MOYASAR_CSS}"]`)) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = MOYASAR_CSS;
+      document.head.appendChild(link);
     }
-  }, [initResp, moyasarReady, method, successPath]);
+
+    // If Moyasar.js already on window (cached), init immediately
+    if (window.Moyasar) {
+      initForm();
+      return;
+    }
+
+    // If script tag already injected (but not yet loaded), listen for its load
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${MOYASAR_JS}"]`);
+    if (existing) {
+      existing.addEventListener("load", initForm, { once: true });
+      return () => existing.removeEventListener("load", initForm);
+    }
+
+    // Fresh inject
+    const script = document.createElement("script");
+    script.src = MOYASAR_JS;
+    script.addEventListener("load", initForm, { once: true });
+    document.head.appendChild(script);
+    return () => script.removeEventListener("load", initForm);
+  }, [initResp, method, successPath]);
 
   if (loading) {
     return (
@@ -268,12 +301,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
               <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-3">
                 {locale === "ar" ? "أكمل البيانات" : "Enter your details"}
               </p>
-              <Script
-                src="https://cdn.moyasar.com/mpf/1.7.3/moyasar.js"
-                onLoad={() => setMoyasarReady(true)}
-                strategy="afterInteractive"
-              />
-              <link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.7.3/moyasar.css" />
+              {/* Moyasar.js injects the card form here via window.Moyasar.init() */}
               <div id="moyasar-form" />
               {!moyasarReady && (
                 <div className="flex items-center justify-center py-8 text-sm text-gray-400">
