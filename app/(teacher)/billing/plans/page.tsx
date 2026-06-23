@@ -72,22 +72,22 @@ export default function TeacherPlansPage() {
   const hasActive = !!sub && (sub.status === "active" || sub.status === "past_due");
 
   return (
-    <div className="p-4 lg:p-6 space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center gap-3">
-        <Link href="/billing" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700">
-          <ArrowLeft size={12} /> Back to billing
-        </Link>
-      </div>
+    <div className="p-4 lg:p-8 space-y-8 max-w-6xl mx-auto">
+      <Link href="/billing" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700">
+        <ArrowLeft size={12} /> {locale === "ar" ? "العودة إلى الفوترة" : "Back to billing"}
+      </Link>
 
       <div className="text-center">
         <div className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide rounded-full px-3 py-1 bg-amber-100 text-amber-800 mb-3">
           <GraduationCap size={12} /> {locale === "ar" ? "باقة المعلمين المميزة" : "Premium Teacher"}
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           {locale === "ar" ? "كن من أوائل الذين يرونهم المدارس" : "Be the first teacher schools see"}
         </h1>
-        <p className="text-sm text-gray-500 max-w-md mx-auto">
-          {locale === "ar" ? "ظهور أولوي في عمليات بحث المدارس + شارة معلم مميز على ملفك الشخصي." : "Priority placement in school searches and a Premium Teacher badge on your profile."}
+        <p className="text-sm text-gray-500 max-w-lg mx-auto">
+          {locale === "ar"
+            ? "ظهور أولوي في عمليات بحث المدارس + شارة معلم مميز على ملفك الشخصي."
+            : "Priority placement in school searches and a Premium Teacher badge on your profile."}
         </p>
       </div>
 
@@ -98,13 +98,14 @@ export default function TeacherPlansPage() {
       )}
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-gray-100 p-16 flex items-center justify-center">
           <Loader2 className="animate-spin text-gray-400" size={24} />
         </div>
       ) : plans.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-10">No plans available right now.</p>
       ) : activePlan ? (
         <>
+          {/* Duration toggle */}
           <div className="flex justify-center">
             <div className="inline-flex bg-white border border-gray-200 rounded-full p-1 shadow-sm">
               {plans.map((p, i) => (
@@ -154,90 +155,117 @@ function PlanCard({ plan, locale, user, hasActive, sub }: {
   const samePlanAlready = sub?.planCode === plan.code && sub.status === "active";
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className={`bg-white rounded-3xl border shadow-sm p-8 sm:p-10 ${
-        plan.isHighlighted ? "border-[var(--brand-primary)] ring-2 ring-[var(--brand-primary)]/20" : "border-gray-100"
-      }`}>
-        {plan.isHighlighted && (
-          <div className="flex justify-center -mt-12 mb-6">
-            <span className="inline-flex items-center gap-1 text-xs font-bold tracking-wide uppercase text-white px-3 py-1.5 rounded-full shadow-sm" style={{ background: "var(--brand-gradient, var(--brand-primary))" }}>
-              <Star size={11} fill="currentColor" />
-              {locale === "ar" ? "الأكثر شعبية" : "Most Popular"}
-            </span>
-          </div>
-        )}
+    <div className={`bg-white rounded-3xl border shadow-sm overflow-hidden ${
+      plan.isHighlighted ? "border-[var(--brand-primary)] ring-2 ring-[var(--brand-primary)]/20" : "border-gray-100"
+    }`}>
+      {plan.isHighlighted && (
+        <div className="flex justify-center py-2" style={{ background: "var(--brand-gradient, var(--brand-primary))" }}>
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase text-white">
+            <Star size={11} fill="currentColor" />
+            {locale === "ar" ? "الأكثر شعبية" : "Most Popular"}
+          </span>
+        </div>
+      )}
 
-        <div className="text-center mb-6">
-          <p className="text-sm font-semibold text-gray-500 mb-1 capitalize">{plan.name}</p>
-          <div className="flex items-baseline justify-center gap-2 mb-1">
-            <span className="text-5xl font-bold text-gray-900 tabular-nums">{halalaToSAR(plan.effectiveMonthlyHalala)}</span>
-            <span className="text-base font-medium text-gray-500">SAR/{locale === "ar" ? "شهر" : "month"}</span>
+      {/* Two-column layout: pricing left, features right */}
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr]">
+
+        {/* ── Left — price + CTA ── */}
+        <div className="p-8 lg:p-10 flex flex-col lg:border-e border-gray-100">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{plan.name}</p>
+
+          <div className="mb-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-6xl font-bold text-gray-900 tabular-nums leading-none">
+                {halalaToSAR(plan.effectiveMonthlyHalala)}
+              </span>
+              <span className="text-base font-medium text-gray-500">
+                SAR/{locale === "ar" ? "شهر" : "month"}
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              {locale === "ar"
+                ? `يُفوتر ${plan.durationLabel} كـ ${halalaToSARDecimal(plan.priceHalala)} ر.س · لا تشمل ضريبة 15%`
+                : `Billed ${plan.durationLabel.toLowerCase()} as ${halalaToSARDecimal(plan.priceHalala)} SAR · excl. 15% VAT`}
+            </p>
           </div>
-          <p className="text-xs text-gray-400">
-            {locale === "ar"
-              ? `يُفوتر ${plan.durationLabel} كـ ${halalaToSARDecimal(plan.priceHalala)} ر.س · لا تشمل 15% ضريبة قيمة مضافة`
-              : `Billed ${plan.durationLabel.toLowerCase()} as ${halalaToSARDecimal(plan.priceHalala)} SAR · excl. 15% VAT`}
-          </p>
+
+          {plan.savings && !samePlanAlready && (
+            <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-center">
+              <p className="text-sm font-semibold text-emerald-700">
+                💰 {locale === "ar"
+                  ? `وفّر ${halalaToSAR(plan.savings.vsMonthlyHalala)} ر.س مقارنةً بالشهري`
+                  : `Save ${halalaToSAR(plan.savings.vsMonthlyHalala)} SAR vs monthly`}
+              </p>
+            </div>
+          )}
+
+          {plan.description && (
+            <p className="text-sm text-gray-500 mt-4 leading-relaxed">{plan.description}</p>
+          )}
+
+          <div className="mt-auto pt-8 space-y-3">
+            {samePlanAlready ? (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-center">
+                <p className="text-sm font-semibold text-blue-700">
+                  {locale === "ar" ? "أنت مشترك في هذه الباقة حالياً" : "You're already on this plan"}
+                </p>
+                <Link href="/billing" className="text-xs text-blue-600 underline mt-1 inline-block">
+                  {locale === "ar" ? "إدارة الاشتراك" : "Manage subscription"}
+                </Link>
+              </div>
+            ) : target.kind === "checkout" ? (
+              <Link
+                href={target.href}
+                className="flex items-center justify-center gap-2 w-full px-6 py-3.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all"
+                style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
+              >
+                <CreditCard size={16} />
+                {locale === "ar" ? "اشترك في المميزة" : "Subscribe to Premium"}
+              </Link>
+            ) : null}
+
+            {target.warning && !samePlanAlready && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center">
+                {target.warning}
+              </p>
+            )}
+
+            <ul className="space-y-1.5 text-xs text-gray-500 pt-1">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                {locale === "ar" ? "ضمان استرداد المال 7 أيام" : "7-day money-back guarantee"}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                {locale === "ar" ? "إلغاء في أي وقت" : "Cancel anytime"}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                {locale === "ar" ? "فاتورة متوافقة مع هيئة الزكاة" : "ZATCA-compliant invoice"}
+              </li>
+            </ul>
+          </div>
         </div>
 
-        {plan.savings && !samePlanAlready && (
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-6 text-center">
-            <p className="text-sm font-semibold text-emerald-700">
-              💰 {locale === "ar"
-                ? `توفّر ${halalaToSAR(plan.savings.vsMonthlyHalala)} ر.س مقارنةً بالدفع شهرياً`
-                : `Save ${halalaToSAR(plan.savings.vsMonthlyHalala)} SAR vs paying monthly`}
-            </p>
-          </div>
-        )}
+        {/* ── Right — feature bullets in 2-column grid ── */}
+        <div className="p-8 lg:p-10 bg-gray-50/50">
+          <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-5">
+            {locale === "ar" ? "كل ما هو مشمول" : "Everything included"}
+          </p>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
+            {plan.bullets.map((b, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <div className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: "var(--brand-primary-light, #e6f9fd)" }}>
+                  <CheckCircle2 size={12} style={{ color: "var(--brand-primary, #00ACD3)" }} />
+                </div>
+                <span className="text-sm text-gray-700 leading-snug">{b}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        {samePlanAlready && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-6 text-center">
-            <p className="text-sm font-semibold text-blue-700">
-              {locale === "ar" ? "أنت مشترك في هذه الباقة حالياً" : "You're already on this plan"}
-            </p>
-            <Link href="/billing" className="text-xs text-blue-600 underline mt-1 inline-block">
-              {locale === "ar" ? "إدارة الاشتراك" : "Manage subscription"}
-            </Link>
-          </div>
-        )}
-
-        {!samePlanAlready && target.kind === "checkout" && (
-          <Link
-            href={target.href}
-            className="flex items-center justify-center gap-2 w-full text-center px-6 py-3.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all mb-6"
-            style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
-          >
-            <CreditCard size={16} />
-            {locale === "ar" ? "اشترك في المميزة" : "Subscribe to Premium"}
-          </Link>
-        )}
-
-        {target.warning && !samePlanAlready && (
-          <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 px-4 py-2.5 text-xs text-amber-800 text-center">
-            {target.warning}
-          </div>
-        )}
-
-        {plan.description && (
-          <p className="text-sm text-gray-600 text-center mb-5">{plan.description}</p>
-        )}
-
-        {plan.bullets.length > 0 && (
-          <>
-            <div className="border-t border-gray-100 my-4" />
-            <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center mb-3">
-              {locale === "ar" ? "كل ما هو مشمول" : "Everything included"}
-            </p>
-            <ul className="space-y-2.5">
-              {plan.bullets.map((b, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={16} />
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
       </div>
     </div>
   );
