@@ -95,10 +95,7 @@ export interface PricingPagePayload {
 
 export async function getPricingPagePayload(locale: "en" | "ar"): Promise<PricingPagePayload> {
   const res = await fetch(`${API_URL}/api/pricing/page?locale=${locale}`, {
-    // Marketing payload changes infrequently; let the browser cache it briefly.
-    // The backend itself sends Cache-Control + the admin invalidation flow is
-    // a follow-up.
-    next: { revalidate: 60 },
+    cache: "no-store",
   });
   if (!res.ok) {
     throw new Error(`Failed to load pricing page: ${res.status}`);
