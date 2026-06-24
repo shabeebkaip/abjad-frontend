@@ -14,6 +14,7 @@ import {
   confirmHire,
 } from "@/lib/api/school";
 import type { SchoolOffer } from "@/lib/api/school";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -154,7 +155,7 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
 
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-600">
-            Current offer: <span className="font-semibold text-gray-900">SAR {offer.salary.toLocaleString()}/month</span>
+            Current offer: <span className="font-semibold text-gray-900"><SARSymbol />{offer.salary.toLocaleString()}/month</span>
           </div>
 
           <div>
@@ -293,7 +294,7 @@ function OfferCard({
       <div className="flex flex-wrap gap-2 mb-3">
         <span className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
           <DollarSign size={11} />
-          SAR {o.salary.toLocaleString()}/month
+          <SARSymbol />{o.salary.toLocaleString()}/month
         </span>
         {o.contractDuration && (
           <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
@@ -344,7 +345,7 @@ function OfferCard({
                   <div className="flex items-center justify-between mb-1">
                     {entry.counterSalary && (
                       <span className="font-semibold text-gray-800">
-                        Counter: SAR {entry.counterSalary.toLocaleString()}
+                        Counter: <SARSymbol />{entry.counterSalary.toLocaleString()}
                       </span>
                     )}
                     <span className="text-gray-400">{timeAgo(entry.createdAt)}</span>

@@ -20,6 +20,7 @@ import {
   getCandidateHistory,
 } from "@/lib/api/school";
 import type { CandidateProfile, Shortlist, CandidateHistory } from "@/lib/api/school";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -386,7 +387,7 @@ function CandidateCard({
       {/* Salary */}
       {(c.salaryExpectations?.minMonthlySAR || c.salaryExpectations?.maxMonthlySAR) && (
         <div className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-lg">
-          SAR {c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
+          <SARSymbol />{c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
           {c.salaryExpectations.maxMonthlySAR
             ? `–${c.salaryExpectations.maxMonthlySAR.toLocaleString()}`
             : "+"}{" "}
@@ -596,7 +597,7 @@ function HistoryTabBody({
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-500">
                   {o.salary?.amount != null && (
-                    <span>{o.salary.amount.toLocaleString()} {o.salary.currency ?? "SAR"} / {o.salary.period ?? "month"}</span>
+                    <span><SARSymbol />{o.salary.amount.toLocaleString()} / {o.salary.period ?? "month"}</span>
                   )}
                   {o.sentAt && <span>· Sent {formatDate(o.sentAt)}</span>}
                   {o.respondedAt && <span>· Responded {formatDate(o.respondedAt)}</span>}
@@ -934,7 +935,7 @@ function CandidateProfileModal({
                 Salary Expectation
               </h3>
               <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 text-sm font-semibold text-emerald-700">
-                SAR {c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
+                <SARSymbol />{c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
                 {c.salaryExpectations.maxMonthlySAR
                   ? `–${c.salaryExpectations.maxMonthlySAR.toLocaleString()}`
                   : "+"}{" "}

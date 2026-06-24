@@ -17,6 +17,7 @@ import {
   getCandidate,
 } from "@/lib/api/school";
 import type { Shortlist, SchoolJob, CandidateProfile } from "@/lib/api/school";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -644,7 +645,7 @@ function ProfileViewModal({ candidate: c, onClose }: ProfileViewModalProps) {
           )}
           {(c.salaryExpectations?.minMonthlySAR || c.salaryExpectations?.maxMonthlySAR) && (
             <div className="text-xs text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl">
-              SAR {c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
+              <SARSymbol />{c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
               {c.salaryExpectations.maxMonthlySAR ? `–${c.salaryExpectations.maxMonthlySAR.toLocaleString()}` : "+"} / month
             </div>
           )}

@@ -3,6 +3,7 @@
 // SRD 2.3.4 — dedicated Saved Jobs page. Lists everything the teacher has
 // bookmarked, with Apply / Remove actions inline. Paginated at 20/page.
 
+import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
@@ -13,6 +14,7 @@ import { getSavedJobs, unsaveJob, applyForJob } from "@/lib/api/teacher";
 import type { Job } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
 import { ApplyJobModal } from "@/components/teacher/ApplyJobModal";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 const PAGE_SIZE = 20;
 
@@ -21,11 +23,11 @@ const CITY_LABELS: Record<string, string> = {
   mecca: "Makkah", medina: "Madinah", abha: "Abha", tabuk: "Tabuk",
 };
 
-function salaryText(job: Job): string {
+function salaryText(job: Job): React.ReactNode {
   if (job.salary.display === "negotiable") return "Negotiable";
   if (job.salary.display === "hide")       return "Undisclosed";
   if (job.salary.min && job.salary.max) {
-    return `SAR ${job.salary.min.toLocaleString()}–${job.salary.max.toLocaleString()}/mo`;
+    return <><SARSymbol />{job.salary.min.toLocaleString()}–{job.salary.max.toLocaleString()}/mo</>;
   }
   return "Salary on request";
 }

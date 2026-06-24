@@ -40,6 +40,7 @@ import {
 } from "@/lib/api/teacher";
 import type { TeacherProfile } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1517,7 +1518,7 @@ function ProfilePreviewModal({
             <div>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Salary Expectation</h3>
               <p className="text-sm text-gray-700 font-medium">
-                {profile.salaryExpectations.minMonthlySAR?.toLocaleString()} – {profile.salaryExpectations.maxMonthlySAR?.toLocaleString()} SAR / month
+                <SARSymbol />{profile.salaryExpectations.minMonthlySAR?.toLocaleString()} – {profile.salaryExpectations.maxMonthlySAR?.toLocaleString()} / month
               </p>
             </div>
           )}

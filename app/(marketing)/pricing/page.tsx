@@ -11,6 +11,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getPricingPagePayload, type PricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
 import { resolveCheckoutTarget } from "@/lib/auth/checkout-target";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // Public /pricing page. Single round-trip to /api/pricing/page?locale=...
 // then renders top-to-bottom. Architecture matches the strategy doc:
@@ -346,7 +347,7 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                   <span className="text-5xl font-bold text-gray-900 tabular-nums">
                     {halalaToSAR(activePlan.effectiveMonthlyHalala)}
                   </span>
-                  <span className="text-base font-medium text-gray-500">SAR{monthlyLabel}</span>
+                  <span className="text-base font-medium text-gray-500"><SARSymbol />{monthlyLabel}</span>
                 </div>
                 <p className="text-xs text-gray-400">
                   {locale === "ar"
@@ -358,9 +359,9 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
               {activePlan.savings && (
                 <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-6 text-center">
                   <p className="text-sm font-semibold text-emerald-700">
-                    💰 {locale === "ar"
-                      ? `توفّر ${halalaToSAR(activePlan.savings.vsMonthlyHalala)} ر.س مقارنةً بالدفع شهرياً`
-                      : `Save ${halalaToSAR(activePlan.savings.vsMonthlyHalala)} SAR vs paying monthly`}
+                    {locale === "ar"
+                      ? <>💰 {`توفّر ${halalaToSAR(activePlan.savings.vsMonthlyHalala)} ر.س مقارنةً بالدفع شهرياً`}</>
+                      : <>💰 Save <SARSymbol />{halalaToSAR(activePlan.savings.vsMonthlyHalala)} vs paying monthly</>}
                   </p>
                 </div>
               )}

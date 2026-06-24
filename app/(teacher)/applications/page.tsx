@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import {
   FileText,
@@ -23,6 +24,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { listApplications, getApplicationStats, withdrawApplication, respondToOffer, listOffers, submitFeedback } from "@/lib/api/teacher";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 import type { Offer } from "@/lib/api/teacher";
 import { PostHireFeedbackModal, type PostHireFeedbackPayload } from "@/components/teacher/PostHireFeedbackModal";
 import type { Application, ApplicationStats } from "@/lib/api/teacher";
@@ -82,12 +84,12 @@ function jobTitle(app: Application): string {
   return typeof app.jobId === "object" ? app.jobId.title : "Job";
 }
 
-function jobSalary(app: Application): string {
+function jobSalary(app: Application): React.ReactNode {
   if (typeof app.jobId !== "object") return "";
   const s = app.jobId.salary;
   if (!s || s.display === "hide") return "Undisclosed";
   if (s.display === "negotiable") return "Negotiable";
-  if (s.min && s.max) return `SAR ${s.min.toLocaleString()}–${s.max.toLocaleString()}/mo`;
+  if (s.min && s.max) return <><SARSymbol />{s.min.toLocaleString()}–{s.max.toLocaleString()}/mo</>;
   return "";
 }
 

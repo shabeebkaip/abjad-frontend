@@ -32,6 +32,7 @@ import type {
   SchoolOffer,
 } from "@/lib/api/school";
 import { useAuth } from "@/lib/auth/useAuth";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -548,7 +549,7 @@ export default function SchoolDashboardPage() {
                             </span>
                             <span className="text-gray-300">·</span>
                             <span className="text-xs font-medium text-gray-700">
-                              SAR {offer.salary.toLocaleString()}/mo
+                              <SARSymbol />{offer.salary.toLocaleString()}/mo
                             </span>
                           </div>
                         </div>

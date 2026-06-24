@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -27,6 +28,7 @@ import { getDashboard } from "@/lib/api/teacher";
 import type { DashboardData, Job, Interview, Notification, ActivityEntry } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
 import { TrialBanner } from "@/components/billing/TrialBanner";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -153,11 +155,11 @@ function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
   );
 }
 
-function formatSalary(job: Job): string {
+function formatSalary(job: Job): React.ReactNode {
   if (job.salary.display === "negotiable") return "Negotiable";
   if (job.salary.display === "hide") return "Undisclosed";
   if (job.salary.min && job.salary.max) {
-    return `SAR ${job.salary.min.toLocaleString()}–${job.salary.max.toLocaleString()}`;
+    return <><SARSymbol />{job.salary.min.toLocaleString()}–{job.salary.max.toLocaleString()}</>;
   }
   return "Salary on request";
 }
@@ -499,7 +501,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900">{offer.position ?? offer.jobId.title}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{schoolName(offer.schoolId)} · SAR {offer.salary?.toLocaleString()}/mo</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{schoolName(offer.schoolId)} · <SARSymbol />{offer.salary?.toLocaleString()}/mo</p>
                       </div>
                       <span className="text-xs bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-0.5 rounded-full font-medium capitalize">
                         {offer.status}

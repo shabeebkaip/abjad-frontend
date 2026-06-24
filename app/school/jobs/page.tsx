@@ -22,6 +22,7 @@ import {
 import type { SchoolJob } from "@/lib/api/school";
 import { ApiError } from "@/lib/api/client";
 import { PaywallModal } from "@/components/billing/PaywallModal";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1245,14 +1246,14 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                       : form.salaryDisplay === "negotiable"
                       ? "Negotiable"
                       : (form.salaryMin || form.salaryMax)
-                        ? `${form.salaryMin || "?"} – ${form.salaryMax || "?"} SAR/mo`
+                        ? <><SARSymbol />{form.salaryMin || "?"} – {form.salaryMax || "?"}/mo</>
                         : "—"}
                   </p>
                 </div>
                 {form.dailyRate && (
                   <div>
                     <p className="text-xs text-gray-500">Daily rate</p>
-                    <p className="text-sm font-semibold text-gray-800">{form.dailyRate} SAR/day</p>
+                    <p className="text-sm font-semibold text-gray-800"><SARSymbol />{form.dailyRate}/day</p>
                   </div>
                 )}
                 {form.maxApplications && (
@@ -1550,7 +1551,7 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
         {job.salary.display === "show" && (job.salary.min || job.salary.max) && (
           <span className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
             <DollarSign size={10} />
-            SAR {job.salary.min?.toLocaleString() ?? "–"}
+            <SARSymbol />{job.salary.min?.toLocaleString() ?? "–"}
             {job.salary.max ? `–${job.salary.max.toLocaleString()}` : "+"}
           </span>
         )}

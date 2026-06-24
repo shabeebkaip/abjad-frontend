@@ -9,6 +9,7 @@ import {
 import { getMySubscription, listMyInvoices, startTrial, cancelMySubscription, type MySubscription, type MyInvoice } from "@/lib/api/billing";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getAccessToken, doRefresh } from "@/lib/api/client";
+import { SARSymbol } from "@/components/ui/sar-symbol";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
@@ -221,7 +222,7 @@ function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
               {sub.planCode.replace(/_/g, " ")}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {halalaToSAR(sub.pricePerPeriodHalala)} SAR / {sub.durationMonths} {sub.durationMonths === 1 ? "month" : "months"} · excl. 15% VAT
+              <SARSymbol />{halalaToSAR(sub.pricePerPeriodHalala)} / {sub.durationMonths} {sub.durationMonths === 1 ? "month" : "months"} · excl. 15% VAT
             </p>
           </div>
           <div className="text-right rtl:text-left">
@@ -360,7 +361,7 @@ function InvoiceRow({ inv }: { inv: MyInvoice }) {
       </div>
       <div className="flex items-center gap-3 shrink-0">
         <p className="text-sm font-semibold text-gray-900 tabular-nums">
-          {halalaToSAR(inv.totalHalala)} SAR
+          <SARSymbol />{halalaToSAR(inv.totalHalala)}
         </p>
         <span className={`text-[10px] font-semibold uppercase tracking-wider rounded-full px-2 py-1 ${INVOICE_STATUS_TONE[inv.status] ?? "bg-slate-100 text-slate-500"}`}>
           {inv.status}
