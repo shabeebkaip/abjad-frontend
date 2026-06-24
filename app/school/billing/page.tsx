@@ -149,11 +149,6 @@ export default function SchoolBillingPage() {
                 <ReceiptText size={16} className="text-slate-500" />
                 Recent invoices
               </h2>
-              {invoices.length > 0 && (
-                <Link href="/school/billing/invoices" className="text-xs text-brand-primary hover:underline inline-flex items-center gap-1">
-                  View all <ArrowRight size={12} />
-                </Link>
-              )}
             </div>
             {invoices.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-10">No invoices yet.</p>

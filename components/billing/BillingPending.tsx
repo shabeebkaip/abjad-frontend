@@ -209,7 +209,7 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
             </div>
             <button
               type="button"
-              onClick={() => downloadReceipt(invoice._id, `${invoice.invoiceNumber}.pdf`)}
+              onClick={() => downloadReceipt(invoice._id, `${invoice.number}.pdf`)}
               className="flex items-center justify-center gap-1.5 w-full px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               <Download size={13} />
