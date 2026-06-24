@@ -58,8 +58,16 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
         label: locale === "ar" ? "متأخّر السداد" : "Past due",
       };
     }
-    // Only surface "renews soon" when actually soon
     const left = daysUntil(sub.currentPeriodEnd);
+    if (sub.cancelAtPeriodEnd) {
+      return {
+        tone: "bg-slate-100 text-slate-600 border-slate-200",
+        Icon: XCircle,
+        label: locale === "ar" ? "ملغى" : "Cancelled",
+        detail: left != null ? `${left}${locale === "ar" ? "ي" : "d"}` : undefined,
+      };
+    }
+    // Only surface "renews soon" when actually soon
     if (left != null && left <= 14) {
       return {
         tone: "bg-amber-50 text-amber-700 border-amber-200",
