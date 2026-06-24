@@ -226,7 +226,7 @@ export default function WorkflowDemoPage() {
             {PHASES.map((p, i) => {
               const actColor =
                 p.act === 2 ? "#0d9488" :
-                p.act === 3 ? "#7c3aed" : "var(--brand-primary)";
+                p.act === 3 ? "#0D2542" : "var(--brand-primary)";
               const isActive = activePhase === p.num;
               return (
                 <a
@@ -252,60 +252,78 @@ export default function WorkflowDemoPage() {
 
       {/* ───────────────────── HERO ───────────────────── */}
       <section className="relative overflow-hidden" style={{ background: "var(--brand-gradient)" }}>
+        {/* Dot grid */}
         <div
-          className="absolute inset-0 opacity-[0.05] pointer-events-none"
-          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "32px 32px" }}
+          className="absolute inset-0 opacity-[0.035] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }}
         />
+        {/* Glow — top left (teal) */}
         <div
-          className="absolute -top-40 -left-40 w-160 h-160 rounded-full blur-[120px] pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(0,172,211,0.18) 0%, transparent 65%)" }}
+          className="absolute -top-60 -left-60 w-[600px] h-[600px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(0,172,211,0.22) 0%, transparent 65%)" }}
+        />
+        {/* Glow — bottom right (indigo) */}
+        <div
+          className="absolute -bottom-48 -right-48 w-[500px] h-[500px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(68,72,130,0.28) 0%, transparent 68%)" }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pt-20 sm:pt-28 pb-16 sm:pb-24 text-center">
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/70 text-xs font-bold tracking-widest uppercase mb-8">
+        <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 pt-24 sm:pt-32 pb-20 sm:pb-28 text-center">
+
+          {/* Live badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/8 backdrop-blur-sm text-white/65 text-[11px] font-bold tracking-[0.14em] uppercase mb-10">
             <span className="relative flex h-1.5 w-1.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
             </span>
             Live Product Walkthrough
-          </span>
+          </div>
 
+          {/* Headline */}
           <h1
-            className="font-extrabold text-white leading-[1.05] mb-6 max-w-4xl mx-auto"
-            style={{ fontSize: "clamp(2.4rem, 6vw, 4.5rem)", letterSpacing: "-0.04em" }}
+            className="font-extrabold text-white leading-[1.05] mb-5 mx-auto"
+            style={{ fontSize: "clamp(2.6rem, 6.5vw, 5rem)", letterSpacing: "-0.045em" }}
           >
             From Job Posted to{" "}
             <span style={{ color: "var(--brand-accent)" }}>Teacher Hired</span>
           </h1>
-          <p className="text-white/65 text-base sm:text-lg leading-relaxed mb-12 max-w-2xl mx-auto">
-            A complete tour of the Abjad hiring workflow — every screen below is the real product UI exactly as it appears in the live application.
+
+          {/* Subtext */}
+          <p className="text-white/50 text-base sm:text-lg leading-relaxed mb-14 max-w-lg mx-auto">
+            Every screen below is the real product UI — exactly as it appears in the live application.
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-10">
+          {/* Stats strip — editorial divider style */}
+          <div className="flex items-stretch justify-center mb-14 max-w-xl mx-auto border border-white/12 rounded-2xl overflow-hidden backdrop-blur-sm divide-x divide-white/12" style={{ background: "rgba(255,255,255,0.05)" }}>
             {[
-              { val: "7 days",    label: "Post → Hire",       color: "var(--brand-accent)" },
-              { val: "16 steps",  label: "Full coverage",     color: "#34d399" },
-              { val: "3 journeys", label: "Hire · Bill · Admin", color: "#a78bfa" },
-              { val: "Live UI",   label: "Real product",      color: "#fbbf24" },
+              { val: "7 days",     label: "Post → Hire" },
+              { val: "16 steps",   label: "Full coverage" },
+              { val: "3 journeys", label: "Hire · Bill · Admin" },
             ].map((m) => (
-              <div key={m.label} className="rounded-2xl bg-white/6 border border-white/10 px-4 py-5 backdrop-blur-sm">
+              <div key={m.label} className="flex-1 px-5 py-5 text-center">
                 <div
-                  className="font-black leading-none mb-1.5"
-                  style={{ fontSize: "clamp(1.4rem, 2.5vw, 1.8rem)", color: m.color }}
+                  className="font-black text-white leading-none mb-1.5"
+                  style={{ fontSize: "clamp(1.25rem, 2.5vw, 1.65rem)", letterSpacing: "-0.03em" }}
                 >
                   {m.val}
                 </div>
-                <div className="text-white/45 text-xs font-medium">{m.label}</div>
+                <div className="text-white/40 text-[11px] font-semibold tracking-wide">{m.label}</div>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10 flex-wrap">
+          {/* CTA buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-14">
             <a
               href="https://abjad-frontend.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold text-sm px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2.5 font-bold text-sm px-7 py-3.5 rounded-full transition-all hover:-translate-y-0.5"
+              style={{
+                background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)",
+                color: "white",
+                boxShadow: "0 8px 28px rgba(0,172,211,0.45), 0 2px 8px rgba(0,0,0,0.15)",
+              }}
             >
               <ExternalLink size={14} /> Open School App
             </a>
@@ -313,18 +331,20 @@ export default function WorkflowDemoPage() {
               href="https://abjad-admin.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-bold text-sm px-6 py-3 rounded-full backdrop-blur-sm hover:bg-white/20 transition-all"
+              className="inline-flex items-center gap-2.5 border border-white/20 text-white font-bold text-sm px-7 py-3.5 rounded-full backdrop-blur-sm transition-all hover:bg-white/10"
+              style={{ background: "rgba(255,255,255,0.07)" }}
             >
               <ShieldCheck size={14} /> Open Admin Panel
             </a>
           </div>
 
+          {/* Scroll hint */}
           <a
             href="#phase-01"
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm font-semibold"
+            className="inline-flex flex-col items-center gap-1.5 text-white/35 hover:text-white/65 transition-colors group"
           >
-            Begin the journey
-            <ChevronDown size={16} className="animate-bounce" />
+            <span className="text-[11px] font-semibold tracking-[0.12em] uppercase">Begin the journey</span>
+            <ChevronDown size={15} className="animate-bounce" />
           </a>
         </div>
       </section>
