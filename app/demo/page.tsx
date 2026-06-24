@@ -55,7 +55,7 @@ function BrowserFrame({
   const actorColor =
     actor === "school" ? "var(--brand-primary)" :
     actor === "teacher" ? "var(--brand-accent)" :
-    actor === "admin" ? "#7c3aed" : "#a78bfa";
+    actor === "admin" ? "#0D2542" : "#a78bfa";
 
   return (
     <div className="rounded-2xl bg-white border border-gray-200 shadow-2xl shadow-gray-300/30 overflow-hidden">
@@ -99,7 +99,7 @@ function PhaseHeader({
   const actorColor =
     actor === "school" ? "var(--brand-primary)" :
     actor === "teacher" ? "var(--brand-accent)" :
-    actor === "admin" ? "#7c3aed" : "#a78bfa";
+    actor === "admin" ? "#0D2542" : "#a78bfa";
 
   return (
     <div className="mb-10 lg:mb-14">
@@ -399,7 +399,7 @@ export default function WorkflowDemoPage() {
           {/* Act 3 — Admin */}
           <div className="mb-10">
             <div className="flex items-center gap-3 mb-5">
-              <span className="text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full bg-violet-50 text-violet-700">Part 3</span>
+              <span className="text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full bg-[#0D2542]/10 text-[#0D2542]">Part 3</span>
               <span className="text-sm font-bold text-gray-700">Admin Control Center</span>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
@@ -408,7 +408,7 @@ export default function WorkflowDemoPage() {
                 <a key={p.num} href={`#phase-${p.num}`} className="flex flex-col items-center text-center group">
                   <div
                     className="w-[60px] h-[60px] rounded-full border-4 border-white bg-white flex items-center justify-center font-black text-sm transition-all group-hover:scale-110"
-                    style={{ boxShadow: "0 0 0 2px #7c3aed, 0 4px 12px #7c3aed40", color: "#7c3aed" }}
+                    style={{ boxShadow: "0 0 0 2px #0D2542, 0 4px 12px #0D254240", color: "#0D2542" }}
                   >
                     {p.num}
                   </div>
@@ -2174,12 +2174,13 @@ export default function WorkflowDemoPage() {
       {/* ═════════════════════════════════════════════════════════ */}
       {/*    ACT DIVIDER — Admin Control Center                      */}
       {/* ═════════════════════════════════════════════════════════ */}
-      <section className="py-20 border-t-4 border-violet-600 bg-white relative overflow-hidden">
+      <section className="py-20 border-t-4 bg-white relative overflow-hidden" style={{ borderColor: "#0D2542" }}>
         <div className="absolute inset-0 opacity-[0.025] pointer-events-none"
-          style={{ backgroundImage: "radial-gradient(circle, #7c3aed 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+          style={{ backgroundImage: "radial-gradient(circle, #0D2542 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
         <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
           <div className="flex-1 text-center lg:text-left">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-black tracking-widest uppercase mb-5">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-black tracking-widest uppercase mb-5"
+              style={{ backgroundColor: "rgba(13,37,66,0.06)", borderColor: "rgba(13,37,66,0.15)", color: "#0D2542" }}>
               <ShieldCheck size={12} /> Part 3 of 3
             </span>
             <h2 className="font-extrabold text-gray-950 leading-tight mb-4"
@@ -2193,22 +2194,25 @@ export default function WorkflowDemoPage() {
               href="https://abjad-admin.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-violet-600 text-white font-bold text-sm px-6 py-3 rounded-full hover:bg-violet-700 transition-colors"
+              className="inline-flex items-center gap-2 text-white font-bold text-sm px-6 py-3 rounded-full transition-colors"
+              style={{ backgroundColor: "#0D2542" }}
             >
               <ExternalLink size={14} /> Open Live Admin Panel
             </a>
           </div>
           <div className="grid grid-cols-3 gap-3 shrink-0">
             {[
-              { icon: Layers,      label: "Mission Control" },
-              { icon: UserCheck,   label: "Verify Users"    },
-              { icon: BarChart3,   label: "Analytics"       },
+              { icon: Layers,    label: "Mission Control" },
+              { icon: UserCheck, label: "Verify Users"    },
+              { icon: BarChart3, label: "Analytics"       },
             ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex flex-col items-center gap-2 bg-violet-50 border border-violet-100 rounded-2xl px-4 py-5">
-                <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center">
+              <div key={label} className="flex flex-col items-center gap-2 rounded-2xl px-4 py-5 border"
+                style={{ backgroundColor: "rgba(13,37,66,0.04)", borderColor: "rgba(13,37,66,0.10)" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #0D2542 0%, #444882 100%)" }}>
                   <Icon size={18} className="text-white" />
                 </div>
-                <span className="text-xs font-bold text-violet-800 text-center">{label}</span>
+                <span className="text-xs font-bold text-center" style={{ color: "#0D2542" }}>{label}</span>
               </div>
             ))}
           </div>
@@ -2225,89 +2229,177 @@ export default function WorkflowDemoPage() {
             day="Admin"
             actor="admin"
             title="Mission Control — Approval Queue"
-            subtitle="Every pending teacher, school, and bank-transfer invoice lands in the unified Mission Control inbox. Items are priority-scored automatically — urgent items float to the top. Admins claim an item to own it."
+            subtitle="Every pending teacher, school, and bank-transfer invoice lands in the unified Mission Control inbox. Items are priority-scored automatically. Admins claim an item to own it, with keyboard shortcuts (j/k to navigate, a to approve, c to claim)."
           />
 
           <BrowserFrame url="/queue" actor="admin">
-            <div className="flex h-[600px] bg-[#0f0f1a] overflow-hidden">
-              {/* Sidebar */}
-              <aside className="w-52 shrink-0 border-r border-white/5 bg-[#0f0f1a] flex flex-col">
-                <div className="p-4 border-b border-white/5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center">
-                      <ShieldCheck size={14} className="text-white" />
-                    </div>
-                    <span className="text-xs font-bold text-white">Abjad Admin</span>
+            {/* Matches actual layout: dark navy sidebar + light content + queue left rail */}
+            <div className="flex h-[580px] overflow-hidden">
+
+              {/* ── Global App Sidebar (navy gradient, matches app-sidebar.tsx) ── */}
+              <aside className="w-48 shrink-0 flex flex-col border-r border-white/5"
+                style={{ background: "linear-gradient(165deg, #0f2847 0%, #0D2542 45%, #091c36 100%)" }}>
+                {/* Logo */}
+                <div className="px-4 py-4 flex items-center gap-2.5 border-b border-white/[0.08]">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+                    style={{ background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)" }}>
+                    <span className="text-sm font-bold text-white">أ</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-white">Abjad</span>
+                    <span className="text-[9px] text-white/40 uppercase tracking-widest">Admin Console</span>
                   </div>
                 </div>
-                <nav className="p-2 space-y-0.5 flex-1">
-                  {[
-                    { label: "Mission Control", count: 8,  active: true  },
-                    { label: "Teachers",         count: 24, active: false },
-                    { label: "Schools",          count: 11, active: false },
-                    { label: "Billing",          count: 3,  active: false },
-                    { label: "Support Tickets",  count: 5,  active: false },
-                    { label: "Analytics",        count: 0,  active: false },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold ${
-                        item.active ? "bg-violet-600 text-white" : "text-white/50 hover:text-white/80"
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      {item.count > 0 && (
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.active ? "bg-white/20 text-white" : "bg-white/10 text-white/60"}`}>
-                          {item.count}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+
+                {/* Nav */}
+                <nav className="flex-1 px-2 py-3 space-y-3 overflow-y-auto">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Overview</p>
+                    {[
+                      { label: "Mission Control", active: true,  badge: "8"  },
+                      { label: "Dashboard",       active: false, badge: ""   },
+                    ].map((item) => (
+                      <div key={item.label}
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5 transition-all"
+                        style={item.active
+                          ? { background: "rgba(0,172,211,0.15)", boxShadow: "inset 3px 0 0 #00ACD3", color: "#fff" }
+                          : { color: "rgba(255,255,255,0.5)" }}>
+                        <span style={item.active ? { color: "#fff" } : {}}>{item.label}</span>
+                        {item.badge && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={item.active ? { backgroundColor: "rgba(255,255,255,0.2)", color: "#fff" } : { backgroundColor: "rgba(0,172,211,0.2)", color: "#00ACD3" }}>{item.badge}</span>}
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Management</p>
+                    {[
+                      { label: "Teachers",        badge: "24" },
+                      { label: "Schools",         badge: "11" },
+                      { label: "Support Tickets", badge: "5"  },
+                    ].map((item) => (
+                      <div key={item.label}
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5"
+                        style={{ color: "rgba(255,255,255,0.5)" }}>
+                        <span>{item.label}</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={{ backgroundColor: "rgba(0,172,211,0.2)", color: "#00ACD3" }}>{item.badge}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Billing</p>
+                    {["Overview","Subscriptions","Invoices","Payments"].map((item) => (
+                      <div key={item} className="px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5"
+                        style={{ color: "rgba(255,255,255,0.5)" }}>{item}</div>
+                    ))}
+                  </div>
                 </nav>
+
+                {/* Footer */}
+                <div className="px-3 py-3 border-t border-white/[0.08] flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-white text-[10px] font-bold ring-2 ring-white/15"
+                    style={{ background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)" }}>SA</div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[11px] font-semibold text-white truncate">Super Admin</span>
+                    <span className="text-[9px] text-white/40 truncate">admin@abjad.sa</span>
+                  </div>
+                </div>
               </aside>
 
-              {/* Queue */}
-              <div className="flex-1 flex flex-col bg-white overflow-hidden">
-                <div className="shrink-0 px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                  <div>
-                    <h1 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                      <Layers size={14} className="text-violet-600" /> Mission Control
-                    </h1>
-                    <p className="text-xs text-gray-400 mt-0.5">8 items need attention · Priority order</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg text-gray-600 flex items-center gap-1.5">
-                      <Filter size={11} /> Filter
-                    </button>
-                  </div>
+              {/* ── Content area: bg-slate-50, matches layout.tsx ── */}
+              <div className="flex-1 flex flex-col bg-slate-50 min-w-0 overflow-hidden">
+
+                {/* Breadcrumb header — bg-white/95 h-14 border-b */}
+                <div className="h-10 shrink-0 bg-white/95 border-b border-slate-100 flex items-center px-5 gap-1 text-xs text-slate-400">
+                  <span>Abjad</span>
+                  <ChevronRight size={10} className="text-slate-300" />
+                  <span className="text-slate-700 font-medium">Mission Control</span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
-                  {[
-                    { type: "Teacher",  name: "Fatima Al-Zahra",       action: "Pending Approval",   priority: "HIGH",   age: "2h ago",  tag: "bg-red-100 text-red-700"     },
-                    { type: "School",   name: "Dar Al-Ulum Academy",   action: "Pending Verification", priority: "HIGH", age: "3h ago",  tag: "bg-red-100 text-red-700"     },
-                    { type: "Invoice",  name: "INV-2026-00041",        action: "Bank Transfer — Verify", priority: "MED", age: "5h ago", tag: "bg-amber-100 text-amber-700" },
-                    { type: "Teacher",  name: "Khaled Al-Mutairi",     action: "Pending Approval",   priority: "MED",    age: "6h ago",  tag: "bg-amber-100 text-amber-700" },
-                    { type: "School",   name: "Al-Noor International", action: "Pending Verification", priority: "LOW",  age: "1d ago",  tag: "bg-gray-100 text-gray-600"   },
-                  ].map((item, i) => (
-                    <div key={i} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-50">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white font-bold text-xs"
-                        style={{ backgroundColor: item.type === "Teacher" ? "var(--brand-accent)" : item.type === "School" ? "var(--brand-primary)" : "#0d9488" }}>
-                        {item.type[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-semibold text-gray-400">{item.type}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.tag}`}>{item.priority}</span>
-                        </div>
-                        <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
-                        <p className="text-xs text-gray-400">{item.action} · {item.age}</p>
-                      </div>
-                      <button className="shrink-0 px-3 py-1.5 text-xs font-bold text-violet-700 border border-violet-200 rounded-lg bg-violet-50 hover:bg-violet-100">
-                        Claim
-                      </button>
+                {/* Queue page: flex h-[calc(100vh-4rem)] */}
+                <div className="flex flex-1 min-h-0 overflow-hidden">
+
+                  {/* Queue left rail: w-52 bg-slate-50/40 border-r */}
+                  <aside className="w-40 shrink-0 border-r border-slate-100 bg-slate-50/40 flex flex-col">
+                    <div className="px-3 py-3 border-b border-slate-100">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 px-2">Views</p>
                     </div>
-                  ))}
+                    <nav className="flex-1 px-2 py-2 space-y-0.5">
+                      {[
+                        { label: "Inbox",       active: true  },
+                        { label: "My queue",    active: false },
+                        { label: "SLA at risk", active: false },
+                        { label: "Snoozed",     active: false },
+                      ].map((v) => (
+                        <div key={v.label}
+                          className={`flex items-center px-3 py-1.5 rounded-md text-[11px] transition-colors ${
+                            v.active ? "bg-white shadow-sm text-slate-900 font-medium" : "text-slate-600"
+                          }`}>
+                          {v.label}
+                        </div>
+                      ))}
+                    </nav>
+                    <div className="px-3 py-3 border-t border-slate-100">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Counts</p>
+                      {[["Teachers","5"],["Schools","2"],["Billing","1"]].map(([k,v]) => (
+                        <div key={k} className="flex justify-between text-[10px] text-slate-600 mb-0.5">
+                          <span>{k}</span><span className="tabular-nums font-medium">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </aside>
+
+                  {/* Center: table */}
+                  <div className="flex-1 flex flex-col min-w-0">
+                    {/* Header strip */}
+                    <div className="px-4 py-2.5 border-b border-slate-100 flex items-center gap-2 bg-white">
+                      {["All","Teachers","Schools","Billing"].map((t, i) => (
+                        <button key={t}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors ${
+                            i === 0 ? "bg-slate-900 text-white" : "border border-slate-200 text-slate-600"
+                          }`}>
+                          {t}
+                          {i > 0 && <span className={`text-[9px] ${i === 0 ? "text-slate-300" : "text-slate-400"}`}>{["","5","2","1"][i]}</span>}
+                        </button>
+                      ))}
+                      <div className="ml-auto flex items-center gap-2">
+                        <div className="relative">
+                          <Search size={10} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <div className="w-40 pl-6 h-7 bg-white border border-slate-200 rounded-md text-[10px] text-slate-400 flex items-center">Search…</div>
+                        </div>
+                        <RefreshCw size={12} className="text-slate-400" />
+                      </div>
+                    </div>
+
+                    {/* Queue rows */}
+                    <div className="flex-1 overflow-y-auto bg-white divide-y divide-slate-50">
+                      {[
+                        { type: "Teacher", name: "Fatima Al-Zahra",       action: "Pending Approval",     priority: "HIGH", age: "2h ago", priorityCls: "bg-red-50 text-red-700 border border-red-100"     },
+                        { type: "School",  name: "Dar Al-Ulum Academy",   action: "Pending Verification", priority: "HIGH", age: "3h ago", priorityCls: "bg-red-50 text-red-700 border border-red-100"     },
+                        { type: "Invoice", name: "INV-2026-00041",        action: "Bank Transfer — Verify", priority: "MED", age: "5h ago", priorityCls: "bg-amber-50 text-amber-700 border border-amber-100" },
+                        { type: "Teacher", name: "Khaled Al-Mutairi",     action: "Pending Approval",     priority: "MED", age: "6h ago", priorityCls: "bg-amber-50 text-amber-700 border border-amber-100" },
+                        { type: "School",  name: "Al-Noor International", action: "Pending Verification", priority: "LOW", age: "1d ago", priorityCls: "bg-slate-100 text-slate-500 border border-slate-200" },
+                      ].map((item, i) => (
+                        <div key={i} className={`px-4 py-3 flex items-center gap-3 hover:bg-slate-50 ${i === 0 ? "bg-slate-50/60" : ""}`}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white font-bold text-[11px]"
+                            style={{ backgroundColor: item.type === "Teacher" ? "#00ACD3" : item.type === "School" ? "#0D2542" : "#0d9488" }}>
+                            {item.type[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-semibold text-slate-400">{item.type}</span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${item.priorityCls}`}>{item.priority}</span>
+                            </div>
+                            <p className="text-xs font-semibold text-slate-800 truncate">{item.name}</p>
+                            <p className="text-[10px] text-slate-400">{item.action} · {item.age}</p>
+                          </div>
+                          <button className="shrink-0 px-2.5 py-1 text-[10px] font-bold border border-slate-200 rounded-md text-slate-600 bg-white hover:bg-slate-50">
+                            Claim
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2327,111 +2419,176 @@ export default function WorkflowDemoPage() {
             day="Admin"
             actor="admin"
             title="User Verification"
-            subtitle="Admins review a teacher's complete profile — documents, certifications, employment history — and either approve or reject with a typed reason. Every action is audit-logged with timestamp and admin ID."
+            subtitle="Admins review a teacher's complete profile — documents, certifications, employment history — and approve or reject with a typed reason. Every action is audit-logged with timestamp and admin ID."
           />
 
-          <BrowserFrame url="/users/teachers/detail" actor="admin">
-            <div className="flex h-[600px] bg-white overflow-hidden">
-              {/* Profile left */}
-              <div className="w-72 shrink-0 border-r border-gray-100 p-5 flex flex-col gap-4 overflow-y-auto">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-white font-black text-xl mb-3" style={{ background: "var(--brand-gradient)" }}>FA</div>
-                  <h2 className="text-sm font-bold text-gray-900">Fatima Al-Zahra</h2>
-                  <p className="text-xs text-gray-400">fatima.alzahra@email.com</p>
-                </div>
+          <BrowserFrame url="/users/teachers" actor="admin">
+            <div className="flex h-[580px] overflow-hidden">
 
-                <div className="space-y-2">
-                  {[
-                    { l: "Subject",     v: "Mathematics" },
-                    { l: "Grades",      v: "High (10–12)" },
-                    { l: "City",        v: "Riyadh" },
-                    { l: "Experience",  v: "7 years" },
-                    { l: "Degree",      v: "Master's in Math" },
-                    { l: "Nationality", v: "Saudi" },
-                  ].map((r) => (
-                    <div key={r.l} className="flex items-center justify-between text-xs">
-                      <span className="text-gray-400">{r.l}</span>
-                      <span className="font-semibold text-gray-700">{r.v}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-gray-100">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Documents</p>
-                  {[
-                    { name: "National ID", status: "ok" },
-                    { name: "Degree Certificate", status: "ok" },
-                    { name: "Experience Letter", status: "ok" },
-                    { name: "CV (PDF)", status: "ok" },
-                  ].map((d) => (
-                    <div key={d.name} className="flex items-center gap-2 text-xs">
-                      <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                      <span className="text-gray-700 flex-1">{d.name}</span>
-                      <span className="text-gray-400">View</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action panel */}
-              <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Tabs */}
-                <div className="shrink-0 flex border-b border-gray-100">
-                  {["Profile", "Documents", "History", "Audit Log"].map((t, i) => (
-                    <button key={t} className={`px-4 py-3 text-xs font-semibold border-b-2 ${i === 0 ? "border-violet-600 text-violet-700" : "border-transparent text-gray-400"}`}>
-                      {t}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <AlertCircle size={14} className="text-amber-600" />
-                      <span className="text-sm font-bold text-amber-800">Pending Approval</span>
-                    </div>
-                    <p className="text-xs text-amber-700">Submitted 2h ago. All 4 documents uploaded. Match score: 92%.</p>
+              {/* Sidebar (same as phase 14) */}
+              <aside className="w-48 shrink-0 flex flex-col border-r border-white/5"
+                style={{ background: "linear-gradient(165deg, #0f2847 0%, #0D2542 45%, #091c36 100%)" }}>
+                <div className="px-4 py-4 flex items-center gap-2.5 border-b border-white/[0.08]">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+                    style={{ background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)" }}>
+                    <span className="text-sm font-bold text-white">أ</span>
                   </div>
-
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Profile Strength</p>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full bg-emerald-500" style={{ width: "88%" }} />
-                      </div>
-                      <span className="text-sm font-bold text-emerald-600 shrink-0">88%</span>
-                    </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-white">Abjad</span>
+                    <span className="text-[9px] text-white/40 uppercase tracking-widest">Admin Console</span>
                   </div>
-
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Experience</p>
+                </div>
+                <nav className="flex-1 px-2 py-3 space-y-3 overflow-y-auto">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Overview</p>
+                    {["Mission Control","Dashboard"].map((item) => (
+                      <div key={item} className="px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5"
+                        style={{ color: "rgba(255,255,255,0.5)" }}>{item}</div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Management</p>
                     {[
-                      { school: "King Abdulaziz School", years: "2020–2024", subject: "Math" },
-                      { school: "Riyadh Model School",   years: "2017–2020", subject: "Math & Physics" },
-                    ].map((e) => (
-                      <div key={e.school} className="bg-gray-50 rounded-xl p-3 text-xs">
-                        <p className="font-semibold text-gray-800">{e.school}</p>
-                        <p className="text-gray-400">{e.years} · {e.subject}</p>
+                      { label: "Teachers", active: true,  badge: "24" },
+                      { label: "Schools",  active: false, badge: "11" },
+                      { label: "Support Tickets", active: false, badge: "5" },
+                    ].map((item) => (
+                      <div key={item.label}
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5"
+                        style={item.active
+                          ? { background: "rgba(0,172,211,0.15)", boxShadow: "inset 3px 0 0 #00ACD3", color: "#fff" }
+                          : { color: "rgba(255,255,255,0.5)" }}>
+                        <span>{item.label}</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={item.active ? { backgroundColor: "rgba(255,255,255,0.2)", color: "#fff" } : { backgroundColor: "rgba(0,172,211,0.2)", color: "#00ACD3" }}>
+                          {item.badge}
+                        </span>
                       </div>
                     ))}
                   </div>
+                </nav>
+                <div className="px-3 py-3 border-t border-white/[0.08] flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-white text-[10px] font-bold ring-2 ring-white/15"
+                    style={{ background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)" }}>SA</div>
+                  <span className="text-[11px] font-semibold text-white">Super Admin</span>
+                </div>
+              </aside>
+
+              {/* Content: bg-slate-50 */}
+              <div className="flex-1 flex flex-col bg-slate-50 min-w-0 overflow-hidden">
+                <div className="h-10 shrink-0 bg-white/95 border-b border-slate-100 flex items-center px-5 gap-1 text-xs text-slate-400">
+                  <span>Abjad</span><ChevronRight size={10} className="text-slate-300" />
+                  <span>Teachers</span><ChevronRight size={10} className="text-slate-300" />
+                  <span className="text-slate-700 font-medium">Fatima Al-Zahra</span>
                 </div>
 
-                {/* Action footer */}
-                <div className="shrink-0 p-4 border-t border-gray-100 bg-gray-50 space-y-3">
-                  <textarea
-                    readOnly
-                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl bg-white resize-none"
-                    rows={2}
-                    placeholder="Rejection reason (required when rejecting)…"
-                  />
-                  <div className="flex gap-2">
-                    <button className="flex-1 py-2.5 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">
-                      Reject
-                    </button>
-                    <button className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700">
-                      <BadgeCheck size={13} /> Approve
-                    </button>
+                {/* Gradient accent bar — matches the real teachers page */}
+                <div className="h-1 shrink-0 w-full"
+                  style={{ background: "linear-gradient(90deg, #0D2542 0%, #444882 55%, #00ACD3 100%)" }} />
+
+                {/* Page content */}
+                <div className="flex flex-1 min-h-0 overflow-hidden">
+                  {/* Left: profile summary */}
+                  <div className="w-56 shrink-0 border-r border-slate-100 bg-white overflow-y-auto p-4 space-y-4">
+                    <div className="text-center">
+                      <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-white font-black text-lg mb-2"
+                        style={{ background: "linear-gradient(135deg, #0D2542 0%, #444882 100%)" }}>FA</div>
+                      <h2 className="text-sm font-bold text-slate-900">Fatima Al-Zahra</h2>
+                      <p className="text-[10px] text-slate-400">fatima.alzahra@email.com</p>
+                      {/* Pending badge */}
+                      <div className="mt-2 inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        <span className="text-[10px] font-semibold text-amber-700">Pending Approval</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      {[
+                        ["Subject",    "Mathematics"],
+                        ["Grades",     "High (10–12)"],
+                        ["City",       "Riyadh"],
+                        ["Experience", "7 years"],
+                        ["Degree",     "Master's"],
+                      ].map(([l, v]) => (
+                        <div key={l} className="flex items-center justify-between text-[10px]">
+                          <span className="text-slate-400">{l}</span>
+                          <span className="font-semibold text-slate-700">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-1.5 border-t border-slate-100 pt-3">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Documents</p>
+                      {["National ID","Degree Certificate","Experience Letter","CV (PDF)"].map((d) => (
+                        <div key={d} className="flex items-center gap-1.5 text-[10px]">
+                          <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                          <span className="text-slate-700 flex-1">{d}</span>
+                          <span className="text-slate-400 text-[9px]">View</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right: detail + actions */}
+                  <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                    {/* Tabs (matches real page) */}
+                    <div className="shrink-0 flex border-b border-slate-100 bg-white">
+                      {["Profile","Documents","History","Audit Log"].map((t, i) => (
+                        <button key={t} className={`px-4 py-2.5 text-[11px] font-semibold border-b-2 ${i === 0 ? "border-[#00ACD3] text-[#00ACD3]" : "border-transparent text-slate-400"}`}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+                      {/* Pending alert */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <AlertCircle size={13} className="text-amber-600" />
+                          <span className="text-xs font-bold text-amber-800">Pending Approval</span>
+                        </div>
+                        <p className="text-[10px] text-amber-700">Submitted 2h ago · All 4 documents uploaded · Profile strength 88%</p>
+                      </div>
+
+                      {/* Profile strength */}
+                      <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Profile Strength</p>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: "88%", background: "linear-gradient(90deg, #00ACD3, #24BFBF)" }} />
+                          </div>
+                          <span className="text-sm font-bold shrink-0" style={{ color: "#00ACD3" }}>88%</span>
+                        </div>
+                      </div>
+
+                      {/* Experience */}
+                      <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Experience</p>
+                        {[
+                          { school: "King Abdulaziz School", years: "2020–2024", subject: "Math" },
+                          { school: "Riyadh Model School",   years: "2017–2020", subject: "Math & Physics" },
+                        ].map((e) => (
+                          <div key={e.school} className="bg-slate-50 rounded-lg p-2.5 text-[10px] mb-1.5">
+                            <p className="font-semibold text-slate-800">{e.school}</p>
+                            <p className="text-slate-400">{e.years} · {e.subject}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action footer */}
+                    <div className="shrink-0 p-3 border-t border-slate-100 bg-white space-y-2">
+                      <div className="w-full px-3 py-2 text-[10px] border border-slate-200 rounded-xl bg-slate-50 text-slate-400 resize-none">
+                        Rejection reason (required when rejecting)…
+                      </div>
+                      <div className="flex gap-2">
+                        <button className="flex-1 py-2 rounded-xl border border-red-200 text-red-600 text-[11px] font-bold bg-white hover:bg-red-50">
+                          Reject
+                        </button>
+                        <button className="flex-1 py-2 rounded-xl text-white text-[11px] font-bold flex items-center justify-center gap-1.5"
+                          style={{ background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)" }}>
+                          <BadgeCheck size={12} /> Approve
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2443,7 +2600,7 @@ export default function WorkflowDemoPage() {
       </section>
 
       {/* ═════════════════════════════════════════════════════════ */}
-      {/*    PHASE 16 — Analytics & Billing Admin                    */}
+      {/*    PHASE 16 — Platform Dashboard & Billing Admin           */}
       {/* ═════════════════════════════════════════════════════════ */}
       <section id="phase-16" data-phase="16" className="py-16 lg:py-24 bg-[#fafbfc]">
         <div className="max-w-6xl mx-auto px-6 lg:px-10">
@@ -2451,123 +2608,173 @@ export default function WorkflowDemoPage() {
             num="16"
             day="Admin"
             actor="admin"
-            title="Analytics & Billing Admin"
-            subtitle="The admin dashboard gives the Abjad team a live view of platform health — registrations, revenue, conversion rates, and subscription breakdowns — plus full billing controls to manage invoices, trigger refunds, and audit payment history."
+            title="Platform Dashboard"
+            subtitle="The admin dashboard shows real-time KPI cards (Total Teachers, Verified Schools, Pending Approvals), live registration charts, and hiring-funnel conversion rates — all wired to the live backend."
           />
 
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Dashboard stats */}
-            <BrowserFrame url="/dashboard" actor="admin">
-              <div className="p-5 bg-[#0f0f1a] text-white">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                    <BarChart3 size={14} className="text-violet-400" /> Platform Overview
-                  </h2>
-                  <span className="text-[10px] text-white/40">Last 30 days</span>
-                </div>
+          <BrowserFrame url="/dashboard" actor="admin">
+            <div className="flex h-[580px] overflow-hidden">
 
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  {[
-                    { l: "Total Teachers",    v: "1,842",   d: "+124 this month",  color: "var(--brand-accent)"  },
-                    { l: "Total Schools",     v: "263",     d: "+18 this month",   color: "var(--brand-primary)" },
-                    { l: "Revenue (SAR)",     v: "482,000", d: "+23% vs last mo",  color: "#34d399"              },
-                    { l: "Active Subs",       v: "198",     d: "12 in trial",      color: "#a78bfa"              },
-                  ].map((s) => (
-                    <div key={s.l} className="bg-white/5 border border-white/8 rounded-2xl p-4">
-                      <div className="font-black text-xl mb-0.5" style={{ color: s.color }}>{s.v}</div>
-                      <div className="text-[10px] font-semibold text-white/60">{s.l}</div>
-                      <div className="text-[9px] text-white/35 mt-1">{s.d}</div>
-                    </div>
-                  ))}
+              {/* Sidebar */}
+              <aside className="w-48 shrink-0 flex flex-col border-r border-white/5"
+                style={{ background: "linear-gradient(165deg, #0f2847 0%, #0D2542 45%, #091c36 100%)" }}>
+                <div className="px-4 py-4 flex items-center gap-2.5 border-b border-white/[0.08]">
+                  <div className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+                    style={{ background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)" }}>
+                    <span className="text-sm font-bold text-white">أ</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-white">Abjad</span>
+                    <span className="text-[9px] text-white/40 uppercase tracking-widest">Admin Console</span>
+                  </div>
                 </div>
-
-                {/* Conversion funnel */}
-                <div className="bg-white/5 border border-white/8 rounded-2xl p-4">
-                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-3">Hiring Funnel</p>
-                  {[
-                    { label: "Applications",  count: 1247, pct: 100 },
-                    { label: "Shortlisted",   count: 389,  pct: 31  },
-                    { label: "Interviewed",   count: 214,  pct: 17  },
-                    { label: "Offers Sent",   count: 108,  pct: 9   },
-                    { label: "Hired",         count: 87,   pct: 7   },
-                  ].map((f) => (
-                    <div key={f.label} className="flex items-center gap-3 mb-2">
-                      <span className="text-[10px] text-white/50 w-20 shrink-0">{f.label}</span>
-                      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${f.pct}%`, backgroundColor: "var(--brand-primary)" }} />
+                <nav className="flex-1 px-2 py-3 space-y-3 overflow-y-auto">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Overview</p>
+                    {[
+                      { label: "Mission Control", active: false, badge: "8" },
+                      { label: "Dashboard",       active: true,  badge: ""  },
+                    ].map((item) => (
+                      <div key={item.label}
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5"
+                        style={item.active
+                          ? { background: "rgba(0,172,211,0.15)", boxShadow: "inset 3px 0 0 #00ACD3", color: "#fff" }
+                          : { color: "rgba(255,255,255,0.5)" }}>
+                        <span>{item.label}</span>
+                        {item.badge && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={{ backgroundColor: "rgba(0,172,211,0.2)", color: "#00ACD3" }}>{item.badge}</span>}
                       </div>
-                      <span className="text-[10px] font-bold text-white/70 w-8 text-right">{f.count}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Management</p>
+                    {["Teachers","Schools","Support Tickets"].map((item) => (
+                      <div key={item} className="px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5"
+                        style={{ color: "rgba(255,255,255,0.5)" }}>{item}</div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 px-2 mb-1.5">Billing</p>
+                    {["Overview","Subscriptions","Invoices"].map((item) => (
+                      <div key={item} className="px-2.5 py-1.5 rounded-xl text-[11px] font-medium mb-0.5"
+                        style={{ color: "rgba(255,255,255,0.5)" }}>{item}</div>
+                    ))}
+                  </div>
+                </nav>
+                <div className="px-3 py-3 border-t border-white/[0.08] flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-white text-[10px] font-bold ring-2 ring-white/15"
+                    style={{ background: "linear-gradient(135deg, #00ACD3 0%, #1C93D9 100%)" }}>SA</div>
+                  <span className="text-[11px] font-semibold text-white">Super Admin</span>
                 </div>
-              </div>
-            </BrowserFrame>
+              </aside>
 
-            {/* Billing admin */}
-            <BrowserFrame url="/billing" actor="admin">
-              <div className="p-5 bg-white space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                    <CreditCard size={14} className="text-violet-600" /> Billing Admin
-                  </h2>
-                  <div className="flex gap-2">
-                    <button className="px-2.5 py-1.5 text-[10px] font-bold border border-gray-200 rounded-lg text-gray-600">Export CSV</button>
+              {/* Content: bg-slate-50, matches layout.tsx bg */}
+              <div className="flex-1 flex flex-col bg-slate-50 min-w-0 overflow-hidden">
+                <div className="h-10 shrink-0 bg-white/95 border-b border-slate-100 flex items-center px-5 gap-1 text-xs text-slate-400">
+                  <span>Abjad</span><ChevronRight size={10} className="text-slate-300" />
+                  <span className="text-slate-700 font-medium">Dashboard</span>
+                  <div className="ml-auto flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[9px] font-semibold text-emerald-700">
+                      <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />LIVE
+                    </span>
+                    <button className="h-6 px-2 text-[10px] font-semibold border border-slate-200 rounded-lg text-slate-600 flex items-center gap-1">
+                      <RefreshCw size={9} /> Refresh
+                    </button>
                   </div>
                 </div>
 
-                {/* Revenue summary */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { l: "MRR",       v: "40,167 SAR", color: "text-emerald-700", bg: "bg-emerald-50" },
-                    { l: "ARR",       v: "482k SAR",   color: "text-blue-700",    bg: "bg-blue-50"    },
-                    { l: "Unpaid",    v: "3 invoices", color: "text-amber-700",   bg: "bg-amber-50"   },
-                  ].map((s) => (
-                    <div key={s.l} className={`rounded-xl p-3 ${s.bg}`}>
-                      <div className={`text-sm font-black ${s.color}`}>{s.v}</div>
-                      <div className={`text-[10px] font-semibold ${s.color} opacity-70`}>{s.l}</div>
-                    </div>
-                  ))}
-                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {/* Page title */}
+                  <div>
+                    <h1 className="text-lg font-bold text-slate-900 tracking-tight">Platform Overview</h1>
+                    <p className="text-xs text-slate-400">Real-time metrics from the Abjad backend</p>
+                  </div>
 
-                {/* Recent subscriptions */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Recent Subscriptions</p>
-                  {[
-                    { school: "Manarat Riyadh",    plan: "School Annual",  amount: "14,950",  status: "active" },
-                    { school: "Al-Noor Academy",   plan: "School 6-Month", amount: "9,430",   status: "active" },
-                    { school: "Future School",     plan: "School Monthly", amount: "1,840",   status: "trialing" },
-                    { school: "Dar Al-Ulum",       plan: "School Annual",  amount: "14,950",  status: "pending" },
-                  ].map((s) => (
-                    <div key={s.school} className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-50 bg-gray-50/50">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] shrink-0" style={{ background: "var(--brand-gradient)" }}>
-                        {s.school[0]}
+                  {/* KPI cards — matches dashboard.tsx exactly */}
+                  <div className="grid grid-cols-4 gap-3">
+                    {[
+                      { title: "Total Teachers",    value: "1,842", sub: "24 pending approval",   iconGradient: "linear-gradient(135deg, #0D2542, #1a3d6b)", accent: "#0D2542" },
+                      { title: "Verified Schools",  value: "263",   sub: "8 awaiting verification", iconGradient: "linear-gradient(135deg, #24BFBF, #00ACD3)", accent: "#24BFBF" },
+                      { title: "Pending Approvals", value: "32",    sub: "Teachers + schools",    iconGradient: "linear-gradient(135deg, #f59e0b, #f97316)", accent: "#f59e0b" },
+                      { title: "Suspended",         value: "3",     sub: "Teachers + schools",    iconGradient: "linear-gradient(135deg, #ef4444, #dc2626)", accent: "#ef4444" },
+                    ].map((s) => (
+                      <div key={s.title}
+                        className="relative bg-white rounded-2xl p-4 border border-slate-100 shadow-sm overflow-hidden">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-sm"
+                            style={{ background: s.iconGradient }}>
+                            <BarChart3 size={16} className="text-white" />
+                          </div>
+                          <TrendingUp size={13} className="text-slate-200" />
+                        </div>
+                        <p className="text-[1.8rem] font-bold tabular-nums leading-none text-slate-900 mb-1">{s.value}</p>
+                        <p className="text-xs font-semibold text-slate-700">{s.title}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{s.sub}</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-800 truncate">{s.school}</p>
-                        <p className="text-[10px] text-gray-400">{s.plan}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-xs font-bold text-gray-700">{s.amount} SAR</p>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                          s.status === "active" ? "bg-emerald-100 text-emerald-700" :
-                          s.status === "trialing" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
-                        }`}>{s.status.toUpperCase()}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                <div className="flex gap-2 pt-1">
-                  <button className="flex-1 py-2 text-xs font-semibold border border-violet-200 rounded-lg text-violet-700 bg-violet-50">
-                    View all subscriptions
-                  </button>
-                  <button className="flex-1 py-2 text-xs font-semibold border border-gray-200 rounded-lg text-gray-600">
-                    Invoice ledger
-                  </button>
+                  {/* Status breakdown */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { title: "Teacher Status", items: [
+                        { label: "Approved",  count: 1680, pct: 91, color: "#24BFBF" },
+                        { label: "Pending",   count: 24,   pct: 1,  color: "#f59e0b" },
+                        { label: "Draft",     count: 98,   pct: 5,  color: "#cbd5e1" },
+                        { label: "Rejected",  count: 32,   pct: 2,  color: "#f87171" },
+                        { label: "Suspended", count: 8,    pct: 1,  color: "#fb923c" },
+                      ]},
+                      { title: "School Status", items: [
+                        { label: "Verified",  count: 263,  pct: 86, color: "#24BFBF" },
+                        { label: "Pending",   count: 8,    pct: 3,  color: "#f59e0b" },
+                        { label: "Draft",     count: 24,   pct: 8,  color: "#cbd5e1" },
+                        { label: "Rejected",  count: 9,    pct: 3,  color: "#f87171" },
+                      ]},
+                    ].map((group) => (
+                      <div key={group.title} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                        <p className="text-xs font-semibold text-slate-700 mb-3">{group.title}</p>
+                        <div className="flex h-2 rounded-full overflow-hidden mb-3">
+                          {group.items.map((item) => (
+                            <div key={item.label} className="h-full" style={{ width: `${item.pct}%`, backgroundColor: item.color }} />
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {group.items.map((item) => (
+                            <div key={item.label} className="flex items-center gap-1.5 text-[10px]">
+                              <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                              <span className="text-slate-600 flex-1">{item.label}</span>
+                              <span className="font-bold text-slate-800 tabular-nums">{item.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Conversion metrics */}
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                    <p className="text-xs font-semibold text-slate-700 mb-3">Hiring Funnel Conversion</p>
+                    <div className="space-y-2.5">
+                      {[
+                        { label: "Profile Completion",      value: 73, color: "#0D2542" },
+                        { label: "Application → Interview", value: 28, color: "#444882" },
+                        { label: "Interview → Offer",       value: 51, color: "#00ACD3" },
+                        { label: "Offer → Hired",           value: 80, color: "#24BFBF" },
+                      ].map((m) => (
+                        <div key={m.label} className="flex items-center gap-3">
+                          <span className="text-[10px] text-slate-500 w-36 shrink-0">{m.label}</span>
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${m.value}%`, backgroundColor: m.color }} />
+                          </div>
+                          <span className="text-[10px] font-bold tabular-nums shrink-0" style={{ color: m.color }}>{m.value}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </BrowserFrame>
-          </div>
+            </div>
+          </BrowserFrame>
         </div>
       </section>
 
