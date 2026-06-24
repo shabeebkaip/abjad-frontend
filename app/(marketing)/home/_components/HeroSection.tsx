@@ -191,7 +191,7 @@ export default function HeroSection() {
             { icon: <SlidersHorizontal size={18} strokeWidth={2.5} style={{ color: "var(--brand-accent)" }} />, title: "Precise matching", sub: "By subject, grade & city" },
           ];
           return (
-            <div className="fade-in-up-5 w-full rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white">
+            <div className="fade-in-up-5 w-full max-w-2xl mx-auto rounded-2xl border border-gray-100 overflow-hidden shadow-sm bg-white">
               {/* Mobile: vertical list */}
               <div className="flex flex-col sm:hidden divide-y divide-gray-100">
                 {props.map((p, i) => (
