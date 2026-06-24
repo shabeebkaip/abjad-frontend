@@ -81,7 +81,7 @@ export default function SchoolPlansPage() {
     <div className="p-4 lg:p-6 space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3">
         <Link href="/school/billing" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700">
-          <ArrowLeft size={12} /> Back to billing
+          <ArrowLeft size={12} /> {locale === "ar" ? "إلى الفوترة" : "Back to billing"}
         </Link>
       </div>
 

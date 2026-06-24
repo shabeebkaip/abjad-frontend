@@ -286,8 +286,18 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
           </div>
 
           {error && (
-            <div className="mx-6 mt-5 flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
-              <AlertCircle size={16} className="shrink-0" /> {error}
+            <div className="mx-6 mt-5 flex items-start gap-2 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
+              <AlertCircle size={16} className="shrink-0 mt-0.5" />
+              <span>
+                {error.startsWith("You already have") ? (
+                  <>
+                    {error.replace(/from \/\S+ first\.?/, "")}{" "}
+                    <Link href={backHref.replace(/\/plans$/, "")} className="underline font-semibold">
+                      {locale === "ar" ? "إدارة الاشتراك" : "Manage subscription"}
+                    </Link>
+                  </>
+                ) : error}
+              </span>
             </div>
           )}
 
