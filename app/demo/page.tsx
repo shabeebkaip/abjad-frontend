@@ -9,6 +9,8 @@ import {
   ExternalLink, RefreshCw, MoreHorizontal, AlertCircle,
   Filter, ChevronRight, SlidersHorizontal, BookOpen,
   Banknote, ArrowRightLeft, CheckSquare, Square, X,
+  CreditCard, ShieldCheck, BarChart3, TrendingUp, UserCheck,
+  Receipt, Layers, Download, BadgeCheck, ToggleLeft,
 } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────────────
@@ -17,16 +19,22 @@ import {
    ───────────────────────────────────────────────────────────── */
 
 const PHASES = [
-  { num: "01", title: "Post Job",        day: "Day 0", actor: "school"  },
-  { num: "02", title: "Discover",        day: "Day 1", actor: "teacher" },
-  { num: "03", title: "Apply",           day: "Day 1", actor: "teacher" },
-  { num: "04", title: "Review",          day: "Day 2", actor: "school"  },
-  { num: "05", title: "Shortlist",       day: "Day 2", actor: "school"  },
-  { num: "06", title: "Schedule",        day: "Day 3", actor: "school"  },
-  { num: "07", title: "Confirm",         day: "Day 3", actor: "teacher" },
-  { num: "08", title: "Feedback",        day: "Day 5", actor: "school"  },
-  { num: "09", title: "Offer",           day: "Day 6", actor: "school"  },
-  { num: "10", title: "Hire",            day: "Day 7", actor: "both"    },
+  { num: "01", title: "Post Job",        day: "Day 0", actor: "school",   act: 1 },
+  { num: "02", title: "Discover",        day: "Day 1", actor: "teacher",  act: 1 },
+  { num: "03", title: "Apply",           day: "Day 1", actor: "teacher",  act: 1 },
+  { num: "04", title: "Review",          day: "Day 2", actor: "school",   act: 1 },
+  { num: "05", title: "Shortlist",       day: "Day 2", actor: "school",   act: 1 },
+  { num: "06", title: "Schedule",        day: "Day 3", actor: "school",   act: 1 },
+  { num: "07", title: "Confirm",         day: "Day 3", actor: "teacher",  act: 1 },
+  { num: "08", title: "Feedback",        day: "Day 5", actor: "school",   act: 1 },
+  { num: "09", title: "Offer",           day: "Day 6", actor: "school",   act: 1 },
+  { num: "10", title: "Hire",            day: "Day 7", actor: "both",     act: 1 },
+  { num: "11", title: "Subscribe",       day: "Billing", actor: "school", act: 2 },
+  { num: "12", title: "Checkout",        day: "Billing", actor: "school", act: 2 },
+  { num: "13", title: "Billing Hub",     day: "Billing", actor: "school", act: 2 },
+  { num: "14", title: "Queue",           day: "Admin",  actor: "admin",   act: 3 },
+  { num: "15", title: "Verify Users",    day: "Admin",  actor: "admin",   act: 3 },
+  { num: "16", title: "Analytics",       day: "Admin",  actor: "admin",   act: 3 },
 ];
 
 /* ── Reusable: Browser frame wrapper ── */
@@ -36,16 +44,18 @@ function BrowserFrame({
   children,
 }: {
   url: string;
-  actor: "school" | "teacher" | "both";
+  actor: "school" | "teacher" | "both" | "admin";
   children: React.ReactNode;
 }) {
   const actorLabel =
     actor === "school" ? "School Dashboard" :
-    actor === "teacher" ? "Teacher Dashboard" : "Both Views";
-  const Icon = actor === "school" ? Building2 : actor === "teacher" ? GraduationCap : Users;
+    actor === "teacher" ? "Teacher Dashboard" :
+    actor === "admin" ? "Admin Panel" : "Both Views";
+  const Icon = actor === "school" ? Building2 : actor === "teacher" ? GraduationCap : actor === "admin" ? ShieldCheck : Users;
   const actorColor =
     actor === "school" ? "var(--brand-primary)" :
-    actor === "teacher" ? "var(--brand-accent)" : "#a78bfa";
+    actor === "teacher" ? "var(--brand-accent)" :
+    actor === "admin" ? "#7c3aed" : "#a78bfa";
 
   return (
     <div className="rounded-2xl bg-white border border-gray-200 shadow-2xl shadow-gray-300/30 overflow-hidden">
@@ -79,14 +89,17 @@ function PhaseHeader({
   num, day, actor, title, subtitle,
 }: {
   num: string; day: string;
-  actor: "school" | "teacher" | "both";
+  actor: "school" | "teacher" | "both" | "admin";
   title: string; subtitle: string;
 }) {
   const actorLabel =
-    actor === "school" ? "School" : actor === "teacher" ? "Teacher" : "School + Teacher";
+    actor === "school" ? "School" :
+    actor === "teacher" ? "Teacher" :
+    actor === "admin" ? "Admin" : "School + Teacher";
   const actorColor =
     actor === "school" ? "var(--brand-primary)" :
-    actor === "teacher" ? "var(--brand-accent)" : "#a78bfa";
+    actor === "teacher" ? "var(--brand-accent)" :
+    actor === "admin" ? "#7c3aed" : "#a78bfa";
 
   return (
     <div className="mb-10 lg:mb-14">
@@ -209,23 +222,30 @@ export default function WorkflowDemoPage() {
             </div>
             <span className="font-extrabold text-gray-950 text-sm">Abjad Workflow</span>
           </div>
-          <div className="flex-1 hidden md:flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {PHASES.map((p) => (
-              <a
-                key={p.num}
-                href={`#phase-${p.num}`}
-                className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${
-                  activePhase === p.num ? "text-white" : "text-gray-400 hover:text-gray-700"
-                }`}
-                style={activePhase === p.num ? { backgroundColor: "var(--brand-primary)" } : undefined}
-              >
-                {p.num}
-              </a>
-            ))}
+          <div className="flex-1 hidden md:flex items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {PHASES.map((p, i) => {
+              const actColor =
+                p.act === 2 ? "#0d9488" :
+                p.act === 3 ? "#7c3aed" : "var(--brand-primary)";
+              const isActive = activePhase === p.num;
+              return (
+                <a
+                  key={p.num}
+                  href={`#phase-${p.num}`}
+                  className={`text-xs font-bold px-2.5 py-1.5 rounded-full transition-all whitespace-nowrap ${
+                    isActive ? "text-white" : "text-gray-400 hover:text-gray-700"
+                  }`}
+                  style={isActive ? { backgroundColor: actColor } : undefined}
+                  title={p.title}
+                >
+                  {p.num}
+                </a>
+              );
+            })}
           </div>
           <div className="text-xs font-bold text-gray-500 shrink-0">
             <span style={{ color: "var(--brand-primary)" }}>{activePhase}</span>
-            <span className="text-gray-300"> / 10</span>
+            <span className="text-gray-300"> / {PHASES.length}</span>
           </div>
         </div>
       </div>
@@ -263,10 +283,10 @@ export default function WorkflowDemoPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-10">
             {[
-              { val: "7 days",   label: "Post → Hire",      color: "var(--brand-accent)" },
-              { val: "10 steps", label: "End-to-end",       color: "#34d399" },
-              { val: "2 roles",  label: "School & Teacher", color: "#a78bfa" },
-              { val: "Live UI",  label: "Real screens",     color: "#fbbf24" },
+              { val: "7 days",    label: "Post → Hire",       color: "var(--brand-accent)" },
+              { val: "16 steps",  label: "Full coverage",     color: "#34d399" },
+              { val: "3 journeys", label: "Hire · Bill · Admin", color: "#a78bfa" },
+              { val: "Live UI",   label: "Real product",      color: "#fbbf24" },
             ].map((m) => (
               <div key={m.label} className="rounded-2xl bg-white/6 border border-white/10 px-4 py-5 backdrop-blur-sm">
                 <div
@@ -278,6 +298,25 @@ export default function WorkflowDemoPage() {
                 <div className="text-white/45 text-xs font-medium">{m.label}</div>
               </div>
             ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10 flex-wrap">
+            <a
+              href="https://abjad-frontend.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold text-sm px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+            >
+              <ExternalLink size={14} /> Open School App
+            </a>
+            <a
+              href="https://abjad-admin.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-bold text-sm px-6 py-3 rounded-full backdrop-blur-sm hover:bg-white/20 transition-all"
+            >
+              <ShieldCheck size={14} /> Open Admin Panel
+            </a>
           </div>
 
           <a
@@ -295,40 +334,91 @@ export default function WorkflowDemoPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-10 py-14 lg:py-20">
           <div className="text-center mb-12">
             <p className="text-xs font-black tracking-widest uppercase mb-3" style={{ color: "var(--brand-accent)" }}>
-              The 10-Phase Journey
+              3 Journeys · 16 Phases
             </p>
             <h2
               className="font-extrabold text-gray-950 leading-tight max-w-3xl mx-auto"
               style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.4rem)", letterSpacing: "-0.03em" }}
             >
-              One platform. Two roles. One verified hire.
+              Hire. Subscribe. Administrate. All in one.
             </h2>
           </div>
 
-          <div className="relative">
-            <div className="hidden md:block absolute left-0 right-0 top-[34px] h-px bg-gray-200" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-3">
-              {PHASES.map((p) => {
-                const color =
-                  p.actor === "school" ? "var(--brand-primary)" :
-                  p.actor === "teacher" ? "var(--brand-accent)" : "#a78bfa";
-                return (
-                  <a key={p.num} href={`#phase-${p.num}`} className="relative flex flex-col items-center text-center group">
-                    <div
-                      className="w-[68px] h-[68px] rounded-full border-4 border-white bg-white flex items-center justify-center font-black text-sm transition-all group-hover:scale-110 z-10"
-                      style={{ boxShadow: `0 0 0 2px ${color}, 0 4px 12px ${color}40`, color }}
-                    >
-                      {p.num}
-                    </div>
-                    <div className="mt-3 text-[11px] font-bold text-gray-950 leading-tight">{p.title}</div>
-                    <div className="text-[10px] font-medium text-gray-400 mt-0.5">{p.day}</div>
-                  </a>
-                );
-              })}
+          {/* Act 1 — Hiring */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full" style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}>Part 1</span>
+              <span className="text-sm font-bold text-gray-700">Hiring Journey</span>
+              <div className="flex-1 h-px bg-gray-100" />
+            </div>
+            <div className="relative">
+              <div className="hidden md:block absolute left-0 right-0 top-[34px] h-px bg-gray-200" />
+              <div className="grid grid-cols-5 lg:grid-cols-10 gap-3">
+                {PHASES.filter(p => p.act === 1).map((p) => {
+                  const color =
+                    p.actor === "school" ? "var(--brand-primary)" :
+                    p.actor === "teacher" ? "var(--brand-accent)" : "#a78bfa";
+                  return (
+                    <a key={p.num} href={`#phase-${p.num}`} className="relative flex flex-col items-center text-center group">
+                      <div
+                        className="w-[60px] h-[60px] rounded-full border-4 border-white bg-white flex items-center justify-center font-black text-sm transition-all group-hover:scale-110 z-10"
+                        style={{ boxShadow: `0 0 0 2px ${color}, 0 4px 12px ${color}40`, color }}
+                      >
+                        {p.num}
+                      </div>
+                      <div className="mt-2 text-[10px] font-bold text-gray-950 leading-tight">{p.title}</div>
+                    </a>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-5 mt-12 flex-wrap">
+          {/* Act 2 — Billing */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full bg-teal-50 text-teal-700">Part 2</span>
+              <span className="text-sm font-bold text-gray-700">Billing & Subscriptions</span>
+              <div className="flex-1 h-px bg-gray-100" />
+            </div>
+            <div className="grid grid-cols-3 gap-3 max-w-xs">
+              {PHASES.filter(p => p.act === 2).map((p) => (
+                <a key={p.num} href={`#phase-${p.num}`} className="flex flex-col items-center text-center group">
+                  <div
+                    className="w-[60px] h-[60px] rounded-full border-4 border-white bg-white flex items-center justify-center font-black text-sm transition-all group-hover:scale-110"
+                    style={{ boxShadow: "0 0 0 2px #0d9488, 0 4px 12px #0d948840", color: "#0d9488" }}
+                  >
+                    {p.num}
+                  </div>
+                  <div className="mt-2 text-[10px] font-bold text-gray-950 leading-tight">{p.title}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Act 3 — Admin */}
+          <div className="mb-10">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full bg-violet-50 text-violet-700">Part 3</span>
+              <span className="text-sm font-bold text-gray-700">Admin Control Center</span>
+              <div className="flex-1 h-px bg-gray-100" />
+            </div>
+            <div className="grid grid-cols-3 gap-3 max-w-xs">
+              {PHASES.filter(p => p.act === 3).map((p) => (
+                <a key={p.num} href={`#phase-${p.num}`} className="flex flex-col items-center text-center group">
+                  <div
+                    className="w-[60px] h-[60px] rounded-full border-4 border-white bg-white flex items-center justify-center font-black text-sm transition-all group-hover:scale-110"
+                    style={{ boxShadow: "0 0 0 2px #7c3aed, 0 4px 12px #7c3aed40", color: "#7c3aed" }}
+                  >
+                    {p.num}
+                  </div>
+                  <div className="mt-2 text-[10px] font-bold text-gray-950 leading-tight">{p.title}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-5 flex-wrap">
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }} />
               School action
@@ -338,8 +428,12 @@ export default function WorkflowDemoPage() {
               Teacher action
             </div>
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
-              <span className="w-2.5 h-2.5 rounded-full bg-violet-400" />
-              Both parties
+              <span className="w-2.5 h-2.5 rounded-full bg-teal-600" />
+              Billing
+            </div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
+              <span className="w-2.5 h-2.5 rounded-full bg-violet-600" />
+              Admin
             </div>
           </div>
         </div>
@@ -1734,6 +1828,750 @@ export default function WorkflowDemoPage() {
       </section>
 
       {/* ═════════════════════════════════════════════════════════ */}
+      {/*    ACT DIVIDER — Billing & Subscriptions                    */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section className="py-20 border-t-4 border-teal-500 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle, #0d9488 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+          <div className="flex-1 text-center lg:text-left">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-xs font-black tracking-widest uppercase mb-5">
+              <CreditCard size={12} /> Part 2 of 3
+            </span>
+            <h2 className="font-extrabold text-gray-950 leading-tight mb-4"
+              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}>
+              Billing &amp; Subscriptions
+            </h2>
+            <p className="text-gray-500 text-base sm:text-lg max-w-2xl leading-relaxed">
+              Schools purchase a subscription to unlock premium sourcing, candidate access, and verified-teacher rankings — paid via card or bank transfer, with a ZATCA-compliant invoice generated instantly.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 shrink-0">
+            {[
+              { icon: CreditCard, label: "Choose plan" },
+              { icon: CheckCircle2, label: "Pay securely" },
+              { icon: Receipt, label: "Billing hub" },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex flex-col items-center gap-2 bg-teal-50 border border-teal-100 rounded-2xl px-4 py-5">
+                <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center">
+                  <Icon size={18} className="text-white" />
+                </div>
+                <span className="text-xs font-bold text-teal-800 text-center">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
+      {/*    PHASE 11 — School Chooses a Plan                        */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section id="phase-11" data-phase="11" className="py-16 lg:py-24 bg-[#fafbfc]">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <PhaseHeader
+            num="11"
+            day="Setup"
+            actor="school"
+            title="School Chooses a Plan"
+            subtitle="Manarat Riyadh opens the Plans page. Three billing durations (Monthly, 6-Month, Annual) are shown with an inline savings badge. Schools with no subscription see a 5-day free trial banner — no card required."
+          />
+
+          <BrowserFrame url="/school/billing/plans" actor="school">
+            <div className="p-6 bg-[#fafbfc] space-y-5">
+              {/* Trial banner */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                  <Sparkles size={18} className="text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-amber-900">Start your 5-day free trial</p>
+                  <p className="text-xs text-amber-700 mt-0.5">Try all platform features for free. No card required.</p>
+                </div>
+                <button className="shrink-0 px-4 py-2 text-sm font-semibold text-white rounded-xl bg-amber-500">
+                  Start free trial
+                </button>
+              </div>
+
+              {/* Duration toggle */}
+              <div className="flex justify-center">
+                <div className="inline-flex bg-white border border-gray-200 rounded-full p-1 shadow-sm gap-1">
+                  {[
+                    { label: "Monthly",  savings: null },
+                    { label: "6 Months", savings: "−17%" },
+                    { label: "Annual",   savings: "−33%" },
+                  ].map((t, i) => (
+                    <div
+                      key={t.label}
+                      className={`flex items-center gap-1.5 px-5 py-2 text-sm font-semibold rounded-full transition-all ${
+                        i === 2 ? "text-white shadow-sm" : "text-gray-600"
+                      }`}
+                      style={i === 2 ? { background: "var(--brand-gradient)" } : undefined}
+                    >
+                      {t.label}
+                      {t.savings && (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                          i === 2 ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
+                        }`}>{t.savings}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Plan card */}
+              <div className="bg-white rounded-3xl border-2 shadow-sm overflow-hidden" style={{ borderColor: "var(--brand-primary)" }}>
+                <div className="flex justify-center py-2" style={{ background: "var(--brand-gradient)" }}>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase text-white">
+                    <Star size={11} fill="currentColor" /> Most Popular
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2">
+                  <div className="p-6 border-e border-gray-100">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">School Annual</p>
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-5xl font-black text-gray-900 tabular-nums">1,083</span>
+                      <span className="text-sm font-medium text-gray-500">SAR/month</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-4">Billed annually as 13,000 SAR · excl. 15% VAT</p>
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2.5 mb-5 text-center">
+                      <p className="text-sm font-semibold text-emerald-700">💰 Save 3,200 SAR vs monthly</p>
+                    </div>
+                    <button
+                      className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2"
+                      style={{ background: "var(--brand-gradient)" }}
+                    >
+                      <CreditCard size={15} /> Continue to checkout
+                    </button>
+                    <div className="mt-3 space-y-1.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5"><CheckCircle2 size={11} className="text-emerald-500" /> 7-day money-back guarantee</div>
+                      <div className="flex items-center gap-1.5"><CheckCircle2 size={11} className="text-emerald-500" /> ZATCA-compliant invoice</div>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-gray-50/50">
+                    <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-4">Everything included</p>
+                    <ul className="grid grid-cols-2 gap-3">
+                      {["Unlimited job postings","Candidate search access","Best Match AI ranking","Bulk CV export","Team seats (5)","Priority support","Analytics dashboard","Verified badge"].map((b) => (
+                        <li key={b} className="flex items-start gap-2">
+                          <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: "var(--brand-primary-light)" }}>
+                            <CheckCircle2 size={10} style={{ color: "var(--brand-primary)" }} />
+                          </div>
+                          <span className="text-xs text-gray-700 leading-snug">{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </BrowserFrame>
+
+          <FlowArrow text="School clicks 'Continue to checkout'" />
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
+      {/*    PHASE 12 — Checkout & Payment                           */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section id="phase-12" data-phase="12" className="py-16 lg:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <PhaseHeader
+            num="12"
+            day="Setup"
+            actor="school"
+            title="Secure Checkout"
+            subtitle="The checkout form shows the order summary, VAT breakdown, and 5 payment methods (Mada, Visa/Mastercard, AMEX, STC Pay, Bank Transfer). Powered by Moyasar — all PCI-compliant, no card data touches the server."
+          />
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Checkout form */}
+            <BrowserFrame url="/school/billing/checkout/school_annual" actor="school">
+              <div className="p-5 bg-[#fafbfc]">
+                {/* Order summary */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Order Summary</p>
+                  <div className="flex items-center justify-between text-sm text-gray-700 mb-1.5">
+                    <span>School Annual Plan</span>
+                    <span className="font-semibold">13,000.00 SAR</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                    <span>VAT (15%)</span>
+                    <span>1,950.00 SAR</span>
+                  </div>
+                  <div className="border-t border-gray-100 pt-2.5 flex items-center justify-between font-bold text-gray-900">
+                    <span>Total</span>
+                    <span className="text-base">14,950.00 SAR</span>
+                  </div>
+                </div>
+
+                {/* Payment methods */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Method</p>
+                  {[
+                    { id: "mada",    label: "Mada",          note: "Saudi debit card",  active: true  },
+                    { id: "card",    label: "Visa / MC / AMEX", note: "Credit or debit" },
+                    { id: "stc",     label: "STC Pay",        note: "Mobile wallet"     },
+                    { id: "bank",    label: "Bank Transfer",  note: "Manual, 1–3 days"  },
+                  ].map((m) => (
+                    <label key={m.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer ${m.active ? "border-[var(--brand-primary)] bg-blue-50/40" : "border-gray-200 bg-white"}`}>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${m.active ? "border-[var(--brand-primary)]" : "border-gray-300"}`}>
+                        {m.active && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }} />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-800">{m.label}</p>
+                        <p className="text-xs text-gray-400">{m.note}</p>
+                      </div>
+                    </label>
+                  ))}
+
+                  {/* Card fields */}
+                  <div className="mt-2 space-y-2">
+                    <div className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-500 bg-white">Ahmed Al-Rashidi</div>
+                    <div className="px-3 py-2 border-2 rounded-xl text-sm font-mono text-gray-700 bg-white" style={{ borderColor: "var(--brand-primary)" }}>
+                      4111 1111 1111 1111
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-500 bg-white">12 / 30</div>
+                      <div className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-500 bg-white">123</div>
+                    </div>
+                  </div>
+
+                  <button
+                    className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2"
+                    style={{ background: "var(--brand-gradient)" }}
+                  >
+                    <CreditCard size={14} /> Continue to Payment
+                  </button>
+                </div>
+              </div>
+            </BrowserFrame>
+
+            {/* Success screen */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">After payment — success screen</p>
+              <BrowserFrame url="/school/billing/success" actor="school">
+                <div className="p-8 bg-white flex flex-col items-center text-center">
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5 shadow-lg" style={{ background: "var(--brand-gradient)" }}>
+                    <CheckCircle2 size={38} className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Subscription activated!</h3>
+                  <p className="text-sm text-gray-500 mb-6 max-w-xs">
+                    You can now post jobs, search verified teachers, and access all premium features.
+                  </p>
+
+                  <div className="w-full bg-gray-50 rounded-2xl border border-gray-100 p-4 mb-5 text-left space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Plan</span>
+                      <span className="font-semibold text-gray-800">School Annual</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Amount paid</span>
+                      <span className="font-semibold text-gray-800">14,950.00 SAR</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Invoice</span>
+                      <span className="font-semibold font-mono text-gray-800">INV-2026-00042</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 w-full">
+                    <button className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700">
+                      Manage subscription
+                    </button>
+                    <button className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: "var(--brand-gradient)" }}>
+                      Go to dashboard
+                    </button>
+                  </div>
+                </div>
+              </BrowserFrame>
+            </div>
+          </div>
+
+          <FlowArrow text="Subscription is live — full platform access unlocked" />
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
+      {/*    PHASE 13 — Billing Hub                                   */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section id="phase-13" data-phase="13" className="py-16 lg:py-24 bg-[#fafbfc]">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <PhaseHeader
+            num="13"
+            day="Ongoing"
+            actor="school"
+            title="Billing Hub"
+            subtitle="The Billing page shows the active subscription badge, next renewal date, one-click invoice PDF download, and buttons to change or cancel the plan. Schools stay in control of every SAR they spend."
+          />
+
+          <BrowserFrame url="/school/billing" actor="school">
+            <div className="p-5 space-y-4 bg-[#fafbfc]">
+              {/* Subscription card */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">ACTIVE</span>
+                    </div>
+                    <h3 className="text-base font-bold text-gray-900">School Annual — 1,083 SAR / month</h3>
+                    <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                      <RefreshCw size={10} /> Renews in 365 days
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg text-gray-600">Change plan</button>
+                    <button className="px-3 py-1.5 text-xs font-semibold border border-red-100 rounded-lg text-red-600">Cancel</button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  {[
+                    { label: "Billed",    value: "Annually" },
+                    { label: "Amount",    value: "14,950 SAR" },
+                    { label: "Next due",  value: "Jun 2027" },
+                  ].map((s) => (
+                    <div key={s.label} className="bg-gray-50 rounded-xl p-3">
+                      <div className="text-sm font-bold text-gray-800">{s.value}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Invoices */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <FileText size={14} className="text-gray-400" /> Invoices
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { num: "INV-2026-00042", date: "Jun 24, 2026", amount: "14,950.00 SAR", status: "PAID"    },
+                    { num: "INV-2026-00029", date: "May 10, 2026", amount: "14,950.00 SAR", status: "PAID"    },
+                    { num: "INV-2026-00018", date: "Apr 02, 2026", amount: "14,950.00 SAR", status: "PAID"    },
+                  ].map((inv) => (
+                    <div key={inv.num} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-50 bg-gray-50/50">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Receipt size={14} className="text-gray-400 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-700 font-mono">{inv.num}</p>
+                          <p className="text-[10px] text-gray-400">{inv.date}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs font-semibold text-gray-700">{inv.amount}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{inv.status}</span>
+                        <button className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700">
+                          <Download size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </BrowserFrame>
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
+      {/*    ACT DIVIDER — Admin Control Center                      */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section className="py-20 border-t-4 border-violet-600 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.025] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle, #7c3aed 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+          <div className="flex-1 text-center lg:text-left">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-black tracking-widest uppercase mb-5">
+              <ShieldCheck size={12} /> Part 3 of 3
+            </span>
+            <h2 className="font-extrabold text-gray-950 leading-tight mb-4"
+              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}>
+              Admin Control Center
+            </h2>
+            <p className="text-gray-500 text-base sm:text-lg max-w-2xl leading-relaxed mb-6">
+              The Abjad team manages everything from a dedicated admin panel — approving users, monitoring the platform, managing billing, and resolving support tickets — all in one unified interface.
+            </p>
+            <a
+              href="https://abjad-admin.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-violet-600 text-white font-bold text-sm px-6 py-3 rounded-full hover:bg-violet-700 transition-colors"
+            >
+              <ExternalLink size={14} /> Open Live Admin Panel
+            </a>
+          </div>
+          <div className="grid grid-cols-3 gap-3 shrink-0">
+            {[
+              { icon: Layers,      label: "Mission Control" },
+              { icon: UserCheck,   label: "Verify Users"    },
+              { icon: BarChart3,   label: "Analytics"       },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex flex-col items-center gap-2 bg-violet-50 border border-violet-100 rounded-2xl px-4 py-5">
+                <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center">
+                  <Icon size={18} className="text-white" />
+                </div>
+                <span className="text-xs font-bold text-violet-800 text-center">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
+      {/*    PHASE 14 — Mission Control / Approval Queue             */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section id="phase-14" data-phase="14" className="py-16 lg:py-24 bg-[#fafbfc]">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <PhaseHeader
+            num="14"
+            day="Admin"
+            actor="admin"
+            title="Mission Control — Approval Queue"
+            subtitle="Every pending teacher, school, and bank-transfer invoice lands in the unified Mission Control inbox. Items are priority-scored automatically — urgent items float to the top. Admins claim an item to own it."
+          />
+
+          <BrowserFrame url="/queue" actor="admin">
+            <div className="flex h-[600px] bg-[#0f0f1a] overflow-hidden">
+              {/* Sidebar */}
+              <aside className="w-52 shrink-0 border-r border-white/5 bg-[#0f0f1a] flex flex-col">
+                <div className="p-4 border-b border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center">
+                      <ShieldCheck size={14} className="text-white" />
+                    </div>
+                    <span className="text-xs font-bold text-white">Abjad Admin</span>
+                  </div>
+                </div>
+                <nav className="p-2 space-y-0.5 flex-1">
+                  {[
+                    { label: "Mission Control", count: 8,  active: true  },
+                    { label: "Teachers",         count: 24, active: false },
+                    { label: "Schools",          count: 11, active: false },
+                    { label: "Billing",          count: 3,  active: false },
+                    { label: "Support Tickets",  count: 5,  active: false },
+                    { label: "Analytics",        count: 0,  active: false },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold ${
+                        item.active ? "bg-violet-600 text-white" : "text-white/50 hover:text-white/80"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {item.count > 0 && (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.active ? "bg-white/20 text-white" : "bg-white/10 text-white/60"}`}>
+                          {item.count}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+              </aside>
+
+              {/* Queue */}
+              <div className="flex-1 flex flex-col bg-white overflow-hidden">
+                <div className="shrink-0 px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <h1 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                      <Layers size={14} className="text-violet-600" /> Mission Control
+                    </h1>
+                    <p className="text-xs text-gray-400 mt-0.5">8 items need attention · Priority order</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button className="px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg text-gray-600 flex items-center gap-1.5">
+                      <Filter size={11} /> Filter
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+                  {[
+                    { type: "Teacher",  name: "Fatima Al-Zahra",       action: "Pending Approval",   priority: "HIGH",   age: "2h ago",  tag: "bg-red-100 text-red-700"     },
+                    { type: "School",   name: "Dar Al-Ulum Academy",   action: "Pending Verification", priority: "HIGH", age: "3h ago",  tag: "bg-red-100 text-red-700"     },
+                    { type: "Invoice",  name: "INV-2026-00041",        action: "Bank Transfer — Verify", priority: "MED", age: "5h ago", tag: "bg-amber-100 text-amber-700" },
+                    { type: "Teacher",  name: "Khaled Al-Mutairi",     action: "Pending Approval",   priority: "MED",    age: "6h ago",  tag: "bg-amber-100 text-amber-700" },
+                    { type: "School",   name: "Al-Noor International", action: "Pending Verification", priority: "LOW",  age: "1d ago",  tag: "bg-gray-100 text-gray-600"   },
+                  ].map((item, i) => (
+                    <div key={i} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-50">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white font-bold text-xs"
+                        style={{ backgroundColor: item.type === "Teacher" ? "var(--brand-accent)" : item.type === "School" ? "var(--brand-primary)" : "#0d9488" }}>
+                        {item.type[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-semibold text-gray-400">{item.type}</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${item.tag}`}>{item.priority}</span>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
+                        <p className="text-xs text-gray-400">{item.action} · {item.age}</p>
+                      </div>
+                      <button className="shrink-0 px-3 py-1.5 text-xs font-bold text-violet-700 border border-violet-200 rounded-lg bg-violet-50 hover:bg-violet-100">
+                        Claim
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </BrowserFrame>
+
+          <FlowArrow text="Admin claims item → opens full detail panel" />
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
+      {/*    PHASE 15 — User Verification                            */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section id="phase-15" data-phase="15" className="py-16 lg:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <PhaseHeader
+            num="15"
+            day="Admin"
+            actor="admin"
+            title="User Verification"
+            subtitle="Admins review a teacher's complete profile — documents, certifications, employment history — and either approve or reject with a typed reason. Every action is audit-logged with timestamp and admin ID."
+          />
+
+          <BrowserFrame url="/users/teachers/detail" actor="admin">
+            <div className="flex h-[600px] bg-white overflow-hidden">
+              {/* Profile left */}
+              <div className="w-72 shrink-0 border-r border-gray-100 p-5 flex flex-col gap-4 overflow-y-auto">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-white font-black text-xl mb-3" style={{ background: "var(--brand-gradient)" }}>FA</div>
+                  <h2 className="text-sm font-bold text-gray-900">Fatima Al-Zahra</h2>
+                  <p className="text-xs text-gray-400">fatima.alzahra@email.com</p>
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    { l: "Subject",     v: "Mathematics" },
+                    { l: "Grades",      v: "High (10–12)" },
+                    { l: "City",        v: "Riyadh" },
+                    { l: "Experience",  v: "7 years" },
+                    { l: "Degree",      v: "Master's in Math" },
+                    { l: "Nationality", v: "Saudi" },
+                  ].map((r) => (
+                    <div key={r.l} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">{r.l}</span>
+                      <span className="font-semibold text-gray-700">{r.v}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Documents</p>
+                  {[
+                    { name: "National ID", status: "ok" },
+                    { name: "Degree Certificate", status: "ok" },
+                    { name: "Experience Letter", status: "ok" },
+                    { name: "CV (PDF)", status: "ok" },
+                  ].map((d) => (
+                    <div key={d.name} className="flex items-center gap-2 text-xs">
+                      <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                      <span className="text-gray-700 flex-1">{d.name}</span>
+                      <span className="text-gray-400">View</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action panel */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Tabs */}
+                <div className="shrink-0 flex border-b border-gray-100">
+                  {["Profile", "Documents", "History", "Audit Log"].map((t, i) => (
+                    <button key={t} className={`px-4 py-3 text-xs font-semibold border-b-2 ${i === 0 ? "border-violet-600 text-violet-700" : "border-transparent text-gray-400"}`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertCircle size={14} className="text-amber-600" />
+                      <span className="text-sm font-bold text-amber-800">Pending Approval</span>
+                    </div>
+                    <p className="text-xs text-amber-700">Submitted 2h ago. All 4 documents uploaded. Match score: 92%.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Profile Strength</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-emerald-500" style={{ width: "88%" }} />
+                      </div>
+                      <span className="text-sm font-bold text-emerald-600 shrink-0">88%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Experience</p>
+                    {[
+                      { school: "King Abdulaziz School", years: "2020–2024", subject: "Math" },
+                      { school: "Riyadh Model School",   years: "2017–2020", subject: "Math & Physics" },
+                    ].map((e) => (
+                      <div key={e.school} className="bg-gray-50 rounded-xl p-3 text-xs">
+                        <p className="font-semibold text-gray-800">{e.school}</p>
+                        <p className="text-gray-400">{e.years} · {e.subject}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action footer */}
+                <div className="shrink-0 p-4 border-t border-gray-100 bg-gray-50 space-y-3">
+                  <textarea
+                    readOnly
+                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl bg-white resize-none"
+                    rows={2}
+                    placeholder="Rejection reason (required when rejecting)…"
+                  />
+                  <div className="flex gap-2">
+                    <button className="flex-1 py-2.5 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">
+                      Reject
+                    </button>
+                    <button className="flex-1 py-2.5 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700">
+                      <BadgeCheck size={13} /> Approve
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </BrowserFrame>
+
+          <FlowArrow text="Teacher is approved — profile goes live for schools to discover" />
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
+      {/*    PHASE 16 — Analytics & Billing Admin                    */}
+      {/* ═════════════════════════════════════════════════════════ */}
+      <section id="phase-16" data-phase="16" className="py-16 lg:py-24 bg-[#fafbfc]">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <PhaseHeader
+            num="16"
+            day="Admin"
+            actor="admin"
+            title="Analytics & Billing Admin"
+            subtitle="The admin dashboard gives the Abjad team a live view of platform health — registrations, revenue, conversion rates, and subscription breakdowns — plus full billing controls to manage invoices, trigger refunds, and audit payment history."
+          />
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Dashboard stats */}
+            <BrowserFrame url="/dashboard" actor="admin">
+              <div className="p-5 bg-[#0f0f1a] text-white">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                    <BarChart3 size={14} className="text-violet-400" /> Platform Overview
+                  </h2>
+                  <span className="text-[10px] text-white/40">Last 30 days</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  {[
+                    { l: "Total Teachers",    v: "1,842",   d: "+124 this month",  color: "var(--brand-accent)"  },
+                    { l: "Total Schools",     v: "263",     d: "+18 this month",   color: "var(--brand-primary)" },
+                    { l: "Revenue (SAR)",     v: "482,000", d: "+23% vs last mo",  color: "#34d399"              },
+                    { l: "Active Subs",       v: "198",     d: "12 in trial",      color: "#a78bfa"              },
+                  ].map((s) => (
+                    <div key={s.l} className="bg-white/5 border border-white/8 rounded-2xl p-4">
+                      <div className="font-black text-xl mb-0.5" style={{ color: s.color }}>{s.v}</div>
+                      <div className="text-[10px] font-semibold text-white/60">{s.l}</div>
+                      <div className="text-[9px] text-white/35 mt-1">{s.d}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Conversion funnel */}
+                <div className="bg-white/5 border border-white/8 rounded-2xl p-4">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-3">Hiring Funnel</p>
+                  {[
+                    { label: "Applications",  count: 1247, pct: 100 },
+                    { label: "Shortlisted",   count: 389,  pct: 31  },
+                    { label: "Interviewed",   count: 214,  pct: 17  },
+                    { label: "Offers Sent",   count: 108,  pct: 9   },
+                    { label: "Hired",         count: 87,   pct: 7   },
+                  ].map((f) => (
+                    <div key={f.label} className="flex items-center gap-3 mb-2">
+                      <span className="text-[10px] text-white/50 w-20 shrink-0">{f.label}</span>
+                      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${f.pct}%`, backgroundColor: "var(--brand-primary)" }} />
+                      </div>
+                      <span className="text-[10px] font-bold text-white/70 w-8 text-right">{f.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </BrowserFrame>
+
+            {/* Billing admin */}
+            <BrowserFrame url="/billing" actor="admin">
+              <div className="p-5 bg-white space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <CreditCard size={14} className="text-violet-600" /> Billing Admin
+                  </h2>
+                  <div className="flex gap-2">
+                    <button className="px-2.5 py-1.5 text-[10px] font-bold border border-gray-200 rounded-lg text-gray-600">Export CSV</button>
+                  </div>
+                </div>
+
+                {/* Revenue summary */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { l: "MRR",       v: "40,167 SAR", color: "text-emerald-700", bg: "bg-emerald-50" },
+                    { l: "ARR",       v: "482k SAR",   color: "text-blue-700",    bg: "bg-blue-50"    },
+                    { l: "Unpaid",    v: "3 invoices", color: "text-amber-700",   bg: "bg-amber-50"   },
+                  ].map((s) => (
+                    <div key={s.l} className={`rounded-xl p-3 ${s.bg}`}>
+                      <div className={`text-sm font-black ${s.color}`}>{s.v}</div>
+                      <div className={`text-[10px] font-semibold ${s.color} opacity-70`}>{s.l}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent subscriptions */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Recent Subscriptions</p>
+                  {[
+                    { school: "Manarat Riyadh",    plan: "School Annual",  amount: "14,950",  status: "active" },
+                    { school: "Al-Noor Academy",   plan: "School 6-Month", amount: "9,430",   status: "active" },
+                    { school: "Future School",     plan: "School Monthly", amount: "1,840",   status: "trialing" },
+                    { school: "Dar Al-Ulum",       plan: "School Annual",  amount: "14,950",  status: "pending" },
+                  ].map((s) => (
+                    <div key={s.school} className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-50 bg-gray-50/50">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-[10px] shrink-0" style={{ background: "var(--brand-gradient)" }}>
+                        {s.school[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800 truncate">{s.school}</p>
+                        <p className="text-[10px] text-gray-400">{s.plan}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs font-bold text-gray-700">{s.amount} SAR</p>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                          s.status === "active" ? "bg-emerald-100 text-emerald-700" :
+                          s.status === "trialing" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                        }`}>{s.status.toUpperCase()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button className="flex-1 py-2 text-xs font-semibold border border-violet-200 rounded-lg text-violet-700 bg-violet-50">
+                    View all subscriptions
+                  </button>
+                  <button className="flex-1 py-2 text-xs font-semibold border border-gray-200 rounded-lg text-gray-600">
+                    Invoice ledger
+                  </button>
+                </div>
+              </div>
+            </BrowserFrame>
+          </div>
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════ */}
       {/*    CLOSING                                                   */}
       {/* ═════════════════════════════════════════════════════════ */}
       <section className="py-20 lg:py-28 bg-[#fafbfc] border-t border-gray-100">
@@ -1769,11 +2607,29 @@ export default function WorkflowDemoPage() {
             ))}
           </div>
 
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <a
+              href="https://abjad-frontend.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-bold text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+              style={{ backgroundColor: "var(--brand-primary)" }}
+            >
+              <ExternalLink size={15} /> Open School App — Try it live
+            </a>
+            <a
+              href="https://abjad-admin.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-bold text-white px-8 py-4 rounded-full bg-violet-600 hover:bg-violet-700 transition-colors shadow-lg"
+            >
+              <ShieldCheck size={15} /> Open Admin Panel
+            </a>
+          </div>
           <a
             href="#"
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            className="inline-flex items-center gap-2 text-sm font-bold text-white px-7 py-3.5 rounded-full"
-            style={{ backgroundColor: "var(--brand-primary)" }}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors"
           >
             Replay from the top <ArrowRight size={14} />
           </a>
@@ -1781,10 +2637,20 @@ export default function WorkflowDemoPage() {
       </section>
 
       <footer className="bg-white border-t border-gray-100 py-10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 text-center">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-400">
-            Abjad · End-to-End Hiring Workflow · Live product walkthrough
+            Abjad · Hiring · Billing · Admin · Full product walkthrough
           </p>
+          <div className="flex items-center gap-4">
+            <a href="https://abjad-frontend.vercel.app/" target="_blank" rel="noopener noreferrer"
+              className="text-xs font-bold text-gray-500 hover:text-gray-800 flex items-center gap-1 transition-colors">
+              <ExternalLink size={11} /> School App
+            </a>
+            <a href="https://abjad-admin.vercel.app/" target="_blank" rel="noopener noreferrer"
+              className="text-xs font-bold text-violet-500 hover:text-violet-800 flex items-center gap-1 transition-colors">
+              <ShieldCheck size={11} /> Admin Panel
+            </a>
+          </div>
         </div>
       </footer>
     </div>
