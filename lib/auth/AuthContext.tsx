@@ -1,9 +1,9 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import authApi from '@/lib/api/auth';
-import { setAccessToken } from '@/lib/api/client';
+import { setAccessToken, AuthError, ApiError } from '@/lib/api/client';
 import type { AuthUser, AuthContextValue, OtpSession, VerifyOtpResult } from './types';
 
 const OTP_SESSION_KEY = 'abjad_otp_session';
@@ -14,16 +14,6 @@ const OTP_SESSION_KEY = 'abjad_otp_session';
 // page load, even in dev Strict Mode.
 let _authInitDone = false;
 
-// Access tokens are signed for 15 minutes. Refresh one minute earlier so a
-// 401 → silent-retry round-trip is never the user's first signal that
-// something needs to happen. Backed off to 60s to avoid hammering when the
-// tab is in the background — browsers throttle setTimeout for background
-// tabs which means the actual refresh may run a few seconds later, but
-// still well before the token expires.
-const ACCESS_TOKEN_LIFETIME_MS = 15 * 60 * 1000;
-const REFRESH_LEAD_MS          = 60 * 1000;
-const REFRESH_INTERVAL_MS      = ACCESS_TOKEN_LIFETIME_MS - REFRESH_LEAD_MS;
-
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -33,23 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // initDone is intentionally module-level (_authInitDone above), not a ref.
   // See the declaration for why.
 
-  // Track the proactive refresh interval so we can cancel it on logout /
-  // unmount.
-  const refreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const clearRefreshTimer = () => {
-    if (refreshTimerRef.current) {
-      clearInterval(refreshTimerRef.current);
-      refreshTimerRef.current = null;
-    }
-  };
-
   // Centralised "tear down the session locally" — called when /me reports the
   // user no longer exists OR when an explicit logout fires. Calling /logout
   // is best-effort: even if the network request fails, we still wipe local
   // state so the UI redirects.
   const teardown = useCallback(async (callLogoutEndpoint: boolean) => {
-    clearRefreshTimer();
     if (callLogoutEndpoint) {
       try { await authApi.logout(); } catch { /* swallow — cookie may already be invalid */ }
     }
@@ -57,20 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     sessionStorage.removeItem(OTP_SESSION_KEY);
   }, []);
-
-  const startProactiveRefresh = useCallback(() => {
-    clearRefreshTimer();
-    refreshTimerRef.current = setInterval(async () => {
-      try {
-        const { accessToken } = await authApi.refreshTokens();
-        setAccessToken(accessToken);
-      } catch {
-        // Refresh failed — session is dead. Tear it down so the layout
-        // redirects to /login instead of silently degrading.
-        await teardown(false);
-      }
-    }, REFRESH_INTERVAL_MS);
-  }, [teardown]);
 
   useEffect(() => {
     if (_authInitDone) return;
@@ -82,18 +46,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { accessToken } = await authApi.refreshTokens();
         setAccessToken(accessToken);
 
-        // Step 2 — verify the User row still exists. A non-2xx here (commonly
-        // 401 when the row was deleted) MUST tear down the session so we
-        // don't sit on a navbar with no body.
+        // Step 2 — verify the User row still exists. Only a genuine auth
+        // failure (dead session, or 401/403 = deleted/suspended user) should
+        // tear the session down. A transient 500 / network blip must NOT log
+        // the user out — calling logout would revoke a still-valid session.
         try {
           const me = await authApi.getMe();
           setUser(me);
-          startProactiveRefresh();
         } catch (e) {
-          if (process.env.NODE_ENV !== 'production') {
-            console.error('[auth] /me failed during init → tearing down session', e);
+          const isAuthFailure =
+            e instanceof AuthError ||
+            (e instanceof ApiError && (e.status === 401 || e.status === 403));
+          if (isAuthFailure) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.error('[auth] /me auth failure during init → tearing down session', e);
+            }
+            await teardown(true);
+          } else {
+            // Transient error — keep the session; a reload or the next request
+            // will recover. Leave user null for now.
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn('[auth] /me failed transiently during init (session kept):', e);
+            }
           }
-          await teardown(true);
         }
       } catch (e) {
         // No valid refresh cookie — user is simply logged out. In dev we still
@@ -106,9 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     })();
-
-    return () => { clearRefreshTimer(); };
-  }, [startProactiveRefresh, teardown]);
+  }, [teardown]);
 
   const sendOtp = useCallback(
     async (email: string, purpose: 'login' | 'signup', rememberDevice: boolean = true) => {
@@ -153,10 +126,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       sessionStorage.removeItem(OTP_SESSION_KEY);
       sessionStorage.removeItem('abjad_reg_data');
-      startProactiveRefresh();
       return result;
     },
-    [startProactiveRefresh],
+    [],
   );
 
   const logout = useCallback(async () => {

@@ -433,8 +433,8 @@ export async function getCandidateHistory(teacherId: string): Promise<CandidateH
 
 // SRD 3.3.5 — export selected candidates as PDF. Returns the raw blob; caller triggers the download.
 // Uses raw fetch (not apiFetch) because apiFetch always parses JSON. Auth: bearer header + cookie.
-// If the access token expires mid-download the user re-clicks; the proactive refresh on next regular
-// API call will replace it.
+// If the access token expires mid-download the user re-clicks; the next regular
+// apiFetch call will silently refresh it via the 401-retry path.
 export async function exportCandidatesPdf(teacherIds: string[]): Promise<Blob> {
   const token = getAccessToken();
   const res = await fetch('/api/school/candidates/export-pdf', {

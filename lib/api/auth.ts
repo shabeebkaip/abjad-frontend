@@ -27,7 +27,7 @@ const authApi = {
 
   async refreshTokens(): Promise<{ accessToken: string }> {
     // Use the shared mutex so this and any concurrent 401-triggered refresh
-    // coalesce onto a single in-flight request (prevents rotation token reuse).
+    // coalesce onto a single in-flight /refresh request.
     const accessToken = await doRefresh();
     return { accessToken };
   },

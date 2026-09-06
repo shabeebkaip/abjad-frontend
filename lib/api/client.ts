@@ -7,7 +7,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 // In-memory store — XSS-safe, restored on page load via refresh endpoint
 let _accessToken: string | null = null;
 // Shared promise mutex: all concurrent refresh callers coalesce onto the
-// same in-flight fetch so the rotation token is only consumed once.
+// same in-flight fetch, so a burst of 401s triggers only one /refresh call.
 let _refreshPromise: Promise<string> | null = null;
 
 export function getAccessToken(): string | null {
@@ -72,7 +72,7 @@ export async function apiFetch<T = unknown>(
 
   // Token expired — attempt one silent refresh then retry.
   // All concurrent 401-triggered callers share the same _refreshPromise so
-  // the rotation cookie is only consumed once.
+  // only one /refresh request is made.
   const isRefreshEndpoint = path.includes('/auth/refresh');
   if (res.status === 401 && !isRefreshEndpoint) {
     try {
