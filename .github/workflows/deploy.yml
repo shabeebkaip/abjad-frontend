@@ -1,0 +1,81 @@
+name: Deploy frontend
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-abjad-frontend
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Public-facing site: NO /api suffix (intentionally different from admin).
+      NEXT_PUBLIC_API_URL: https://hiring-api.abjadteach.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # No version input on purpose — action-setup auto-detects the
+        # packageManager pin (pnpm@10.14.0) from this repo's package.json.
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+  deploy:
+    needs: build
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # Server build reads NEXT_PUBLIC_API_URL from
+          # /var/www/abjad-frontend/.env.production.local (gitignored, survives
+          # git reset --hard). Do not inject it here.
+          script: |
+            set -e
+            cd /var/www/abjad-frontend
+            git fetch origin main
+            git reset --hard origin/main
+            pnpm install --frozen-lockfile
+            pnpm run build
+            pm2 restart abjad-frontend
+            pm2 save
+
+  notify:
+    needs: build
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send failure email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: Abjad CI <${{ secrets.MAIL_USERNAME }}>
+          to: ${{ secrets.MAIL_TO }}
+          subject: "❌ Build failed: abjad-frontend (${{ github.ref_name }})"
+          body: |
+            Build failed for abjad-frontend — production was NOT deployed.
+
+            Repo:   ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Actor:  ${{ github.actor }}
+            Run:    ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
