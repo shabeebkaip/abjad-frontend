@@ -73,16 +73,15 @@ export async function apiFetch<T = unknown>(
   // Token expired — attempt one silent refresh then retry.
   // All concurrent 401-triggered callers share the same _refreshPromise so
   // only one /refresh request is made.
-  const isRefreshEndpoint = path.includes('/auth/refresh');
-  // Only treat a 401 as "my access token expired" when we actually attached
-  // one. Unauthenticated endpoints (verify-otp, send-otp, login, etc.) can
-  // legitimately return 401 for their own reasons (wrong/expired OTP code,
-  // bad credentials) — those are business-logic errors, not session expiry,
-  // and must not be swallowed into a generic AuthError. Without this guard,
-  // a wrong OTP code triggers a doomed refresh attempt (no session exists
-  // yet) which always fails, masking the real "Invalid OTP code" message
-  // behind a misleading "Session expired. Please sign in again."
-  if (res.status === 401 && !isRefreshEndpoint && _accessToken) {
+  // Pre-auth endpoints issue their own 401s for business reasons (wrong/
+  // expired OTP code, etc.) — those are not "your access token expired"
+  // and must not trigger a refresh attempt or get rewritten into a generic
+  // AuthError. Without this, e.g. a stale OTP code 401 from /auth/verify-otp
+  // triggers a doomed refresh (no session exists yet, so it always fails
+  // too) which masks the real "Invalid OTP code" message behind a
+  // misleading "Session expired. Please sign in again."
+  const isPreAuthEndpoint = /\/auth\/(refresh|send-otp|verify-otp)(\?|$)/.test(path);
+  if (res.status === 401 && !isPreAuthEndpoint) {
     try {
       const newToken = await doRefresh();
       setAccessToken(newToken);
