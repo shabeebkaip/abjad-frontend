@@ -117,8 +117,14 @@ export async function apiFetch<T = unknown>(
     if (res.status === 429) {
       throw new ApiError(json?.message ?? 'Too many requests. Please wait a moment and try again.', res.status, json);
     }
+    // json?.message only exists when the body parsed as JSON from our own
+    // API. A non-JSON body (a gateway/proxy HTML error page on a 502/504,
+    // a plain-text infra dump, etc.) must never be shown to the user
+    // verbatim -- rawText is untrusted and can be large, ugly, or leak
+    // infrastructure details. Always fall back to a generic, readable
+    // status-based message instead of echoing rawText (LOGIN-013).
     throw new ApiError(
-      json?.message ?? (rawText.trim() || `Request failed (${res.status})`),
+      json?.message ?? `Request failed (${res.status}). Please try again.`,
       res.status,
       json,
     );
