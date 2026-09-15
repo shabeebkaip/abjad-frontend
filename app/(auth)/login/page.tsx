@@ -92,7 +92,11 @@ function LoginInner() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {/* noValidate — let zod own all validation so every malformed email
+          renders the same error. Native type="email" validation silently
+          blocks some cases (no @, empty domain) before RHF runs, leaving the
+          user with no feedback at all (LOGIN-003). */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {/* Email */}
         <div className="fade-in-up-3 space-y-1.5">
           <Label htmlFor="login-email">{t.login.email}</Label>

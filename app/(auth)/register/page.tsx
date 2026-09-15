@@ -145,7 +145,7 @@ function RegisterPage() {
 
       {/* ── Teacher form ── */}
       {role === "teacher" && (
-        <form onSubmit={teacherForm.handleSubmit(onSubmitTeacher)} className="space-y-4">
+        <form onSubmit={teacherForm.handleSubmit(onSubmitTeacher)} className="space-y-4" noValidate>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="t-firstName">{t.register.firstName}</Label>
@@ -219,7 +219,7 @@ function RegisterPage() {
 
       {/* ── School form ── */}
       {role === "school" && (
-        <form onSubmit={schoolForm.handleSubmit(onSubmitSchool)} className="space-y-4">
+        <form onSubmit={schoolForm.handleSubmit(onSubmitSchool)} className="space-y-4" noValidate>
           <div className="space-y-1.5">
             <Label htmlFor="s-name">{t.register.schoolName}</Label>
             <Input id="s-name" placeholder="Al-Noor International School" aria-invalid={!!schoolForm.formState.errors.schoolName} className="h-11 rounded-xl" dir="ltr" {...schoolForm.register("schoolName")} />
