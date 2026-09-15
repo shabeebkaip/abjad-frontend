@@ -64,11 +64,21 @@ export async function apiFetch<T = unknown>(
     headers['Authorization'] = `Bearer ${_accessToken}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers,
-  });
+  // A network-layer failure (dropped connection, DNS failure, CORS block)
+  // makes fetch reject with a raw TypeError('Failed to fetch'). Convert it to
+  // a friendly ApiError (status 0 = no HTTP response) so every caller surfaces
+  // an actionable message instead of the cryptic browser string. Covers login,
+  // register, verify-otp — all callers, not just the one that reported it.
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      credentials: 'include',
+      headers,
+    });
+  } catch {
+    throw new ApiError('Network error — please check your connection and try again.', 0);
+  }
 
   // Token expired — attempt one silent refresh then retry.
   // All concurrent 401-triggered callers share the same _refreshPromise so
