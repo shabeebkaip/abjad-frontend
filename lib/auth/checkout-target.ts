@@ -127,7 +127,11 @@ export function parseNext(rawNext: string | null, fallback: string): string {
   let decoded: string;
   try { decoded = decodeURIComponent(rawNext); } catch { return fallback; }
   if (!decoded.startsWith("/"))     return fallback;
-  if (decoded.startsWith("//"))     return fallback;        // protocol-relative
+  // Block protocol-relative ("//evil.com") AND the backslash bypass
+  // ("/\evil.com", "\/evil.com") — browsers coerce "\" to "/", so "/\evil.com"
+  // becomes "//evil.com" = external. Reject any second char that is a slash
+  // or backslash (SESS-009).
+  if (decoded[1] === "/" || decoded[1] === "\\") return fallback;
   if (decoded.includes(":"))        return fallback;        // path with scheme
   if (decoded.startsWith("/api"))   return fallback;        // never bounce to API
   return decoded;
