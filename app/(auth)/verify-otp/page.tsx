@@ -52,6 +52,19 @@ function VerifyOtpInner() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
+  // W2 — abjad_reg_data (written by /register, see the comment there) holds
+  // a plaintext password until this screen verifies the signup. If the user
+  // abandons the flow (navigates away — "Back to sign in", browser back,
+  // closes the tab route) without completing it, clear it here so an
+  // abandoned signup doesn't leave the password sitting in sessionStorage
+  // for the rest of the tab's lifetime. No-op on the success path — verifyOtp
+  // already clears it before this cleanup runs.
+  useEffect(() => {
+    return () => {
+      if (session?.purpose === "signup") sessionStorage.removeItem("abjad_reg_data");
+    };
+  }, [session]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = otp.join("");

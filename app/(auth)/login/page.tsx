@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -71,12 +71,29 @@ function LoginInner() {
     register,
     handleSubmit,
     setValue,
-    setFocus,
     setError,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(schema),
   });
+
+  // BUG-1 (a11y, §5.2) — explicit ref so we can guarantee focus lands back
+  // on the password field after a wrong-password 401, rather than relying
+  // on RHF's setFocus threading a ref through PasswordInput correctly. The
+  // field is still `disabled` (isLoading hasn't flipped false yet) at the
+  // moment the 401 is caught, and a disabled input can't receive focus — so
+  // the actual .focus() call is deferred to an effect keyed on isLoading
+  // going false (pendingFocusRef flags that a focus is owed).
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingPasswordFocusRef = useRef(false);
+  const { ref: registerPasswordRef, ...passwordRegister } = register("password");
+
+  useEffect(() => {
+    if (!isLoading && pendingPasswordFocusRef.current) {
+      pendingPasswordFocusRef.current = false;
+      passwordInputRef.current?.focus();
+    }
+  }, [isLoading]);
 
   const switchMethod = (next: Method) => {
     setMethod(next);
@@ -108,7 +125,7 @@ function LoginInner() {
           setBanner({ variant: "error", message: err.message || t.login.invalidCredentials });
           setShowTroubleLine(true);
           setValue("password", "");
-          setFocus("password");
+          pendingPasswordFocusRef.current = true;
         } else if (err.status === 403 || err.status === 429) {
           setBanner({ variant: "warning", message: err.message });
         } else if (err.status === 400) {
@@ -173,7 +190,11 @@ function LoginInner() {
               </Link>
             </div>
             <PasswordInput
-              {...register("password")}
+              {...passwordRegister}
+              ref={(el) => {
+                registerPasswordRef(el);
+                passwordInputRef.current = el;
+              }}
               id="login-password"
               autoComplete="current-password"
               placeholder={t.login.passwordPlaceholder}

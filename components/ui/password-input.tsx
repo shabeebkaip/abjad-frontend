@@ -18,7 +18,13 @@ export interface PasswordInputProps extends Omit<React.ComponentProps<typeof Inp
 // (`pe-`/`end-`) positioning throughout so the icon sits on the visual
 // trailing edge in both LTR and RTL — the old reset-password stub hardcoded
 // `pr-11`/`right-3`, which stayed glued to the visual right even in Arabic.
-export function PasswordInput({ className, disabled, ...props }: PasswordInputProps) {
+// Explicit forwardRef so callers (e.g. login's wrong-password focus-recovery,
+// BUG-1) can grab the real input DOM node — don't rely on ref implicitly
+// riding through two layers of prop-spreading.
+export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(function PasswordInput(
+  { className, disabled, ...props },
+  ref
+) {
   const [visible, setVisible] = React.useState(false);
   const { t } = useTranslation();
 
@@ -26,6 +32,7 @@ export function PasswordInput({ className, disabled, ...props }: PasswordInputPr
     <div className="relative">
       <Input
         {...props}
+        ref={ref}
         type={visible ? "text" : "password"}
         disabled={disabled}
         className={cn("pe-10", className)}
@@ -43,4 +50,4 @@ export function PasswordInput({ className, disabled, ...props }: PasswordInputPr
       </button>
     </div>
   );
-}
+});

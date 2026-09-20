@@ -54,7 +54,7 @@ export const ar: Translations = {
     emailPlaceholder: "you@example.com",
     password: "كلمة المرور",
     passwordPlaceholder: "أدخل كلمة المرور",
-    remember: "تذكرني",
+    remember: "تذكر هذا الجهاز",
     forgot: "نسيت كلمة المرور؟",
     cta: "إرسال رمز التحقق",
     signingIn: "جارٍ الإرسال…",
@@ -154,6 +154,7 @@ export const ar: Translations = {
     changePasswordCta: "تغيير كلمة المرور",
     changePasswordSuccess: "تم تغيير كلمة المرور. تم تسجيل خروج أجهزتك الأخرى المسجَّلة دخولاً لأسباب أمنية — يبقى هذا الجهاز مسجَّلاً دخوله.",
     alreadySetNotice: "كلمة المرور مُعيَّنة بالفعل. استخدم النموذج أدناه لتغييرها بدلاً من ذلك.",
+    sessionExpired: "انتهت صلاحية جلستك — يرجى إعادة تحميل الصفحة والمحاولة مرة أخرى.",
   },
   dashboardBanner: {
     passwordPromptTitle: "سجّل الدخول بشكل أسرع في المرة القادمة",

@@ -59,7 +59,7 @@ export interface Translations {
     title: string; addPasswordTitle: string; addPasswordBody: string;
     setPasswordCta: string; setPasswordSuccess: string; changePasswordTitle: string;
     currentPassword: string; currentPasswordIncorrect: string; changePasswordCta: string;
-    changePasswordSuccess: string; alreadySetNotice: string;
+    changePasswordSuccess: string; alreadySetNotice: string; sessionExpired: string;
   };
   dashboardBanner: {
     passwordPromptTitle: string; passwordPromptBody: string;
@@ -128,7 +128,7 @@ export const en: Translations = {
     emailPlaceholder: "you@example.com",
     password: "Password",
     passwordPlaceholder: "Enter your password",
-    remember: "Remember me",
+    remember: "Remember this device",
     forgot: "Forgot password?",
     cta: "Send verification code",
     signingIn: "Sending code…",
@@ -228,6 +228,7 @@ export const en: Translations = {
     changePasswordCta: "Change password",
     changePasswordSuccess: "Password changed. Your other signed-in devices have been signed out for security — this device stays signed in.",
     alreadySetNotice: "Your password is already set. Use the form below to change it instead.",
+    sessionExpired: "Your session expired — please reload and try again.",
   },
   dashboardBanner: {
     passwordPromptTitle: "Sign in faster next time",

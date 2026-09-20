@@ -24,6 +24,14 @@ function getFieldErrors(err: unknown): Record<string, string> | undefined {
   return undefined;
 }
 
+// Review W1 — change-password's 401 is ambiguous: it's either the real
+// "wrong current password" business error OR a stale/expired access token
+// (authenticate middleware's own 401, e.g. after >15min idle). Both are the
+// same HTTP status. Match the exact backend copy for the business case
+// (auth.service.ts: `AppError.unauthorized('Current password is incorrect')`)
+// — anything else on a 401 here is a token problem, not a typo'd password.
+const WRONG_CURRENT_PASSWORD_MESSAGE = "Current password is incorrect";
+
 // ── Set password (hasPassword === false) ───────────────────────────────────
 function SetPasswordForm({
   onSuccess,
@@ -69,6 +77,12 @@ function SetPasswordForm({
           else setBanner({ variant: "error", message: err.message });
         } else if (err.status === 409) {
           onAlreadySet();
+        } else if (err.status === 401) {
+          // set-password has no business-401 case (only 409/400/429 per the
+          // contract) — any 401 here is the authenticate middleware
+          // rejecting a stale/expired access token (W1, same reasoning as
+          // change-password).
+          setBanner({ variant: "warning", message: t.security.sessionExpired });
         } else if (err.status === 429) {
           setBanner({ variant: "warning", message: err.message });
         } else {
@@ -162,11 +176,17 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
       onSuccess();
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 401) {
+        if (err.status === 401 && err.message === WRONG_CURRENT_PASSWORD_MESSAGE) {
           // Current/new/confirm values are preserved — don't make the user
           // retype a correct new password because they mistyped the current
           // one (§5.8.4).
           setError("currentPassword", { message: t.security.currentPasswordIncorrect });
+        } else if (err.status === 401) {
+          // Any other 401 here is the authenticate middleware rejecting a
+          // stale/expired access token, not a wrong current password (W1) —
+          // showing "current password is incorrect" would be actively
+          // misleading when the password was actually correct.
+          setBanner({ variant: "warning", message: t.security.sessionExpired });
         } else if (err.status === 400) {
           const fe = getFieldErrors(err);
           if (fe?.newPassword) setError("newPassword", { message: fe.newPassword });

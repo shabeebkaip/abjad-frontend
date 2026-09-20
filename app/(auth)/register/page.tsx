@@ -143,6 +143,13 @@ function RegisterPage() {
     try {
       // role comes from the URL param — never hardcoded. confirmPassword is
       // client-side only, never sent to the backend.
+      // security: this payload includes the plaintext password — it has to
+      // survive the /register → /verify-otp navigation somehow, since the
+      // account isn't created until the OTP is verified. sessionStorage is
+      // tab-scoped (not shared across tabs/windows, gone when the tab
+      // closes) and is cleared immediately on successful verify
+      // (AuthContext.verifyOtp). See /verify-otp's unmount cleanup (W2) for
+      // the abandoned-signup case.
       const payload = Object.fromEntries(Object.entries(data).filter(([key]) => key !== "confirmPassword"));
       sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...payload, role }));
       await sendOtp(data.email, "signup");
@@ -160,6 +167,13 @@ function RegisterPage() {
     try {
       // role comes from the URL param — never hardcoded. confirmPassword is
       // client-side only, never sent to the backend.
+      // security: this payload includes the plaintext password — it has to
+      // survive the /register → /verify-otp navigation somehow, since the
+      // account isn't created until the OTP is verified. sessionStorage is
+      // tab-scoped (not shared across tabs/windows, gone when the tab
+      // closes) and is cleared immediately on successful verify
+      // (AuthContext.verifyOtp). See /verify-otp's unmount cleanup (W2) for
+      // the abandoned-signup case.
       const payload = Object.fromEntries(Object.entries(data).filter(([key]) => key !== "confirmPassword"));
       sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...payload, role }));
       await sendOtp(data.email, "signup");
