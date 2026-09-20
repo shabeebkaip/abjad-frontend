@@ -7,27 +7,29 @@ import { Loader2, MailCheck, RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { OTP_SESSION_KEY } from "@/lib/auth/AuthContext";
 import type { OtpSession } from "@/lib/auth/types";
-import { parseNext } from "@/lib/auth/checkout-target";
+import { parseNext, getDashboardPath } from "@/lib/auth/checkout-target";
+import { OtpInput, type OtpInputHandle } from "@/components/ui/otp-input";
+import { ApiError } from "@/lib/api/client";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const OTP_LENGTH = 6;
-
-function getDashboardPath(role?: string): string {
-  if (role === "school") return "/school/dashboard";
-  return "/dashboard";
-}
 
 function VerifyOtpInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { verifyOtp, sendOtp } = useAuth();
+  const { t } = useTranslation();
 
   const [session, setSession] = useState<OtpSession | null>(null);
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
+  // §5.5.5 — signup password rejected by the server blocklist. Shown as an
+  // extra "← Edit your password" link alongside the normal error line.
+  const [passwordRejected, setPasswordRejected] = useState(false);
   const [countdown, setCountdown] = useState(60);
-  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const otpRef = useRef<OtpInputHandle>(null);
 
   // Load OTP session (set by login/register pages via AuthContext.sendOtp)
   useEffect(() => {
@@ -46,48 +48,22 @@ function VerifyOtpInner() {
   // Countdown timer for resend
   useEffect(() => {
     if (countdown <= 0) return;
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [countdown]);
-
-  const handleChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, "").slice(-1);
-    const next = [...otp];
-    next[index] = digit;
-    setOtp(next);
-    setError("");
-
-    if (digit && index < OTP_LENGTH - 1) {
-      inputsRef.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
-    const next = [...otp];
-    pasted.split("").forEach((d, i) => { next[i] = d; });
-    setOtp(next);
-    inputsRef.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = otp.join("");
     if (code.length < OTP_LENGTH) {
-      setError("Please enter the complete 6-digit code");
+      setError(t.verifyOtp.incompleteCode);
       return;
     }
     if (!session) return;
 
     setIsLoading(true);
     setError("");
+    setPasswordRejected(false);
     try {
       const result = await verifyOtp(session.email, code, session.purpose);
       // Honour ?next= if present (carried through from /pricing → /login →
@@ -97,9 +73,18 @@ function VerifyOtpInner() {
       const destination = parseNext(searchParams.get("next"), getDashboardPath(result.user.role));
       router.push(destination);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid code. Please try again.");
+      if (err instanceof ApiError && session.purpose === "signup") {
+        const fe = err.payload?.fieldErrors as Record<string, string> | undefined;
+        if (fe?.password) {
+          setError(fe.password);
+          setPasswordRejected(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+      setError(err instanceof Error ? err.message : t.verifyOtp.invalidCodeFallback);
       setOtp(Array(OTP_LENGTH).fill(""));
-      inputsRef.current[0]?.focus();
+      otpRef.current?.focus(0);
     } finally {
       setIsLoading(false);
     }
@@ -113,9 +98,10 @@ function VerifyOtpInner() {
       setOtp(Array(OTP_LENGTH).fill(""));
       setCountdown(60);
       setError("");
-      inputsRef.current[0]?.focus();
+      setPasswordRejected(false);
+      otpRef.current?.focus(0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to resend code. Please try again.");
+      setError(err instanceof Error ? err.message : t.verifyOtp.resendFailedFallback);
     } finally {
       setIsResending(false);
     }
@@ -135,15 +121,15 @@ function VerifyOtpInner() {
 
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900">Verify your email</h2>
+        <h2 className="text-2xl font-semibold text-gray-900">{t.verifyOtp.title}</h2>
         <p className="text-gray-500 text-sm mt-1">
-          We sent a 6-digit code to{" "}
+          {t.verifyOtp.subtitlePrefix}{" "}
           {session ? (
             <span className="font-medium text-gray-700">{session.email}</span>
           ) : (
-            "your email"
+            t.verifyOtp.defaultEmail
           )}
-          . Enter it below to continue.
+          {t.verifyOtp.subtitleSuffix}
         </p>
       </div>
 
@@ -160,31 +146,19 @@ function VerifyOtpInner() {
 
       {/* OTP form */}
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-6 gap-1.5 sm:gap-2 mb-4" onPaste={handlePaste}>
-          {otp.map((digit, i) => (
-            <input
-              key={i}
-              ref={(el) => { inputsRef.current[i] = el; }}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              disabled={isLoading}
-              className={`w-full aspect-square text-center text-lg sm:text-xl font-semibold rounded-xl border-2 outline-none transition-all focus:scale-105 ${
-                error
-                  ? "border-red-400 bg-red-50 text-red-600"
-                  : digit
-                  ? "border-brand-primary bg-brand-primary-light text-brand-primary"
-                  : "border-gray-200 bg-gray-50 text-gray-900 focus:border-brand-primary focus:bg-white"
-              }`}
-            />
-          ))}
+        <div className="mb-4">
+          <OtpInput ref={otpRef} value={otp} onChange={setOtp} error={!!error} disabled={isLoading} />
         </div>
 
         {error && (
-          <p className="text-center text-xs text-red-500 mb-4">{error}</p>
+          <div className="text-center mb-4">
+            <p className="text-xs text-red-500">{error}</p>
+            {passwordRejected && (
+              <Link href="/register" className="inline-block mt-1 text-xs font-semibold text-primary hover:opacity-75 transition-opacity">
+                {t.register.editPasswordLink}
+              </Link>
+            )}
+          </div>
         )}
 
         <button
@@ -194,9 +168,9 @@ function VerifyOtpInner() {
           style={{ backgroundColor: "var(--brand-primary)" }}
         >
           {isLoading ? (
-            <><Loader2 size={16} className="animate-spin" /> Verifying…</>
+            <><Loader2 size={16} className="animate-spin" /> {t.verifyOtp.verifying}</>
           ) : (
-            "Verify & Continue"
+            t.verifyOtp.verifyAndContinue
           )}
         </button>
       </form>
@@ -205,10 +179,7 @@ function VerifyOtpInner() {
       <div className="text-center mt-6">
         {countdown > 0 ? (
           <p className="text-sm text-gray-500">
-            Resend code in{" "}
-            <span className="font-semibold" style={{ color: "var(--brand-primary)" }}>
-              {countdown}s
-            </span>
+            {t.verifyOtp.resendIn.replace("{n}", String(countdown))}
           </p>
         ) : (
           <button
@@ -219,7 +190,7 @@ function VerifyOtpInner() {
             style={{ color: "var(--brand-primary)" }}
           >
             <RefreshCw size={14} className={isResending ? "animate-spin" : ""} />
-            {isResending ? "Sending…" : "Resend code"}
+            {isResending ? t.verifyOtp.sending : t.verifyOtp.resend}
           </button>
         )}
       </div>
@@ -227,7 +198,7 @@ function VerifyOtpInner() {
       {/* Back */}
       <div className="text-center mt-4">
         <Link href="/login" className="text-sm text-gray-500 hover:text-gray-700">
-          ← Back to sign in
+          {t.verifyOtp.backToSignIn}
         </Link>
       </div>
     </div>

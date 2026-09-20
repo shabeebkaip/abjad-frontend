@@ -122,6 +122,14 @@ export function resolveCheckoutTarget(input: CheckoutTargetInput): CheckoutTarge
 // — all classic open-redirect tricks. Falls back to a safe default when the
 // input fails validation.
 
+// Role → default post-login landing page. Shared by /login (password path)
+// and /verify-otp (OTP path) so both destinations resolve identically.
+export function getDashboardPath(role?: string): string {
+  if (role === "school") return "/school/dashboard";
+  if (role === "admin") return "/admin/dashboard";
+  return "/dashboard";
+}
+
 export function parseNext(rawNext: string | null, fallback: string): string {
   if (!rawNext) return fallback;
   let decoded: string;

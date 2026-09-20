@@ -84,13 +84,24 @@ export async function apiFetch<T = unknown>(
   // All concurrent 401-triggered callers share the same _refreshPromise so
   // only one /refresh request is made.
   // Pre-auth endpoints issue their own 401s for business reasons (wrong/
-  // expired OTP code, etc.) — those are not "your access token expired"
-  // and must not trigger a refresh attempt or get rewritten into a generic
-  // AuthError. Without this, e.g. a stale OTP code 401 from /auth/verify-otp
-  // triggers a doomed refresh (no session exists yet, so it always fails
-  // too) which masks the real "Invalid OTP code" message behind a
-  // misleading "Session expired. Please sign in again."
-  const isPreAuthEndpoint = /\/auth\/(refresh|send-otp|verify-otp)(\?|$)/.test(path);
+  // expired OTP code, wrong password, wrong current-password, etc.) — those
+  // are not "your access token expired" and must not trigger a refresh
+  // attempt or get rewritten into a generic AuthError. Without this, e.g. a
+  // stale OTP code 401 from /auth/verify-otp triggers a doomed refresh (no
+  // session exists yet, so it always fails too) which masks the real
+  // "Invalid OTP code" message behind a misleading "Session expired."
+  // `login`/`reset-password` are unauthenticated (same reasoning as
+  // send-otp/verify-otp). `set-password`/`change-password` ARE authenticated
+  // but their business 401s ("Current password is incorrect") are
+  // indistinguishable here from a real expired-token 401 — and retrying an
+  // authenticated request that keeps failing with a *business* 401 would
+  // refresh-and-retry forever (the retry gets the same wrong-password 401
+  // every time). Excluding all four keeps this endpoint's real error message
+  // intact; a genuinely expired session on these two forms surfaces as a
+  // raw "Unauthorized" message instead of a graceful bounce — acceptable,
+  // narrow edge case (other concurrent calls on the same page already
+  // recover/redirect a truly dead session).
+  const isPreAuthEndpoint = /\/auth\/(refresh|send-otp|verify-otp|login|set-password|change-password|reset-password)(\?|$)/.test(path);
   if (res.status === 401 && !isPreAuthEndpoint) {
     try {
       const newToken = await doRefresh();

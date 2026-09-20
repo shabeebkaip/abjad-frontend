@@ -28,6 +28,7 @@ import { getDashboard } from "@/lib/api/teacher";
 import type { DashboardData, Job, Interview, Notification, ActivityEntry } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
 import { TrialBanner } from "@/components/billing/TrialBanner";
+import { PasswordPromptBanner } from "@/components/auth/PasswordPromptBanner";
 import { SARSymbol } from "@/components/ui/sar-symbol";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -322,6 +323,9 @@ export default function DashboardPage() {
           Browse Jobs
         </Link>
       </div>
+
+      {/* Soft, dismissible "set a password" prompt — OTP-only users only */}
+      <PasswordPromptBanner settingsHref="/settings" />
 
       {/* Profile Completion Banner */}
       {profileCompleteness < 100 && (

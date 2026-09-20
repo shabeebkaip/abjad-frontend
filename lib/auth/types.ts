@@ -6,6 +6,7 @@ export interface AuthUser {
   lastName?: string;
   schoolName?: string;
   isEmailVerified: boolean;
+  hasPassword: boolean;
 }
 
 export interface VerifyOtpResult {
@@ -27,5 +28,9 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   sendOtp: (email: string, purpose: 'login' | 'signup', rememberDevice?: boolean) => Promise<void>;
   verifyOtp: (email: string, otp: string, purpose: string) => Promise<VerifyOtpResult>;
+  login: (email: string, password: string, rememberDevice?: boolean) => Promise<VerifyOtpResult>;
   logout: () => Promise<void>;
+  // Optimistic local update after a successful set-password — avoids an
+  // extra /me round trip just to flip one boolean (§5.7.3 of the spec).
+  updateHasPassword: (value: boolean) => void;
 }

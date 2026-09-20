@@ -131,9 +131,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const login = useCallback(
+    async (email: string, password: string, rememberDevice: boolean = true): Promise<VerifyOtpResult> => {
+      const result = await authApi.login(email, password, rememberDevice);
+      // Same flushSync pattern as verifyOtp — see the comment there for why
+      // this is required (avoids the destination layout's first render
+      // seeing user=null and bouncing back to /login?next=...).
+      setAccessToken(result.tokens.accessToken);
+      flushSync(() => {
+        setUser(result.user);
+      });
+      sessionStorage.removeItem(OTP_SESSION_KEY);
+      return result;
+    },
+    [],
+  );
+
   const logout = useCallback(async () => {
     await teardown(true);
   }, [teardown]);
+
+  const updateHasPassword = useCallback((value: boolean) => {
+    setUser((u) => (u ? { ...u, hasPassword: value } : u));
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -143,7 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         sendOtp,
         verifyOtp,
+        login,
         logout,
+        updateHasPassword,
       }}
     >
       {children}

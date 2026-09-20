@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -12,30 +12,46 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PasswordInput } from "@/components/ui/password-input";
+import { PasswordRequirements } from "@/components/ui/password-requirements";
+import { FieldError } from "@/components/ui/field-error";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useAuth } from "@/lib/auth/useAuth";
 
 type Role = "teacher" | "school";
 
-const teacherSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().min(9, "Enter a valid phone number"),
-  subject: z.string().min(1, "Please select a subject"),
-  experience: z.string().min(1, "Please select experience level"),
-  terms: z.literal(true, { message: "You must accept the terms" }),
-});
+// min 8, max 128, no forced complexity/rotation (DECISIONS LOCKED #4) — the
+// common-password blocklist is server-only and surfaces via fieldErrors.
+const passwordFields = {
+  password: z.string().min(8, "Password must be at least 8 characters").max(128, "Password must be at most 128 characters"),
+  confirmPassword: z.string(),
+};
 
-const schoolSchema = z.object({
-  schoolName: z.string().min(2, "School name must be at least 2 characters"),
-  contactName: z.string().min(2, "Contact name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().min(9, "Enter a valid phone number"),
-  city: z.string().min(1, "Please enter the city"),
-  schoolType: z.string().min(1, "Please select school type"),
-  terms: z.literal(true, { message: "You must accept the terms" }),
-});
+const teacherSchema = z
+  .object({
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    email: z.string().email("Please enter a valid email"),
+    phone: z.string().min(9, "Enter a valid phone number"),
+    subject: z.string().min(1, "Please select a subject"),
+    experience: z.string().min(1, "Please select experience level"),
+    ...passwordFields,
+    terms: z.literal(true, { message: "You must accept the terms" }),
+  })
+  .refine((d) => d.password === d.confirmPassword, { message: "Passwords do not match", path: ["confirmPassword"] });
+
+const schoolSchema = z
+  .object({
+    schoolName: z.string().min(2, "School name must be at least 2 characters"),
+    contactName: z.string().min(2, "Contact name must be at least 2 characters"),
+    email: z.string().email("Please enter a valid email"),
+    phone: z.string().min(9, "Enter a valid phone number"),
+    city: z.string().min(1, "Please enter the city"),
+    schoolType: z.string().min(1, "Please select school type"),
+    ...passwordFields,
+    terms: z.literal(true, { message: "You must accept the terms" }),
+  })
+  .refine((d) => d.password === d.confirmPassword, { message: "Passwords do not match", path: ["confirmPassword"] });
 
 type TeacherForm = z.infer<typeof teacherSchema>;
 type SchoolForm = z.infer<typeof schoolSchema>;
@@ -66,11 +82,6 @@ const SCHOOL_TYPE_OPTIONS: { label: string; value: string }[] = [
   { label: "Ahli",         value: "ahli"         },
 ];
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="text-xs text-destructive mt-1">{message}</p>;
-}
-
 function RegisterPage() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -97,6 +108,31 @@ function RegisterPage() {
 
   const teacherTerms = teacherForm.watch("terms");
   const schoolTerms = schoolForm.watch("terms");
+  const teacherPassword = teacherForm.watch("password") ?? "";
+  const schoolPassword = schoolForm.watch("password") ?? "";
+
+  // §5.5.5 — if verify-otp rejects the password (server blocklist), the
+  // "← Edit your password" link routes back here. Restore the non-password
+  // fields the user already typed from abjad_reg_data (still in
+  // sessionStorage — not cleared until a successful verify) so they don't
+  // have to retype the whole form, only the password.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("abjad_reg_data");
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Record<string, unknown> & { role?: Role };
+      if (saved.role !== role) return;
+      const rest = Object.fromEntries(
+        Object.entries(saved).filter(([key]) => !["password", "confirmPassword", "role"].includes(key))
+      );
+      if (role === "teacher") teacherForm.reset({ ...teacherForm.getValues(), ...rest } as TeacherForm);
+      else schoolForm.reset({ ...schoolForm.getValues(), ...rest } as SchoolForm);
+    } catch {
+      /* ignore malformed/missing sessionStorage */
+    }
+    // Intentionally run once per role change, not on every form-instance change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [role]);
 
   const selectClass = (hasError: boolean) =>
     `h-11 w-full rounded-xl border border-input bg-transparent ps-3 pe-3 text-sm outline-none focus-visible:border-ring transition-colors ${hasError ? "border-destructive" : ""}`;
@@ -105,8 +141,10 @@ function RegisterPage() {
     setIsLoading(true);
     setApiError("");
     try {
-      // role comes from the URL param — never hardcoded
-      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role }));
+      // role comes from the URL param — never hardcoded. confirmPassword is
+      // client-side only, never sent to the backend.
+      const payload = Object.fromEntries(Object.entries(data).filter(([key]) => key !== "confirmPassword"));
+      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...payload, role }));
       await sendOtp(data.email, "signup");
       router.push(`/verify-otp${forwardQuery}`);
     } catch (err) {
@@ -120,8 +158,10 @@ function RegisterPage() {
     setIsLoading(true);
     setApiError("");
     try {
-      // role comes from the URL param — never hardcoded
-      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...data, role }));
+      // role comes from the URL param — never hardcoded. confirmPassword is
+      // client-side only, never sent to the backend.
+      const payload = Object.fromEntries(Object.entries(data).filter(([key]) => key !== "confirmPassword"));
+      sessionStorage.setItem("abjad_reg_data", JSON.stringify({ ...payload, role }));
       await sendOtp(data.email, "signup");
       router.push(`/verify-otp${forwardQuery}`);
     } catch (err) {
@@ -193,6 +233,33 @@ function RegisterPage() {
             </div>
           </div>
 
+          <div className="space-y-1.5">
+            <Label htmlFor="t-password">{t.register.password}</Label>
+            <PasswordInput
+              id="t-password"
+              autoComplete="new-password"
+              placeholder={t.register.passwordPlaceholder}
+              aria-invalid={!!teacherForm.formState.errors.password}
+              className="h-11 rounded-xl"
+              {...teacherForm.register("password")}
+            />
+            <PasswordRequirements password={teacherPassword} />
+            <FieldError message={teacherForm.formState.errors.password?.message} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="t-confirmPassword">{t.register.confirmPassword}</Label>
+            <PasswordInput
+              id="t-confirmPassword"
+              autoComplete="new-password"
+              placeholder={t.register.confirmPasswordPlaceholder}
+              aria-invalid={!!teacherForm.formState.errors.confirmPassword}
+              className="h-11 rounded-xl"
+              {...teacherForm.register("confirmPassword")}
+            />
+            <FieldError message={teacherForm.formState.errors.confirmPassword?.message} />
+          </div>
+
           <div className="space-y-1">
             <div className="flex items-start gap-2">
               <Checkbox id="t-terms" checked={!!teacherTerms} onCheckedChange={(v) => teacherForm.setValue("terms", v === true ? true : (undefined as unknown as true))} className="mt-0.5" />
@@ -258,6 +325,33 @@ function RegisterPage() {
               {SCHOOL_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
             <FieldError message={schoolForm.formState.errors.schoolType?.message} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="s-password">{t.register.password}</Label>
+            <PasswordInput
+              id="s-password"
+              autoComplete="new-password"
+              placeholder={t.register.passwordPlaceholder}
+              aria-invalid={!!schoolForm.formState.errors.password}
+              className="h-11 rounded-xl"
+              {...schoolForm.register("password")}
+            />
+            <PasswordRequirements password={schoolPassword} />
+            <FieldError message={schoolForm.formState.errors.password?.message} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="s-confirmPassword">{t.register.confirmPassword}</Label>
+            <PasswordInput
+              id="s-confirmPassword"
+              autoComplete="new-password"
+              placeholder={t.register.confirmPasswordPlaceholder}
+              aria-invalid={!!schoolForm.formState.errors.confirmPassword}
+              className="h-11 rounded-xl"
+              {...schoolForm.register("confirmPassword")}
+            />
+            <FieldError message={schoolForm.formState.errors.confirmPassword?.message} />
           </div>
 
           <div className="space-y-1">

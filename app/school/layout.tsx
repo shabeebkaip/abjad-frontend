@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Briefcase, FileText, Users, BookMarked,
   Calendar, Gift, UserCog, Building2, MessageSquare,
-  Bell, LogOut, ChevronDown, Settings, Loader2, CreditCard,
+  Bell, LogOut, ChevronDown, Loader2, CreditCard, Lock,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getSchoolNotificationUnreadCount } from "@/lib/api/school";
@@ -120,7 +120,10 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
                       <Building2 size={14} className="text-slate-400" /> School Profile
                     </Link>
                     <Link href="/school/team" className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onClick={() => setProfileOpen(false)}>
-                      <Settings size={14} className="text-slate-400" /> Team & Settings
+                      <UserCog size={14} className="text-slate-400" /> Team
+                    </Link>
+                    <Link href="/school/settings" className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onClick={() => setProfileOpen(false)}>
+                      <Lock size={14} className="text-slate-400" /> Settings
                     </Link>
                     <hr className="my-1 border-slate-100" />
                     <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">

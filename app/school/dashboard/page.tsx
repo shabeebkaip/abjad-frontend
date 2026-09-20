@@ -24,6 +24,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import { TrialBanner } from "@/components/billing/TrialBanner";
+import { PasswordPromptBanner } from "@/components/auth/PasswordPromptBanner";
 import { getSchoolDashboard } from "@/lib/api/school";
 import type {
   DashboardData,
@@ -315,6 +316,9 @@ export default function SchoolDashboardPage() {
           Post a Job
         </Link>
       </div>
+
+      {/* Soft, dismissible "set a password" prompt — OTP-only users only */}
+      <PasswordPromptBanner settingsHref="/school/settings" />
 
       {/* ── Profile completion alert ─────────────────────────────────── */}
       {completion < 60 && (

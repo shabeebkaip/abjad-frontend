@@ -25,6 +25,11 @@ export interface Translations {
     password: string; passwordPlaceholder: string; remember: string; forgot: string;
     cta: string; signingIn: string; or: string; noAccount: string; createAccount: string;
     otpSent: string;
+    subtitlePassword: string; signInCta: string; signingInPassword: string;
+    useCodeInstead: string; usePasswordInstead: string; invalidCredentials: string;
+    troubleSigningIn: string; tryCodeInstead: string;
+    modeAnnouncePassword: string; modeAnnounceCode: string;
+    showPassword: string; hidePassword: string;
   };
   register: {
     title: string; subtitle: string; chooseRole: string; yourDetails: string;
@@ -37,6 +42,34 @@ export interface Translations {
     back: string; createAccountBtn: string; creating: string;
     alreadyHaveAccount: string; signIn: string; selectPlaceholder: string;
     experience0_1: string; experience2_4: string; experience5_9: string; experience10: string;
+    passwordPlaceholder: string; confirmPasswordPlaceholder: string;
+    passwordReq8Chars: string; passwordReqNotCommon: string; passwordsNoMatch: string;
+    editPasswordLink: string;
+  };
+  forgotPassword: {
+    title: string; subtitle: string; cta: string; sending: string; backToLogin: string;
+  };
+  resetPassword: {
+    title: string; subtitle: string; newPassword: string; confirmPassword: string;
+    cta: string; resetting: string; resendIn: string; resend: string;
+    requestNewCode: string; backToForgot: string; successTitle: string;
+    successBody: string; signInNow: string;
+  };
+  security: {
+    title: string; addPasswordTitle: string; addPasswordBody: string;
+    setPasswordCta: string; setPasswordSuccess: string; changePasswordTitle: string;
+    currentPassword: string; currentPasswordIncorrect: string; changePasswordCta: string;
+    changePasswordSuccess: string; alreadySetNotice: string;
+  };
+  dashboardBanner: {
+    passwordPromptTitle: string; passwordPromptBody: string;
+    setPasswordAction: string; notNow: string;
+  };
+  verifyOtp: {
+    title: string; subtitlePrefix: string; subtitleSuffix: string; defaultEmail: string;
+    incompleteCode: string; invalidCodeFallback: string; verifying: string;
+    verifyAndContinue: string; resendIn: string; resend: string; sending: string;
+    resendFailedFallback: string; backToSignIn: string;
   };
   footer: string;
 }
@@ -103,6 +136,18 @@ export const en: Translations = {
     noAccount: "Don't have an account?",
     createAccount: "Create account",
     otpSent: "Code sent! Check your inbox.",
+    subtitlePassword: "Sign in to your Abjad account",
+    signInCta: "Sign in",
+    signingInPassword: "Signing in…",
+    useCodeInstead: "Sign in with a code instead",
+    usePasswordInstead: "Sign in with your password instead",
+    invalidCredentials: "Invalid email or password",
+    troubleSigningIn: "Trouble signing in?",
+    tryCodeInstead: "Sign in with a code instead",
+    modeAnnouncePassword: "Now showing password sign-in",
+    modeAnnounceCode: "Now showing sign-in with a code",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
   },
   register: {
     title: "Create account",
@@ -142,6 +187,68 @@ export const en: Translations = {
     experience2_4: "2–4 years",
     experience5_9: "5–9 years",
     experience10: "10+ years",
+    passwordPlaceholder: "Create a password",
+    confirmPasswordPlaceholder: "Re-enter your password",
+    passwordReq8Chars: "At least 8 characters",
+    passwordReqNotCommon: "Not a commonly used password",
+    passwordsNoMatch: "Passwords do not match",
+    editPasswordLink: "← Edit your password",
+  },
+  forgotPassword: {
+    title: "Forgot password?",
+    subtitle: "Enter your email and we'll send you a 6-digit code to reset it.",
+    cta: "Send reset code",
+    sending: "Sending…",
+    backToLogin: "← Back to sign in",
+  },
+  resetPassword: {
+    title: "Reset your password",
+    subtitle: "Enter the 6-digit code we sent to {email} and choose a new password.",
+    newPassword: "New password",
+    confirmPassword: "Confirm password",
+    cta: "Reset password",
+    resetting: "Resetting…",
+    resendIn: "Resend code in {n}s",
+    resend: "Resend code",
+    requestNewCode: "Request a new code",
+    backToForgot: "← Back to forgot password",
+    successTitle: "Password updated!",
+    successBody: "Your password has been reset successfully. You can now sign in with your new password.",
+    signInNow: "Sign in now",
+  },
+  security: {
+    title: "Security",
+    addPasswordTitle: "Add a password",
+    addPasswordBody: "Set a password so you can sign in faster next time, without waiting for an email code.",
+    setPasswordCta: "Set password",
+    setPasswordSuccess: "Password set. You can now sign in with your email and password.",
+    changePasswordTitle: "Change password",
+    currentPassword: "Current password",
+    currentPasswordIncorrect: "Current password is incorrect.",
+    changePasswordCta: "Change password",
+    changePasswordSuccess: "Password changed. Your other signed-in devices have been signed out for security — this device stays signed in.",
+    alreadySetNotice: "Your password is already set. Use the form below to change it instead.",
+  },
+  dashboardBanner: {
+    passwordPromptTitle: "Sign in faster next time",
+    passwordPromptBody: "Add a password so you don't have to wait for an email code.",
+    setPasswordAction: "Set a password",
+    notNow: "Not now",
+  },
+  verifyOtp: {
+    title: "Verify your email",
+    subtitlePrefix: "We sent a 6-digit code to",
+    subtitleSuffix: ". Enter it below to continue.",
+    defaultEmail: "your email",
+    incompleteCode: "Please enter the complete 6-digit code",
+    invalidCodeFallback: "Invalid code. Please try again.",
+    verifying: "Verifying…",
+    verifyAndContinue: "Verify & Continue",
+    resendIn: "Resend code in {n}s",
+    resend: "Resend code",
+    sending: "Sending…",
+    resendFailedFallback: "Failed to resend code. Please try again.",
+    backToSignIn: "← Back to sign in",
   },
   footer: "Built in Saudi Arabia",
 };
