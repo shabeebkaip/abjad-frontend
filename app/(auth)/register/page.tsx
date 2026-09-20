@@ -17,13 +17,21 @@ import { PasswordRequirements } from "@/components/ui/password-requirements";
 import { FieldError } from "@/components/ui/field-error";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useAuth } from "@/lib/auth/useAuth";
+import { isCommonPassword, COMMON_PASSWORD_MESSAGE } from "@/lib/auth/common-passwords";
 
 type Role = "teacher" | "school";
 
-// min 8, max 128, no forced complexity/rotation (DECISIONS LOCKED #4) — the
-// common-password blocklist is server-only and surfaces via fieldErrors.
+// min 8, max 128, no forced complexity/rotation (DECISIONS LOCKED #4).
+// SIGNUP-008 — the common-password blocklist used to be server-only,
+// surfacing at verify-otp *after* a real OTP email was already sent. Now
+// enforced here too so handleSubmit blocks before sendOtp ever fires.
+// Backend (verify-otp) stays the authoritative backstop.
 const passwordFields = {
-  password: z.string().min(8, "Password must be at least 8 characters").max(128, "Password must be at most 128 characters"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password must be at most 128 characters")
+    .refine((val) => !isCommonPassword(val), { message: COMMON_PASSWORD_MESSAGE }),
   confirmPassword: z.string(),
 };
 

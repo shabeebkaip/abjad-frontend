@@ -17,12 +17,17 @@ import { OtpInput, type OtpInputHandle } from "@/components/ui/otp-input";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import authApi from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { isCommonPassword, COMMON_PASSWORD_MESSAGE } from "@/lib/auth/common-passwords";
 
 const OTP_LENGTH = 6;
 
 const schema = z
   .object({
-    newPassword: z.string().min(8, "Password must be at least 8 characters").max(128, "Password must be at most 128 characters"),
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password must be at most 128 characters")
+      .refine((val) => !isCommonPassword(val), { message: COMMON_PASSWORD_MESSAGE }),
     confirmPassword: z.string(),
   })
   .refine((d) => d.newPassword === d.confirmPassword, { message: "Passwords do not match", path: ["confirmPassword"] });
