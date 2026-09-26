@@ -124,7 +124,7 @@ export default function HeroSection() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
           </span>
-          Empower Schools, Empower Educators
+          {t.hero.badge}
         </div>
 
         {/* Headline */}
@@ -135,12 +135,12 @@ export default function HeroSection() {
             letterSpacing: isRTL ? "0" : "-0.03em",
           }}
         >
-          Connect with the{" "}
-          <span style={{ color: "var(--brand-accent)" }}>Best Teachers</span>{" "}
+          {t.hero.headlinePre}{" "}
+          <span style={{ color: "var(--brand-accent)" }}>{t.hero.headlineAccent}</span>{" "}
           <br className="hidden sm:block" />
-          and Schools in{" "}
+          {t.hero.headlineMid}{" "}
           <span className="relative inline-block">
-            Saudi Arabia
+            {t.hero.headlineUnderline}
             <svg
               className="absolute left-0 right-0 w-full"
               style={{ bottom: "-0.2em", height: "0.35em" }}
@@ -165,7 +165,7 @@ export default function HeroSection() {
           className="fade-in-up-3 text-gray-500 text-base sm:text-lg leading-relaxed mb-6 sm:mb-10"
           style={{ maxWidth: "52ch" }}
         >
-          Whether you are an educator or an international school in Riyadh, Jeddah, or Dammam, Abjad helps you find the perfect match instantly.
+          {t.hero.sub}
         </p>
 
         {/* CTA buttons */}
@@ -175,7 +175,7 @@ export default function HeroSection() {
             className="px-8 py-3.5 rounded-full font-bold text-base text-white transition-all duration-200 hover:scale-105 hover:shadow-xl shadow-lg"
             style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 8px 24px var(--brand-primary-glow)" }}
           >
-            Join Now
+            {t.hero.ctaJoin}
           </Link>
         </div>
 
@@ -199,7 +199,7 @@ export default function HeroSection() {
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-gray-50">
                       {p.icon}
                     </div>
-                    <div className="text-left min-w-0">
+                    <div className="text-start min-w-0">
                       <p className="text-sm font-bold text-gray-800">{p.title}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{p.sub}</p>
                     </div>

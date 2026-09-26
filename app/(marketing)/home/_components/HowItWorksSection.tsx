@@ -1,28 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Sparkles, Globe } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const steps = [
-  {
-    icon: ShieldCheck,
-    accent: "#00ACD3",
-    title: "Verified Profiles Ready to Place",
-    desc: "Every educator on Abjad is manually verified with credential checks, reference reviews, and trial assignments — so schools can hire with zero risk.",
-  },
-  {
-    icon: Sparkles,
-    accent: "#a78bfa",
-    title: "Smart AI Matching",
-    desc: "Our platform analyses curriculum requirements, location, and availability to instantly surface the right educator for the right school — every time.",
-  },
-  {
-    icon: Globe,
-    accent: "#34d399",
-    title: "Nationwide Support",
-    desc: "From Riyadh to Dammam to Jeddah, Abjad covers every region of Saudi Arabia — giving international schools, high schools, and private academies direct access to talent.",
-  },
+const ICONS = [
+  { icon: ShieldCheck, accent: "#00ACD3" },
+  { icon: Sparkles, accent: "#a78bfa" },
+  { icon: Globe, accent: "#34d399" },
 ];
 
 export default function HowItWorksSection() {
+  const { t, isRTL } = useTranslation();
+  const steps = t.howItWorks.steps.map((step, i) => ({ ...step, ...ICONS[i] }));
+
   return (
     <section
       id="how-it-works"
@@ -39,7 +30,7 @@ export default function HowItWorksSection() {
       />
       {/* Large decorative number watermark */}
       <div
-        className="absolute -right-8 top-1/2 -translate-y-1/2 text-[18rem] font-black leading-none select-none pointer-events-none opacity-[0.04] text-white"
+        className="absolute -end-8 top-1/2 -translate-y-1/2 text-[18rem] font-black leading-none select-none pointer-events-none opacity-[0.04] text-white"
       >
         02
       </div>
@@ -50,19 +41,18 @@ export default function HowItWorksSection() {
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-16">
           <div className="max-w-xl">
             <span className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-5 bg-white/10 text-white/70">
-              How Abjad Works
+              {t.howItWorks.label}
             </span>
             <h2
               className="font-extrabold text-white leading-tight"
-              style={{ fontSize: "clamp(2.2rem, 5vw, 3.6rem)", letterSpacing: "-0.04em" }}
+              style={{ fontSize: "clamp(2.2rem, 5vw, 3.6rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
             >
-              Streamlined Hiring for{" "}
-              <span style={{ color: "var(--brand-accent)" }}>Every School</span>
+              {t.howItWorks.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.howItWorks.headlineAccent}</span>
             </h2>
           </div>
-          <p className="text-white/55 text-base leading-relaxed max-w-sm lg:text-right">
-            Whether you search for full-time teachers, part-time educators, or substitute teachers —
-            Abjad brings the entire Kingdom together on one powerful platform.
+          <p className="text-white/55 text-base leading-relaxed max-w-sm lg:text-end">
+            {t.howItWorks.sub}
           </p>
         </div>
 
@@ -71,7 +61,7 @@ export default function HowItWorksSection() {
           {steps.map((s, i) => (
             <div
               key={i}
-              className="relative group rounded-3xl p-8 border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 overflow-hidden flex flex-col items-center text-center md:items-start md:text-left"
+              className="relative group rounded-3xl p-8 border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 overflow-hidden flex flex-col items-center text-center md:items-start md:text-start"
             >
               {/* Step icon */}
               <div
@@ -94,18 +84,17 @@ export default function HowItWorksSection() {
         {/* CTA block */}
         <div className="flex flex-col items-start gap-4 border-t border-white/10 pt-10">
           <h3 className="text-xl font-bold text-white leading-snug">
-            Ready to hire the right educator?
+            {t.howItWorks.ctaHeadline}
           </h3>
           <p className="text-white/50 text-sm leading-relaxed max-w-lg">
-            <strong className="text-white/80">Designed to support schools nationwide</strong> — Abjad goes beyond Riyadh, Jeddah, and Dammam,
-            serving institutions across every region of Saudi Arabia.
+            <strong className="text-white/80">{t.howItWorks.ctaBodyBold}</strong> {t.howItWorks.ctaBodyRest}
           </p>
           <Link
             href="/register?role=school"
             className="mt-2 shrink-0 inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-bold text-sm transition-all hover:scale-105 hover:shadow-lg"
             style={{ backgroundColor: "var(--brand-accent)", color: "#fff" }}
           >
-            Start Hiring <ArrowRight size={16} />
+            {t.howItWorks.ctaButton} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </Link>
         </div>
       </div>

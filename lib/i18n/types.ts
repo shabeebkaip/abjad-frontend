@@ -15,8 +15,10 @@ export interface CommonTranslations {
     badge: string; headline: string; sub: string;
     line1: string; line2: string; line3: string;
     cta_primary: string; cta_secondary: string; trusted_by: string;
+    headlinePre: string; headlineAccent: string; headlineMid: string; headlineUnderline: string;
+    ctaJoin: string;
   };
-  stats: { teachers: string; schools: string; hires: string };
+  stats: { value: string; label: string }[];
   card: {
     teacher_headline: string; teacher_sub: string;
     school_headline: string; school_sub: string;
@@ -26,11 +28,36 @@ export interface CommonTranslations {
     school_b1: string; school_b2: string; school_b3: string;
   };
   features: {
-    smart: { title: string; desc: string };
-    schools: { title: string; desc: string };
-    fast: { title: string; desc: string };
+    label: string; headlinePre: string; headlineAccent: string; headlinePost: string;
+    sub: string; cta: string;
+    items: { title: string; desc: string }[];
   };
   testimonial: { quote: string; name: string; role: string };
+  startHiring: {
+    label: string; headlinePre: string; headlinePost: string; sub: string; cta: string;
+    tiles: { title: string; desc: string }[];
+    ctaBoxText: string; ctaBoxButton: string;
+  };
+  howItWorks: {
+    label: string; headlinePre: string; headlineAccent: string; sub: string;
+    steps: { title: string; desc: string }[];
+    ctaHeadline: string; ctaBodyBold: string; ctaBodyRest: string; ctaButton: string;
+  };
+  faq: {
+    label: string; headlinePre: string; headlineAccent: string; sub: string;
+    items: { q: string; a: string }[];
+  };
+  whyAbjad: {
+    label: string; headlinePre: string; headlineAccent: string; headlinePost: string; sub: string;
+    schools: {
+      badge: string; headlineLine1: string; headlineLine2: string; body: string; cta: string;
+      bullets: string[];
+    };
+    teachers: {
+      badge: string; headlineLine1: string; headlineLine2: string; body: string; cta: string;
+      bullets: string[];
+    };
+  };
   login: {
     welcome: string; subtitle: string; email: string; emailPlaceholder: string;
     password: string; passwordPlaceholder: string; remember: string; forgot: string;
