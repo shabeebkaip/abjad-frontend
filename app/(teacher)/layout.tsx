@@ -19,27 +19,30 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getUnreadCount } from "@/lib/api/teacher";
 import { PlanBadge } from "@/components/billing/PlanBadge";
-
-const navItems = [
-  { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/jobs",          icon: Search,          label: "Find Jobs" },
-  { href: "/saved-jobs",    icon: Bookmark,        label: "Saved" },
-  { href: "/applications",  icon: FileText,        label: "My Applications" },
-  { href: "/interviews",    icon: Calendar,        label: "Interviews" },
-  { href: "/profile",       icon: User,            label: "My Profile" },
-  { href: "/billing",       icon: Sparkles,        label: "Premium" },
-  { href: "/notifications", icon: Bell,            label: "Notifications" },
-  { href: "/support",       icon: MessageSquare,   label: "Support" },
-];
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { t } = useTranslation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const navItems = [
+    { href: "/dashboard",     icon: LayoutDashboard, label: t.teacher.layout.navDashboard },
+    { href: "/jobs",          icon: Search,          label: t.teacher.layout.navFindJobs },
+    { href: "/saved-jobs",    icon: Bookmark,        label: t.teacher.layout.navSaved },
+    { href: "/applications",  icon: FileText,        label: t.teacher.layout.navApplications },
+    { href: "/interviews",    icon: Calendar,        label: t.teacher.layout.navInterviews },
+    { href: "/profile",       icon: User,            label: t.teacher.layout.navProfile },
+    { href: "/billing",       icon: Sparkles,        label: t.teacher.layout.navPremium },
+    { href: "/notifications", icon: Bell,            label: t.teacher.layout.navNotifications },
+    { href: "/support",       icon: MessageSquare,   label: t.teacher.layout.navSupport },
+  ];
 
   // Redirect to login when session check finishes and user is not authenticated
   // Redirect school/admin users away from teacher routes
@@ -69,7 +72,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
 
   const displayName = user?.firstName
     ? `${user.firstName}${user.lastName ? " " + user.lastName[0] + "." : ""}`
-    : user?.email?.split("@")[0] ?? "Me";
+    : user?.email?.split("@")[0] ?? t.teacher.layout.me;
 
   const initials = user?.firstName
     ? `${user.firstName[0]}${user.lastName?.[0] ?? ""}`.toUpperCase()
@@ -88,7 +91,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             <img src="/ABJAD.png" alt="Abjad" className="h-8 w-auto" />
           </Link>
 
-          {/* Right: plan + bell + profile */}
+          {/* Right: plan + bell + language + profile */}
           <div className="flex items-center gap-2">
             <PlanBadge billingHref="/billing" />
             <Link
@@ -97,15 +100,18 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+                <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
               )}
             </Link>
+
+            {/* DESIGN_SPEC §3.4 — language toggle sits just before the profile control */}
+            <LanguageToggle variant="inline" />
 
             {/* Profile dropdown */}
             <div className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors ml-1"
+                className="flex items-center gap-2 ps-2 pe-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors ms-1"
               >
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
@@ -120,7 +126,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
               {profileOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
+                  <div className="absolute end-0 top-full mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
                     <p className="px-4 py-2 text-xs text-slate-400 font-medium border-b border-slate-100 mb-1">
                       {user?.email}
                     </p>
@@ -129,21 +135,21 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                       className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                       onClick={() => setProfileOpen(false)}
                     >
-                      <User size={14} className="text-slate-400" /> My Profile
+                      <User size={14} className="text-slate-400" /> {t.teacher.layout.myProfile}
                     </Link>
                     <Link
                       href="/settings"
                       className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                       onClick={() => setProfileOpen(false)}
                     >
-                      <Settings size={14} className="text-slate-400" /> Settings
+                      <Settings size={14} className="text-slate-400" /> {t.teacher.layout.settings}
                     </Link>
                     <hr className="my-1 border-slate-100" />
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
                     >
-                      <LogOut size={14} /> Sign out
+                      <LogOut size={14} /> {t.teacher.layout.signOut}
                     </button>
                   </div>
                 </>
@@ -155,7 +161,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         {/* ── Horizontal nav tabs ───────────────────────────────── */}
         <nav className="border-t border-slate-100">
           <div className="max-w-7xl mx-auto w-full px-4 lg:px-6 flex overflow-x-auto scrollbar-none">
-          {navItems.map(({ href, label }) => {
+          {navItems.map(({ href, icon: _icon, label }) => {
             const active = pathname === href || pathname.startsWith(href + "/");
             return (
               <Link
@@ -167,12 +173,15 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 <span className={active ? "" : "text-slate-500 hover:text-slate-800"}>
                   {label}
                 </span>
-                {label === "Notifications" && unreadCount > 0 && (
+                {href === "/notifications" && unreadCount > 0 && (
                   <span className="bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
                 {active && (
+                  // Symmetric full-width underline — intentionally NOT converted
+                  // to start-0/end-0 (DESIGN_SPEC §1.1 documented exception):
+                  // it stretches edge-to-edge regardless of direction.
                   <span
                     className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full"
                     style={{ backgroundColor: "var(--brand-primary)" }}

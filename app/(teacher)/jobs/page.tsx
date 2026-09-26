@@ -6,7 +6,7 @@ import {
   Search, MapPin, BookOpen, Clock, Bookmark, Zap, X,
   GraduationCap, Banknote, CalendarDays, CheckCircle2,
   Briefcase, Share2, ChevronDown, ChevronLeft, ChevronRight,
-  Building2, SlidersHorizontal, Filter, Loader2,
+  SlidersHorizontal, Filter, Loader2,
   List as ListIcon, LayoutGrid,
 } from "lucide-react";
 
@@ -16,65 +16,24 @@ const PAGE_SIZE = 20; // SRD 2.3.1
 import { listJobs, saveJob, unsaveJob, applyForJob } from "@/lib/api/teacher";
 import type { Job } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatNumber } from "@/lib/i18n/format";
 import { ApplyJobModal } from "@/components/teacher/ApplyJobModal";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Constants (API values — canonical keys, never translated; display text
+// comes from t.teacher.jobs.*Labels at render time) ─────────────────────────
 
 const CITIES = ["riyadh", "jeddah", "khobar", "dammam", "mecca", "medina", "abha", "tabuk"];
-const CITY_LABELS: Record<string, string> = {
-  riyadh: "Riyadh", jeddah: "Jeddah", khobar: "Khobar", dammam: "Dammam",
-  mecca: "Makkah", medina: "Madinah", abha: "Abha", tabuk: "Tabuk",
-};
-
 const SUBJECTS = [
-  { value: "math",           label: "Mathematics" },
-  { value: "physics",        label: "Physics" },
-  { value: "chemistry",      label: "Chemistry" },
-  { value: "biology",        label: "Biology" },
-  { value: "english",        label: "English Language" },
-  { value: "arabic",         label: "Arabic Language" },
-  { value: "islamic_studies",label: "Islamic Studies" },
-  { value: "computer_science",label: "Computer Science" },
-  { value: "social_studies", label: "Social Studies" },
-  { value: "pe",             label: "Physical Education" },
-  { value: "art",            label: "Art" },
+  "math", "physics", "chemistry", "biology", "english", "arabic",
+  "islamic_studies", "computer_science", "social_studies", "pe", "art",
 ];
-
-const GRADE_LEVELS = [
-  { value: "kg",          label: "Kindergarten" },
-  { value: "elementary",  label: "Elementary (1–6)" },
-  { value: "middle",      label: "Middle School (7–9)" },
-  { value: "high",        label: "High School (10–12)" },
-];
-
-const CONTRACT_TYPES = [
-  { value: "full_time",  label: "Full-time" },
-  { value: "part_time",  label: "Part-time" },
-  { value: "substitute", label: "Substitute" },
-  { value: "contract",   label: "Contract" },
-];
-
-const LANGUAGES = [
-  { value: "arabic",    label: "Arabic" },
-  { value: "english",   label: "English" },
-  { value: "bilingual", label: "Bilingual" },
-  { value: "other",     label: "Other" },
-];
-
-const EXPERIENCE_OPTIONS = [
-  { value: "0-1",  label: "0–1 years" },
-  { value: "1-3",  label: "1–3 years" },
-  { value: "3-5",  label: "3–5 years" },
-  { value: "5-10", label: "5–10 years" },
-  { value: "10+",  label: "10+ years" },
-];
-
-const POSTED_WITHIN_OPTIONS = [
-  { value: 7,  label: "Last 7 days" },
-  { value: 14, label: "Last 14 days" },
-  { value: 30, label: "Last 30 days" },
-  { value: 90, label: "Last 90 days" },
-];
+const GRADE_LEVELS = ["kg", "elementary", "middle", "high"];
+const CONTRACT_TYPES = ["full_time", "part_time", "substitute", "contract"];
+const LANGUAGES = ["arabic", "english", "bilingual", "other"];
+const EXPERIENCE_OPTIONS = ["0-1", "1-3", "3-5", "5-10", "10+"];
+const POSTED_WITHIN_OPTIONS = [7, 14, 30, 90];
+const SORT_OPTIONS = ["newest", "deadline", "salary_asc", "salary_desc"];
 
 // UI grouping → API individual grade values
 const GRADE_UI_TO_API: Record<string, string[]> = {
@@ -89,23 +48,7 @@ const SALARY_MIN = 0;
 const SALARY_MAX = 30000;
 const SALARY_STEP = 500;
 
-const SORT_OPTIONS = [
-  { value: "newest",       label: "Newest" },
-  { value: "deadline",     label: "Closing Soon" },
-  { value: "salary_asc",   label: "Salary ↑" },
-  { value: "salary_desc",  label: "Salary ↓" },
-];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function salaryText(job: Job): string {
-  if (job.salary.display === "negotiable") return "Negotiable";
-  if (job.salary.display === "hide")       return "Undisclosed";
-  if (job.salary.min && job.salary.max) {
-    return `SAR ${job.salary.min.toLocaleString()}–${job.salary.max.toLocaleString()}/mo`;
-  }
-  return "Salary on request";
-}
 
 function daysUntil(isoStr: string): number {
   return Math.ceil((new Date(isoStr).getTime() - Date.now()) / 86_400_000);
@@ -113,22 +56,6 @@ function daysUntil(isoStr: string): number {
 
 function daysAgo(isoStr: string): number {
   return Math.floor((Date.now() - new Date(isoStr).getTime()) / 86_400_000);
-}
-
-function postedLabel(isoStr: string): string {
-  const d = daysAgo(isoStr);
-  if (d === 0) return "Today";
-  if (d === 1) return "Yesterday";
-  return `${d}d ago`;
-}
-
-function deadlinePill(isoStr?: string): { label: string; cls: string } {
-  if (!isoStr) return { label: "", cls: "" };
-  const d = daysUntil(isoStr);
-  if (d <= 0) return { label: "Closes today", cls: "bg-red-50 text-red-600" };
-  if (d <= 3)  return { label: `${d}d left`,   cls: "bg-red-50 text-red-600" };
-  if (d <= 7)  return { label: `${d}d left`,   cls: "bg-amber-50 text-amber-600" };
-  return           { label: `${d}d left`,   cls: "bg-slate-100 text-slate-500" };
 }
 
 function schoolId(job: Job): string {
@@ -146,13 +73,37 @@ function schoolInitial(job: Job): string {
   return name ? name[0].toUpperCase() : job.title[0].toUpperCase();
 }
 
-function toggleFilter<T>(value: T, list: T[], setter: (v: T[]) => void) {
-  setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function JobsPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.jobs;
+
+  const salaryText = useCallback((job: Job): string => {
+    if (job.salary.display === "negotiable") return tt.salaryNegotiable;
+    if (job.salary.display === "hide")       return tt.salaryUndisclosed;
+    if (job.salary.min && job.salary.max) {
+      return `SAR ${formatNumber(job.salary.min, lang)}–${formatNumber(job.salary.max, lang)}/mo`;
+    }
+    return tt.salaryOnRequest;
+  }, [tt, lang]);
+
+  const postedLabel = useCallback((isoStr: string): string => {
+    const d = daysAgo(isoStr);
+    if (d === 0) return tt.todayLabel;
+    if (d === 1) return tt.yesterdayLabel;
+    return tt.daysAgoLabel.replace("{n}", String(d));
+  }, [tt]);
+
+  const deadlinePill = useCallback((isoStr?: string): { label: string; cls: string } => {
+    if (!isoStr) return { label: "", cls: "" };
+    const d = daysUntil(isoStr);
+    if (d <= 0) return { label: tt.closesTodayLabel, cls: "bg-red-50 text-red-600" };
+    if (d <= 3)  return { label: tt.daysLeftLabel.replace("{n}", String(d)), cls: "bg-red-50 text-red-600" };
+    if (d <= 7)  return { label: tt.daysLeftLabel.replace("{n}", String(d)), cls: "bg-amber-50 text-amber-600" };
+    return           { label: tt.daysLeftLabel.replace("{n}", String(d)), cls: "bg-slate-100 text-slate-500" };
+  }, [tt]);
+
   const [jobs, setJobs]                     = useState<Job[]>([]);
   const [total, setTotal]                   = useState(0);
   const [page, setPage]                     = useState(1);
@@ -400,10 +351,10 @@ export default function JobsPage() {
             }}
           >
             <SlidersHorizontal size={14} />
-            <span className="hidden sm:inline">Filters</span>
+            <span className="hidden sm:inline">{tt.filters}</span>
             {activeFilterCount > 0 && (
               <span
-                className="w-4 h-4 rounded-full text-white text-[10px] font-bold flex items-center justify-center ml-0.5"
+                className="w-4 h-4 rounded-full text-white text-[10px] font-bold flex items-center justify-center ms-0.5"
                 style={{ backgroundColor: "var(--brand-primary)" }}
               >
                 {activeFilterCount}
@@ -412,17 +363,17 @@ export default function JobsPage() {
           </button>
 
           <div className="flex-1 relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by job title, subject, or city…"
-              className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none transition-all"
+              placeholder={tt.searchPlaceholder}
+              className="w-full ps-9 pe-8 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none transition-all"
               onFocus={(e) => { e.currentTarget.style.borderColor = "var(--brand-primary)"; e.currentTarget.style.boxShadow = "0 0 0 3px var(--brand-primary-light)"; }}
               onBlur={(e)  => { e.currentTarget.style.borderColor = ""; e.currentTarget.style.boxShadow = ""; }}
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSearchQuery("")} className="absolute end-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                 <X size={13} />
               </button>
             )}
@@ -432,22 +383,22 @@ export default function JobsPage() {
             <select
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 text-sm border border-slate-200 rounded-lg bg-white cursor-pointer text-slate-600 focus:outline-none"
+              className="appearance-none ps-3 pe-8 py-2 text-sm border border-slate-200 rounded-lg bg-white cursor-pointer text-slate-600 focus:outline-none"
             >
               {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o} value={o}>{tt.sortLabels[o] ?? o}</option>
               ))}
             </select>
-            <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <ChevronDown size={12} className="absolute end-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
 
           {/* SRD 2.3.1 — Grid/List view toggle */}
-          <div className="shrink-0 hidden sm:flex items-center rounded-lg border border-slate-200 bg-white p-0.5" role="group" aria-label="View mode">
+          <div className="shrink-0 hidden sm:flex items-center rounded-lg border border-slate-200 bg-white p-0.5" role="group" aria-label={tt.viewModeGroupLabel}>
             <button
               type="button"
               onClick={() => handleViewModeChange("list")}
               aria-pressed={viewMode === "list"}
-              aria-label="List view"
+              aria-label={tt.listView}
               className={`p-1.5 rounded-md transition-colors ${
                 viewMode === "list" ? "bg-slate-100 text-slate-700" : "text-slate-400 hover:text-slate-600"
               }`}
@@ -458,7 +409,7 @@ export default function JobsPage() {
               type="button"
               onClick={() => handleViewModeChange("grid")}
               aria-pressed={viewMode === "grid"}
-              aria-label="Grid view"
+              aria-label={tt.gridView}
               className={`p-1.5 rounded-md transition-colors ${
                 viewMode === "grid" ? "bg-slate-100 text-slate-700" : "text-slate-400 hover:text-slate-600"
               }`}
@@ -472,83 +423,83 @@ export default function JobsPage() {
       {/* ── 3-panel body ─────────────────────────────────────── */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
-        {/* LEFT: Filters */}
+        {/* Filter sidebar (leads the reading-start edge in both directions) */}
         {showFilters && (
-          <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 flex-col bg-white border-r border-slate-200 overflow-y-auto">
+          <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 flex-col bg-white border-e border-slate-200 overflow-y-auto">
             <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-1.5">
                 <Filter size={12} className="text-slate-400" />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Filters</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">{tt.filters}</span>
               </div>
               {activeFilterCount > 0 && (
                 <button onClick={clearFilters} className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }}>
-                  Clear all
+                  {t.teacher.common.clearAll}
                 </button>
               )}
             </div>
 
             <div className="flex-1 px-3 py-2 overflow-y-auto">
-              <FilterSection label="City" isOpen={openSections.city} onToggle={() => toggleSection("city")}>
+              <FilterSection label={tt.filterCity} isOpen={openSections.city} onToggle={() => toggleSection("city")}>
                 {CITIES.map((c) => (
                   <FilterCheckbox
-                    key={c} label={CITY_LABELS[c] ?? c}
+                    key={c} label={tt.cityLabels[c] ?? c}
                     checked={selectedCities.includes(c)}
                     onChange={() => handleFilterChange("cities", c)}
                   />
                 ))}
               </FilterSection>
 
-              <FilterSection label="Subject" isOpen={openSections.subject} onToggle={() => toggleSection("subject")}>
+              <FilterSection label={tt.filterSubject} isOpen={openSections.subject} onToggle={() => toggleSection("subject")}>
                 {SUBJECTS.slice(0, 8).map((s) => (
                   <FilterCheckbox
-                    key={s.value} label={s.label}
-                    checked={selectedSubjects.includes(s.value)}
-                    onChange={() => handleFilterChange("subjects", s.value)}
+                    key={s} label={tt.subjectLabels[s] ?? s}
+                    checked={selectedSubjects.includes(s)}
+                    onChange={() => handleFilterChange("subjects", s)}
                   />
                 ))}
               </FilterSection>
 
-              <FilterSection label="Grade Level" isOpen={openSections.grade} onToggle={() => toggleSection("grade")}>
+              <FilterSection label={tt.filterGradeLevel} isOpen={openSections.grade} onToggle={() => toggleSection("grade")}>
                 {GRADE_LEVELS.map((g) => (
                   <FilterCheckbox
-                    key={g.value} label={g.label}
-                    checked={selectedGrades.includes(g.value)}
-                    onChange={() => handleFilterChange("grades", g.value)}
+                    key={g} label={tt.gradeLevelLabels[g] ?? g}
+                    checked={selectedGrades.includes(g)}
+                    onChange={() => handleFilterChange("grades", g)}
                   />
                 ))}
               </FilterSection>
 
-              <FilterSection label="Contract Type" isOpen={openSections.contract} onToggle={() => toggleSection("contract")}>
+              <FilterSection label={tt.filterContractType} isOpen={openSections.contract} onToggle={() => toggleSection("contract")}>
                 {CONTRACT_TYPES.map((ct) => (
                   <FilterCheckbox
-                    key={ct.value} label={ct.label}
-                    checked={selectedContracts.includes(ct.value)}
-                    onChange={() => handleFilterChange("contracts", ct.value)}
+                    key={ct} label={tt.contractTypeLabels[ct] ?? ct}
+                    checked={selectedContracts.includes(ct)}
+                    onChange={() => handleFilterChange("contracts", ct)}
                   />
                 ))}
               </FilterSection>
 
-              <FilterSection label="Language" isOpen={openSections.language} onToggle={() => toggleSection("language")}>
+              <FilterSection label={tt.filterLanguage} isOpen={openSections.language} onToggle={() => toggleSection("language")}>
                 {LANGUAGES.map((l) => (
                   <FilterRadio
-                    key={l.value} label={l.label} name="language"
-                    checked={selectedLanguage === l.value}
-                    onChange={() => handleSingleFilterChange("language", l.value)}
+                    key={l} label={tt.languageLabels[l] ?? l} name="language"
+                    checked={selectedLanguage === l}
+                    onChange={() => handleSingleFilterChange("language", l)}
                   />
                 ))}
               </FilterSection>
 
-              <FilterSection label="Experience" isOpen={openSections.experience} onToggle={() => toggleSection("experience")}>
+              <FilterSection label={tt.filterExperience} isOpen={openSections.experience} onToggle={() => toggleSection("experience")}>
                 {EXPERIENCE_OPTIONS.map((e) => (
                   <FilterRadio
-                    key={e.value} label={e.label} name="experience"
-                    checked={selectedExperience === e.value}
-                    onChange={() => handleSingleFilterChange("experience", e.value)}
+                    key={e} label={tt.experienceLabels[e] ?? e} name="experience"
+                    checked={selectedExperience === e}
+                    onChange={() => handleSingleFilterChange("experience", e)}
                   />
                 ))}
               </FilterSection>
 
-              <FilterSection label="Salary Range" isOpen={openSections.salary} onToggle={() => toggleSection("salary")}>
+              <FilterSection label={tt.filterSalaryRange} isOpen={openSections.salary} onToggle={() => toggleSection("salary")}>
                 <SalaryRangeSlider
                   min={SALARY_MIN}
                   max={SALARY_MAX}
@@ -556,15 +507,17 @@ export default function JobsPage() {
                   valueMin={salaryMin}
                   valueMax={salaryMax}
                   onChange={handleSalaryChange}
+                  minLabel={tt.minSalaryLabel}
+                  maxLabel={tt.maxSalaryLabel}
                 />
               </FilterSection>
 
-              <FilterSection label="Posted Date" isOpen={openSections.posted} onToggle={() => toggleSection("posted")}>
+              <FilterSection label={tt.filterPostedDate} isOpen={openSections.posted} onToggle={() => toggleSection("posted")}>
                 {POSTED_WITHIN_OPTIONS.map((p) => (
                   <FilterRadio
-                    key={p.value} label={p.label} name="posted"
-                    checked={postedWithin === p.value}
-                    onChange={() => handlePostedWithinChange(postedWithin === p.value ? null : p.value)}
+                    key={p} label={tt.postedWithinLabels[String(p)] ?? String(p)} name="posted"
+                    checked={postedWithin === p}
+                    onChange={() => handlePostedWithinChange(postedWithin === p ? null : p)}
                   />
                 ))}
               </FilterSection>
@@ -576,11 +529,11 @@ export default function JobsPage() {
         <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <div className="shrink-0 bg-slate-50 border-b border-slate-100 px-4 py-2 flex items-center gap-2">
             <span className="text-xs text-slate-500">
-              <span className="font-semibold text-slate-700">{filteredJobs.length}</span> of {total} jobs
+              {tt.resultsOf.replace("{count}", String(filteredJobs.length)).replace("{total}", String(total))}
             </span>
             {activeFilterCount > 0 && (
-              <button onClick={clearFilters} className="text-xs font-medium flex items-center gap-1 ml-1" style={{ color: "var(--brand-primary)" }}>
-                <X size={11} /> Clear filters
+              <button onClick={clearFilters} className="text-xs font-medium flex items-center gap-1 ms-1" style={{ color: "var(--brand-primary)" }}>
+                <X size={11} /> {tt.clearAllFilters}
               </button>
             )}
           </div>
@@ -595,10 +548,10 @@ export default function JobsPage() {
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
                   <Search size={20} className="text-slate-400" />
                 </div>
-                <p className="font-semibold text-slate-600 text-sm mb-1">No jobs match your filters</p>
-                <p className="text-xs text-slate-400 mb-4">Try broadening your search or clearing filters</p>
+                <p className="font-semibold text-slate-600 text-sm mb-1">{tt.noJobsTitle}</p>
+                <p className="text-xs text-slate-400 mb-4">{tt.noJobsBody}</p>
                 <button onClick={clearFilters} className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }}>
-                  Clear all filters
+                  {tt.clearAllFilters}
                 </button>
               </div>
             ) : viewMode === "list" ? (
@@ -611,6 +564,10 @@ export default function JobsPage() {
                   isApplied={appliedJobs.has(job._id)}
                   onSelect={() => setSelectedJobId(job._id)}
                   onToggleSave={handleToggleSave}
+                  tt={tt}
+                  salaryText={salaryText}
+                  deadlinePill={deadlinePill}
+                  postedLabel={postedLabel}
                 />
               ))
             ) : (
@@ -624,6 +581,10 @@ export default function JobsPage() {
                     isApplied={appliedJobs.has(job._id)}
                     onSelect={() => setSelectedJobId(job._id)}
                     onToggleSave={handleToggleSave}
+                    tt={tt}
+                    salaryText={salaryText}
+                    deadlinePill={deadlinePill}
+                    postedLabel={postedLabel}
                   />
                 ))}
               </div>
@@ -638,12 +599,14 @@ export default function JobsPage() {
               total={total}
               pageSize={PAGE_SIZE}
               onChange={handlePageChange}
+              tt={tt}
+              isRTL={isRTL}
             />
           )}
         </div>
 
         {/* RIGHT: Detail panel */}
-        <div className="hidden lg:flex w-[440px] xl:w-[480px] shrink-0 flex-col bg-white border-l border-slate-200 overflow-hidden">
+        <div className="hidden lg:flex w-[440px] xl:w-[480px] shrink-0 flex-col bg-white border-s border-slate-200 overflow-hidden">
           {selectedJob ? (
             <JobDetailPanel
               job={selectedJob}
@@ -652,11 +615,17 @@ export default function JobsPage() {
               isApplying={applyingId === selectedJob._id}
               onToggleSave={handleToggleSave}
               onApply={handleApply}
+              tt={tt}
+              lang={lang}
+              isRTL={isRTL}
+              salaryText={salaryText}
+              deadlinePill={deadlinePill}
+              postedLabel={postedLabel}
             />
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 text-center p-10">
               <Briefcase size={30} className="text-slate-300 mb-3" />
-              <p className="text-sm font-medium text-slate-400">Select a job to view details</p>
+              <p className="text-sm font-medium text-slate-400">{tt.selectJobPrompt}</p>
             </div>
           )}
         </div>
@@ -679,11 +648,17 @@ export default function JobsPage() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+type TT = ReturnType<typeof useTranslation>["t"]["teacher"]["jobs"];
+type SalaryFn = (job: Job) => string;
+type DeadlineFn = (isoStr?: string) => { label: string; cls: string };
+type PostedFn = (isoStr: string) => string;
+
 function FilterSection({ label, isOpen, onToggle, children }: { label: string; isOpen: boolean; onToggle: () => void; children: React.ReactNode }) {
   return (
     <div className="border-b border-slate-100 last:border-0">
       <button onClick={onToggle} className="w-full flex items-center justify-between px-2 py-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-800 transition-colors">
         {label}
+        {/* Vertical-axis accordion indicator — no RTL flip needed (DESIGN_SPEC §1.2/§1.3) */}
         <ChevronDown size={11} className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       {isOpen && <div className="pb-1.5">{children}</div>}
@@ -720,10 +695,18 @@ function FilterRadio({ label, name, checked, onChange }: { label: string; name: 
 
 // SRD 2.3.2 — dual-thumb salary range slider. Two overlapping native range
 // inputs share the same track; visual fill is rendered between them.
-function SalaryRangeSlider({ min, max, step, valueMin, valueMax, onChange }: {
+//
+// RTL edge case (not covered by DESIGN_SPEC's "native inputs auto-mirror"
+// note — flagged in the M2 report): the two native <input type="range">
+// thumbs mirror automatically under dir="rtl", but the hand-drawn fill bar
+// between them is positioned with plain numeric offsets, so it must use
+// insetInlineStart/insetInlineEnd (logical) instead of left/right, or the
+// fill visually detaches from the thumbs in RTL.
+function SalaryRangeSlider({ min, max, step, valueMin, valueMax, onChange, minLabel, maxLabel }: {
   min: number; max: number; step: number;
   valueMin: number; valueMax: number;
   onChange: (nextMin: number, nextMax: number) => void;
+  minLabel: string; maxLabel: string;
 }) {
   const [localMin, setLocalMin] = useState(valueMin);
   const [localMax, setLocalMax] = useState(valueMax);
@@ -732,7 +715,7 @@ function SalaryRangeSlider({ min, max, step, valueMin, valueMax, onChange }: {
   useEffect(() => { setLocalMin(valueMin); }, [valueMin]);
   useEffect(() => { setLocalMax(valueMax); }, [valueMax]);
 
-  const fmt = (n: number) => n === 0 ? "0" : n.toLocaleString();
+  const fmt = (n: number) => n === 0 ? "0" : formatNumber(n, "en");
   const pctMin = ((localMin - min) / (max - min)) * 100;
   const pctMax = ((localMax - min) / (max - min)) * 100;
 
@@ -748,16 +731,18 @@ function SalaryRangeSlider({ min, max, step, valueMin, valueMax, onChange }: {
         <span>SAR {fmt(localMax)}{localMax === max ? "+" : ""}</span>
       </div>
       <div className="relative h-6">
-        {/* Track + active fill */}
+        {/* Track (full-width, symmetric — DESIGN_SPEC §1.1 documented exception) */}
         <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 rounded-full bg-slate-200" />
+        {/* Active fill — logical inline offsets so it stays aligned with the
+            (auto-mirroring) native thumbs in RTL. */}
         <div
           className="absolute top-1/2 -translate-y-1/2 h-1 rounded-full"
-          style={{ left: `${pctMin}%`, right: `${100 - pctMax}%`, backgroundColor: "var(--brand-primary)" }}
+          style={{ insetInlineStart: `${pctMin}%`, insetInlineEnd: `${100 - pctMax}%`, backgroundColor: "var(--brand-primary)" }}
         />
         {/* Two stacked native inputs — pointer-events-none on track segments via z-index */}
         <input
           type="range" min={min} max={max} step={step} value={localMin}
-          aria-label="Minimum salary"
+          aria-label={minLabel}
           onChange={(e) => {
             const v = Math.min(Number(e.target.value), localMax - step);
             setLocalMin(v);
@@ -770,7 +755,7 @@ function SalaryRangeSlider({ min, max, step, valueMin, valueMax, onChange }: {
         />
         <input
           type="range" min={min} max={max} step={step} value={localMax}
-          aria-label="Maximum salary"
+          aria-label={maxLabel}
           onChange={(e) => {
             const v = Math.max(Number(e.target.value), localMin + step);
             setLocalMax(v);
@@ -821,16 +806,17 @@ function SalaryRangeSlider({ min, max, step, valueMin, valueMax, onChange }: {
   );
 }
 
-function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSave }: {
+function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSave, tt, salaryText, deadlinePill, postedLabel }: {
   job: Job; isSelected: boolean; isSaved: boolean; isApplied: boolean;
   onSelect: () => void; onToggleSave: (id: string) => void;
+  tt: TT; salaryText: SalaryFn; deadlinePill: DeadlineFn; postedLabel: PostedFn;
 }) {
   const deadline = deadlinePill(job.deadline);
   return (
     <div
       onClick={onSelect}
-      className="relative px-4 py-4 cursor-pointer transition-colors group bg-white border-l-2 hover:bg-slate-50"
-      style={{ borderLeftColor: isSelected ? "var(--brand-primary)" : "transparent" }}
+      className="relative px-4 py-4 cursor-pointer transition-colors group bg-white border-s-2 hover:bg-slate-50"
+      style={{ borderInlineStartColor: isSelected ? "var(--brand-primary)" : "transparent" }}
     >
       <div className="flex items-start gap-3">
         {job.school?.logoUrl ? (
@@ -849,14 +835,15 @@ function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
               onClick={(e) => { e.stopPropagation(); onToggleSave(job._id); }}
               className="shrink-0 p-1 rounded transition-colors mt-0.5"
               style={{ color: isSaved ? "var(--brand-primary)" : "rgb(203 213 225)" }}
+              aria-label={isSaved ? tt.unsaveJob : tt.saveJob}
             >
               <Bookmark size={13} className={isSaved ? "fill-current" : ""} />
             </button>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-2 text-[11px] text-slate-400">
-            <span className="flex items-center gap-1"><MapPin size={10} />{CITY_LABELS[job.city] ?? job.city}</span>
+            <span className="flex items-center gap-1"><MapPin size={10} />{tt.cityLabels[job.city] ?? job.city}</span>
             {job.subjects?.[0] && <span className="flex items-center gap-1"><BookOpen size={10} />{job.subjects[0]}</span>}
-            <span className="flex items-center gap-1"><Clock size={10} />{job.employmentType?.replace("_", "-")}</span>
+            <span className="flex items-center gap-1"><Clock size={10} />{tt.employmentTypeLabels[job.employmentType ?? ""] ?? job.employmentType?.replace("_", "-")}</span>
           </div>
           <div className="flex items-center gap-2 mt-2.5 flex-wrap">
             <span className="text-xs font-semibold text-slate-700">{salaryText(job)}</span>
@@ -866,7 +853,7 @@ function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
                 job.matchScore >= 60 ? "bg-blue-50 text-blue-700" :
                 "bg-slate-100 text-slate-500"
               }`}>
-                {job.matchScore}% match
+                {tt.matchPercent.replace("{n}", String(job.matchScore))}
               </span>
             )}
             {deadline.label && (
@@ -874,10 +861,10 @@ function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
             )}
             {isApplied && (
               <span className="flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">
-                <CheckCircle2 size={9} />Applied
+                <CheckCircle2 size={9} />{tt.applied}
               </span>
             )}
-            <span className="text-[10px] text-slate-300 ml-auto">{postedLabel(job.createdAt)}</span>
+            <span className="text-[10px] text-slate-300 ms-auto">{postedLabel(job.createdAt)}</span>
           </div>
         </div>
       </div>
@@ -887,9 +874,10 @@ function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
 
 // SRD 2.3.1 — denser grid layout. Same data as JobListCard, vertical stack so
 // 2 cards fit per row at md+ widths.
-function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSave }: {
+function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSave, tt, salaryText, deadlinePill, postedLabel }: {
   job: Job; isSelected: boolean; isSaved: boolean; isApplied: boolean;
   onSelect: () => void; onToggleSave: (id: string) => void;
+  tt: TT; salaryText: SalaryFn; deadlinePill: DeadlineFn; postedLabel: PostedFn;
 }) {
   const deadline = deadlinePill(job.deadline);
   return (
@@ -913,7 +901,7 @@ function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
           onClick={(e) => { e.stopPropagation(); onToggleSave(job._id); }}
           className="shrink-0 p-1 rounded transition-colors"
           style={{ color: isSaved ? "var(--brand-primary)" : "rgb(203 213 225)" }}
-          aria-label={isSaved ? "Unsave job" : "Save job"}
+          aria-label={isSaved ? tt.unsaveJob : tt.saveJob}
         >
           <Bookmark size={14} className={isSaved ? "fill-current" : ""} />
         </button>
@@ -927,9 +915,9 @@ function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
       )}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 mb-3">
-        <span className="flex items-center gap-1"><MapPin size={10} />{CITY_LABELS[job.city] ?? job.city}</span>
+        <span className="flex items-center gap-1"><MapPin size={10} />{tt.cityLabels[job.city] ?? job.city}</span>
         {job.subjects?.[0] && <span className="flex items-center gap-1"><BookOpen size={10} />{job.subjects[0]}</span>}
-        <span className="flex items-center gap-1"><Clock size={10} />{job.employmentType?.replace("_", "-")}</span>
+        <span className="flex items-center gap-1"><Clock size={10} />{tt.employmentTypeLabels[job.employmentType ?? ""] ?? job.employmentType?.replace("_", "-")}</span>
       </div>
 
       <div className="pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap">
@@ -940,7 +928,7 @@ function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
             job.matchScore >= 60 ? "bg-blue-50 text-blue-700" :
             "bg-slate-100 text-slate-500"
           }`}>
-            {job.matchScore}% match
+            {tt.matchPercent.replace("{n}", String(job.matchScore))}
           </span>
         )}
         {deadline.label && (
@@ -948,20 +936,23 @@ function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
         )}
         {isApplied && (
           <span className="flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">
-            <CheckCircle2 size={9} />Applied
+            <CheckCircle2 size={9} />{tt.applied}
           </span>
         )}
-        <span className="text-[10px] text-slate-300 ml-auto">{postedLabel(job.createdAt)}</span>
+        <span className="text-[10px] text-slate-300 ms-auto">{postedLabel(job.createdAt)}</span>
       </div>
     </div>
   );
 }
 
-function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onApply }: {
+function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onApply, tt, lang, isRTL, salaryText, deadlinePill, postedLabel }: {
   job: Job; isSaved: boolean; isApplied: boolean; isApplying: boolean;
   onToggleSave: (id: string) => void; onApply: (id: string) => void;
+  tt: TT; lang: "en" | "ar"; isRTL: boolean;
+  salaryText: SalaryFn; deadlinePill: DeadlineFn; postedLabel: PostedFn;
 }) {
   const deadline = deadlinePill(job.deadline);
+  void schoolId;
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
@@ -976,10 +967,10 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-800 truncate">
-              {schoolName(job) || "School"}
+              {schoolName(job) || tt.schoolFallback}
             </p>
             <p className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
-              <MapPin size={10} className="shrink-0" />{CITY_LABELS[job.city] ?? job.city}
+              <MapPin size={10} className="shrink-0" />{tt.cityLabels[job.city] ?? job.city}
             </p>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
@@ -990,6 +981,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
                 ? { borderColor: "var(--brand-primary)", backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }
                 : { borderColor: "rgb(226 232 240)", color: "rgb(148 163 184)" }
               }
+              aria-label={isSaved ? tt.unsaveJob : tt.saveJob}
             >
               <Bookmark size={13} className={isSaved ? "fill-current" : ""} />
             </button>
@@ -1015,7 +1007,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
 
         <div className="flex flex-wrap gap-1.5 mb-4">
           <span className="flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-            <Clock size={10} />{job.employmentType?.replace("_", "-")}
+            <Clock size={10} />{tt.employmentTypeLabels[job.employmentType ?? ""] ?? job.employmentType?.replace("_", "-")}
           </span>
           {job.gradeLevels?.[0] && (
             <span className="flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
@@ -1024,7 +1016,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
           )}
           {job.deadline && (
             <span className="flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-              <CalendarDays size={10} />Closes {new Date(job.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              <CalendarDays size={10} />{tt.closesOn.replace("{date}", formatDate(job.deadline, lang, { month: "short", day: "numeric" }))}
             </span>
           )}
         </div>
@@ -1043,10 +1035,10 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
               job.matchScore >= 60 ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" :
               "bg-slate-100 text-slate-500"
             }`}>
-              {job.matchScore}% match
+              {tt.matchPercent.replace("{n}", String(job.matchScore))}
             </span>
           )}
-          <span className="text-[11px] text-slate-400 ml-auto">{postedLabel(job.createdAt)}</span>
+          <span className="text-[11px] text-slate-400 ms-auto">{postedLabel(job.createdAt)}</span>
         </div>
       </div>
 
@@ -1054,14 +1046,14 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
         {/* Overview */}
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Job Overview</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">{tt.jobOverview}</p>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { icon: Clock,         label: "Employment", value: job.employmentType?.replace("_", "-") },
-              { icon: MapPin,        label: "City",       value: CITY_LABELS[job.city] ?? job.city },
-              { icon: BookOpen,      label: "Subjects",   value: job.subjects?.join(", ") },
-              { icon: GraduationCap, label: "Grades",     value: job.gradeLevels?.join(", ") },
-              { icon: Banknote,      label: "Salary",     value: salaryText(job) },
+              { icon: Clock,         label: tt.employmentLabel, value: tt.employmentTypeLabels[job.employmentType ?? ""] ?? job.employmentType?.replace("_", "-") },
+              { icon: MapPin,        label: tt.cityLabel,       value: tt.cityLabels[job.city] ?? job.city },
+              { icon: BookOpen,      label: tt.subjectsLabel,   value: job.subjects?.join(", ") },
+              { icon: GraduationCap, label: tt.gradesLabel,     value: job.gradeLevels?.join(", ") },
+              { icon: Banknote,      label: tt.salaryLabel,     value: salaryText(job) },
             ].filter((r) => r.value).map(({ icon: Icon, label, value }) => (
               <div key={label} className="flex items-start gap-2">
                 <Icon size={12} className="text-slate-400 mt-0.5 shrink-0" />
@@ -1102,10 +1094,10 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
             };
             return (
               <>
-                {block("Responsibilities", ds.responsibilities?.en, ds.responsibilities?.ar)}
-                {block("Requirements",     ds.requirements?.en,     ds.requirements?.ar)}
-                {block("School Culture",   ds.culture?.en,          ds.culture?.ar)}
-                {block("Benefits",         ds.benefits?.en,         ds.benefits?.ar)}
+                {block(tt.responsibilities, ds.responsibilities?.en, ds.responsibilities?.ar)}
+                {block(tt.requirements,     ds.requirements?.en,     ds.requirements?.ar)}
+                {block(tt.schoolCulture,    ds.culture?.en,          ds.culture?.ar)}
+                {block(tt.benefits,         ds.benefits?.en,         ds.benefits?.ar)}
               </>
             );
           }
@@ -1114,7 +1106,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
             <>
               {(job.descriptionEn || job.description) && (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">About the Role</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{tt.aboutTheRole}</p>
                   <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap" dir="ltr">
                     {job.descriptionEn || job.description}
                   </p>
@@ -1127,11 +1119,15 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
               )}
               {job.responsibilities && job.responsibilities.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Responsibilities</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{tt.responsibilities}</p>
                   <ul className="space-y-2">
                     {job.responsibilities.map((r, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                        <ChevronRight size={13} className="shrink-0 mt-0.5" style={{ color: "var(--brand-primary)" }} />
+                        {/* Decorative bullet pointing "into" reading direction — flips (DESIGN_SPEC §1.2) */}
+                        {isRTL
+                          ? <ChevronLeft size={13} className="shrink-0 mt-0.5" style={{ color: "var(--brand-primary)" }} />
+                          : <ChevronRight size={13} className="shrink-0 mt-0.5" style={{ color: "var(--brand-primary)" }} />
+                        }
                         {r}
                       </li>
                     ))}
@@ -1140,7 +1136,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
               )}
               {job.requirements && job.requirements.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Requirements</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{tt.requirements}</p>
                   <ul className="space-y-2">
                     {job.requirements.map((r, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
@@ -1159,7 +1155,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
           <div className="space-y-3">
             {job.certificationsRequired && job.certificationsRequired.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Required Certifications</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{tt.requiredCertifications}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {job.certificationsRequired.map((c) => (
                     <span key={c} className="text-xs px-2 py-1 rounded-lg bg-red-50 border border-red-100 text-red-700">{c}</span>
@@ -1169,7 +1165,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
             )}
             {job.certificationsPreferred && job.certificationsPreferred.length > 0 && (
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Preferred Certifications</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{tt.preferredCertifications}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {job.certificationsPreferred.map((c) => (
                     <span key={c} className="text-xs px-2 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700">{c}</span>
@@ -1182,8 +1178,8 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
 
         {job.languageRequirement && (
           <div className="flex items-center gap-2 text-xs text-slate-500 pt-4 border-t border-slate-100">
-            <span className="font-semibold text-slate-600">Language of instruction:</span>
-            <span className="capitalize">{job.languageRequirement}</span>
+            <span className="font-semibold text-slate-600">{tt.languageOfInstruction}</span>
+            <span className="capitalize">{tt.languageLabels[job.languageRequirement] ?? job.languageRequirement}</span>
           </div>
         )}
       </div>
@@ -1192,7 +1188,7 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
       <div className="shrink-0 px-6 py-4 bg-white border-t border-slate-100">
         {isApplied ? (
           <div className="flex items-center gap-2 justify-center py-3 bg-emerald-50 rounded-xl text-emerald-600 font-semibold text-sm">
-            <CheckCircle2 size={15} />Application Submitted
+            <CheckCircle2 size={15} />{tt.applicationSubmitted}
           </div>
         ) : (
           <button
@@ -1202,13 +1198,13 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
             style={{ background: "var(--brand-gradient)" }}
           >
             {isApplying
-              ? <><Loader2 size={14} className="animate-spin" />Applying…</>
-              : <><Zap size={14} />Apply Now</>
+              ? <><Loader2 size={14} className="animate-spin" />{tt.applying}</>
+              : <><Zap size={14} />{tt.applyNow}</>
             }
           </button>
         )}
         <p className="text-center text-[10px] text-slate-300 mt-2">
-          Posted via Abjad · {postedLabel(job.createdAt)}
+          {tt.postedVia} · {postedLabel(job.createdAt)}
         </p>
       </div>
     </div>
@@ -1217,12 +1213,14 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
 
 // SRD 2.3.1 — Prev/Next + condensed page numbers (first, current ±1, last,
 // with ellipsis when there's a gap).
-function Pagination({ page, totalPages, total, pageSize, onChange }: {
+function Pagination({ page, totalPages, total, pageSize, onChange, tt, isRTL }: {
   page: number;
   totalPages: number;
   total: number;
   pageSize: number;
   onChange: (page: number) => void;
+  tt: TT;
+  isRTL: boolean;
 }) {
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
@@ -1238,7 +1236,7 @@ function Pagination({ page, totalPages, total, pageSize, onChange }: {
   return (
     <div className="shrink-0 bg-white border-t border-slate-100 px-4 py-2 flex items-center justify-between gap-3">
       <span className="text-xs text-slate-500">
-        Showing <span className="font-semibold text-slate-700">{start}–{end}</span> of {total}
+        {tt.showingOf.replace("{start}", String(start)).replace("{end}", String(end)).replace("{total}", String(total))}
       </span>
       <div className="flex items-center gap-1">
         <button
@@ -1246,9 +1244,10 @@ function Pagination({ page, totalPages, total, pageSize, onChange }: {
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
           className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          aria-label="Previous page"
+          aria-label={tt.previousPageLabel}
         >
-          <ChevronLeft size={14} />
+          {/* Prev/Next chevrons point toward reading-origin/destination — flip (DESIGN_SPEC §1.2) */}
+          {isRTL ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
         {pages.map((p, i) =>
           p === "…" ? (
@@ -1275,12 +1274,11 @@ function Pagination({ page, totalPages, total, pageSize, onChange }: {
           onClick={() => onChange(page + 1)}
           disabled={page >= totalPages}
           className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          aria-label="Next page"
+          aria-label={tt.nextPageLabel}
         >
-          <ChevronRight size={14} />
+          {isRTL ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
         </button>
       </div>
     </div>
   );
 }
-

@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Landmark, Copy, CheckCircle2, AlertCircle, Loader2, ArrowRight, Download } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatCurrency, formatDate } from "@/lib/i18n/format";
+import type { BillingPendingTranslations } from "@/lib/i18n/types";
 import { listMyInvoices, type MyInvoice } from "@/lib/api/billing";
 import { getAccessToken, doRefresh } from "@/lib/api/client";
 
@@ -36,10 +38,6 @@ interface Props {
   billingHref: string;
 }
 
-function halalaToSAR(h: number): string {
-  return (h / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 // Production: pull these from a config endpoint. For v1 they're inline so
 // we don't need a new backend route for the bank credentials.
 // Real IBANs MUST come from operations before launch — these are placeholders.
@@ -53,8 +51,8 @@ const BANK_DETAILS_PLACEHOLDER = {
 };
 
 export function BillingPending({ invoiceId, audience, billingHref }: Props) {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t, lang } = useTranslation();
+  const tt = t.billingShared.pending;
 
   const [invoice, setInvoice] = useState<MyInvoice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,16 +67,16 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
         const r = await listMyInvoices(1, 50);
         if (!alive) return;
         const found = r.invoices.find((i) => i._id === invoiceId);
-        if (!found) throw new Error(locale === "ar" ? "لم يتم العثور على الفاتورة" : "Invoice not found");
+        if (!found) throw new Error(tt.invoiceNotFoundFallback);
         setInvoice(found);
       } catch (e) {
-        if (alive) setError(e instanceof Error ? e.message : "Failed to load invoice");
+        if (alive) setError(e instanceof Error ? e.message : tt.loadFailedFallback);
       } finally {
         if (alive) setLoading(false);
       }
     })();
     return () => { alive = false; };
-  }, [invoiceId, locale]);
+  }, [invoiceId, tt.invoiceNotFoundFallback, tt.loadFailedFallback]);
 
   const copy = useCallback(async (label: string, value: string) => {
     try {
@@ -102,13 +100,13 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
         <AlertCircle className="mx-auto text-red-500 mb-3" size={28} />
         <p className="text-sm text-red-600 mb-4">{error}</p>
         <Link href={billingHref} className="text-sm text-gray-700 underline">
-          {locale === "ar" ? "إلى صفحة الفوترة" : "Go to billing"}
+          {tt.goToBilling}
         </Link>
       </div>
     );
   }
 
-  const dueLabel = invoice.dueAt ? new Date(invoice.dueAt).toLocaleDateString() : null;
+  const dueLabel = invoice.dueAt ? formatDate(invoice.dueAt, lang) : null;
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
@@ -119,12 +117,10 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
         </div>
         <div>
           <h1 className="text-base font-semibold text-gray-900">
-            {locale === "ar" ? "بانتظار تحويلك البنكي" : "Awaiting your bank transfer"}
+            {tt.awaitingTitle}
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            {locale === "ar"
-              ? `حوّل المبلغ إلى الحساب أدناه، واذكر رقم الفاتورة كمرجع. سنفعّل اشتراكك تلقائياً خلال ١-٢ يوم عمل من تأكيد التحويل.`
-              : "Transfer the amount to the account below and quote the invoice number as the reference. We'll activate your subscription within 1–2 business days of confirming the transfer."}
+            {tt.awaitingBody}
           </p>
         </div>
       </div>
@@ -134,55 +130,64 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
         <section className="bg-white rounded-2xl border border-gray-100">
           <div className="px-5 py-4 border-b border-gray-50">
             <h2 className="text-sm font-semibold text-gray-900">
-              {locale === "ar" ? "تفاصيل التحويل" : "Transfer details"}
+              {tt.transferDetailsTitle}
             </h2>
           </div>
           <div className="p-5 space-y-3">
             <CopyRow
-              label={locale === "ar" ? "البنك" : "Bank"}
-              value={locale === "ar" ? BANK_DETAILS_PLACEHOLDER.bankNameAr : BANK_DETAILS_PLACEHOLDER.bankNameEn}
+              label={tt.bankLabel}
+              value={lang === "ar" ? BANK_DETAILS_PLACEHOLDER.bankNameAr : BANK_DETAILS_PLACEHOLDER.bankNameEn}
               onCopy={copy}
               copied={copied}
+              tt={tt}
             />
             <CopyRow
-              label={locale === "ar" ? "اسم الحساب" : "Account name"}
-              value={locale === "ar" ? BANK_DETAILS_PLACEHOLDER.accountNameAr : BANK_DETAILS_PLACEHOLDER.accountNameEn}
+              label={tt.accountNameLabel}
+              value={lang === "ar" ? BANK_DETAILS_PLACEHOLDER.accountNameAr : BANK_DETAILS_PLACEHOLDER.accountNameEn}
               onCopy={copy}
               copied={copied}
+              tt={tt}
             />
             <CopyRow
-              label="IBAN"
+              label={tt.ibanLabel}
               value={BANK_DETAILS_PLACEHOLDER.iban}
               onCopy={copy}
               copied={copied}
+              tt={tt}
               mono
+              ltr
             />
             <CopyRow
-              label="SWIFT / BIC"
+              label={tt.swiftLabel}
               value={BANK_DETAILS_PLACEHOLDER.swift}
               onCopy={copy}
               copied={copied}
+              tt={tt}
               mono
+              ltr
             />
             <CopyRow
-              label={locale === "ar" ? "رقم المرجع (مهم!)" : "Reference (important!)"}
+              label={tt.referenceLabel}
               value={invoice.number}
               onCopy={copy}
               copied={copied}
+              tt={tt}
               highlight
               mono
+              ltr
             />
             <CopyRow
-              label={locale === "ar" ? "المبلغ" : "Amount"}
-              value={`${halalaToSAR(invoice.totalHalala)} SAR`}
+              label={tt.amountLabel}
+              value={formatCurrency(invoice.totalHalala / 100, lang)}
               onCopy={copy}
               copied={copied}
+              tt={tt}
               highlight
               mono
             />
             {dueLabel && (
               <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3">
-                ⏰ {locale === "ar" ? "الموعد النهائي للتحويل" : "Transfer deadline"}: <strong>{dueLabel}</strong>
+                ⏰ {tt.transferDeadlineLabel}: <strong>{dueLabel}</strong>
               </p>
             )}
           </div>
@@ -191,21 +196,21 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
         {/* Summary */}
         <aside className="bg-white rounded-2xl border border-gray-100 h-fit">
           <div className="px-5 py-4 border-b border-gray-50">
-            <h2 className="text-sm font-semibold text-gray-900">{locale === "ar" ? "الفاتورة" : "Invoice"}</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{tt.invoiceSectionTitle}</h2>
           </div>
           <div className="px-5 py-4 space-y-3 text-sm">
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-gray-400">{locale === "ar" ? "رقم الفاتورة" : "Invoice number"}</p>
-              <p className="font-mono font-semibold mt-0.5">{invoice.number}</p>
+              <p className="text-[10px] uppercase tracking-wider text-gray-400">{tt.invoiceNumberLabel}</p>
+              <p className="font-mono font-semibold mt-0.5" dir="ltr">{invoice.number}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-gray-400">{locale === "ar" ? "تاريخ الإصدار" : "Issued"}</p>
-              <p className="mt-0.5">{new Date(invoice.issuedAt).toLocaleDateString()}</p>
+              <p className="text-[10px] uppercase tracking-wider text-gray-400">{tt.issuedLabel}</p>
+              <p className="mt-0.5">{formatDate(invoice.issuedAt, lang)}</p>
               <p className="text-[11px] text-gray-400">{invoice.issuedAtHijri}</p>
             </div>
             <div className="pt-2 border-t border-gray-100 flex items-baseline justify-between">
-              <span className="text-xs text-gray-500">{locale === "ar" ? "الإجمالي" : "Total"}</span>
-              <span className="text-xl font-bold text-gray-900 tabular-nums">{halalaToSAR(invoice.totalHalala)} SAR</span>
+              <span className="text-xs text-gray-500">{tt.totalLabel}</span>
+              <span className="text-xl font-bold text-gray-900 tabular-nums">{formatCurrency(invoice.totalHalala / 100, lang)}</span>
             </div>
             <button
               type="button"
@@ -213,7 +218,7 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
               className="flex items-center justify-center gap-1.5 w-full px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
               <Download size={13} />
-              {locale === "ar" ? "تحميل PDF" : "Download PDF"}
+              {tt.downloadPdf}
             </button>
           </div>
         </aside>
@@ -224,7 +229,7 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
           href={billingHref}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-gray-900"
         >
-          {locale === "ar" ? "إلى صفحة الفوترة" : "Go to billing"}
+          {tt.goToBilling}
           <ArrowRight size={14} />
         </Link>
       </div>
@@ -232,20 +237,25 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
   );
 }
 
-function CopyRow({ label, value, onCopy, copied, mono, highlight }: {
+function CopyRow({ label, value, onCopy, copied, tt, mono, highlight, ltr }: {
   label: string;
   value: string;
   onCopy: (label: string, value: string) => void;
   copied: string | null;
+  tt: BillingPendingTranslations;
   mono?: boolean;
   highlight?: boolean;
+  ltr?: boolean;
 }) {
   const isCopied = copied === label;
   return (
     <div className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 ${highlight ? "bg-amber-50 border border-amber-100" : "bg-gray-50 border border-gray-100"}`}>
       <div className="min-w-0">
         <p className="text-[10px] uppercase tracking-wider text-gray-500">{label}</p>
-        <p className={`mt-0.5 truncate ${mono ? "font-mono" : ""} ${highlight ? "text-amber-900 font-semibold" : "text-gray-900"}`}>
+        <p
+          className={`mt-0.5 truncate ${mono ? "font-mono" : ""} ${highlight ? "text-amber-900 font-semibold" : "text-gray-900"}`}
+          dir={ltr ? "ltr" : undefined}
+        >
           {value}
         </p>
       </div>
@@ -254,7 +264,7 @@ function CopyRow({ label, value, onCopy, copied, mono, highlight }: {
         onClick={() => onCopy(label, value)}
         className="shrink-0 inline-flex items-center gap-1 text-[11px] text-gray-500 hover:text-gray-700 px-2 py-1 rounded-md hover:bg-white transition-colors"
       >
-        {isCopied ? <><CheckCircle2 size={12} className="text-emerald-500" /> Copied</> : <><Copy size={12} /> Copy</>}
+        {isCopied ? <><CheckCircle2 size={12} className="text-emerald-500" /> {tt.copiedLabel}</> : <><Copy size={12} /> {tt.copyLabel}</>}
       </button>
     </div>
   );

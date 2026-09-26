@@ -5,10 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Loader2, AlertCircle, ArrowLeft, Building2, GraduationCap,
+  Loader2, AlertCircle, ArrowLeft, ArrowRight, Building2, GraduationCap,
   ShieldCheck, CheckCircle2, Landmark, Lock, Sparkles,
 } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatCurrency } from "@/lib/i18n/format";
+import type { BillingCheckoutTranslations } from "@/lib/i18n/types";
 import { getPricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
 import {
   initiatePayment, demoCompletePayment, type CheckoutMethod, type InitiatePaymentResponse,
@@ -81,15 +83,15 @@ type PaymentMethod = {
   value: CheckoutMethod;
   labelEn: string;
   labelAr: string;
-  hint?: string;
+  hintKey?: keyof Pick<BillingCheckoutTranslations, "hintMada" | "hintApplePay" | "hintStcPay" | "hintBankTransfer">;
 } & ({ Logo: React.ComponentType; Icon?: never } | { Icon: React.ElementType; Logo?: never });
 
 const METHODS: PaymentMethod[] = [
-  { value: "mada",          labelEn: "Mada",              labelAr: "مدى",              Logo: MadaLogo,            hint: "Saudi debit card" },
-  { value: "apple_pay",     labelEn: "Apple Pay",         labelAr: "آبل باي",           Logo: ApplePayLogo,        hint: "Touch / Face ID" },
-  { value: "stcpay",        labelEn: "STC Pay",           labelAr: "STC Pay",           Logo: StcPayLogo,          hint: "Mobile wallet" },
+  { value: "mada",          labelEn: "Mada",              labelAr: "مدى",              Logo: MadaLogo,            hintKey: "hintMada" },
+  { value: "apple_pay",     labelEn: "Apple Pay",         labelAr: "آبل باي",           Logo: ApplePayLogo,        hintKey: "hintApplePay" },
+  { value: "stcpay",        labelEn: "STC Pay",           labelAr: "STC Pay",           Logo: StcPayLogo,          hintKey: "hintStcPay" },
   { value: "moyasar_card",  labelEn: "Visa / Mastercard", labelAr: "فيزا / ماستركارد", Logo: VisaMastercardLogo },
-  { value: "bank_transfer", labelEn: "Bank Transfer",     labelAr: "تحويل بنكي",        Icon: Landmark,            hint: "Manual, verified within 1–2 business days" },
+  { value: "bank_transfer", labelEn: "Bank Transfer",     labelAr: "تحويل بنكي",        Icon: Landmark,            hintKey: "hintBankTransfer" },
 ];
 
 const MOYASAR_JS  = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.js";
@@ -102,10 +104,6 @@ const MOYASAR_METHOD_MAP: Partial<Record<CheckoutMethod, string>> = {
   apple_pay:    "applepay",
   stcpay:       "stcpay",
 };
-
-function halalaToSAR(h: number): string {
-  return (h / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 declare global {
   interface Window {
@@ -124,8 +122,9 @@ interface Props {
 }
 
 export function CheckoutForm({ planCode, audience, backHref, successPath, pendingPath }: Props) {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.billingShared.checkout;
+  const locale = lang;
   const router = useRouter();
 
   const [plan, setPlan]       = useState<PricingPlan | null>(null);
@@ -157,13 +156,13 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
         if (!found) throw new Error(`Plan not found: ${planCode}`);
         if (alive) setPlan(found);
       } catch (e) {
-        if (alive) setError(e instanceof Error ? e.message : "Failed to load plan");
+        if (alive) setError(e instanceof Error ? e.message : tt.planNotFoundError);
       } finally {
         if (alive) setLoading(false);
       }
     })();
     return () => { alive = false; };
-  }, [planCode, audience, locale]);
+  }, [planCode, audience, locale, tt.planNotFoundError]);
 
   // Passed to <Script onReady> — called on every mount, even when the script
   // is already cached. This is the recommended pattern per Next.js docs.
@@ -199,9 +198,9 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
         metadata: { invoiceId: initResp.invoice._id },
       });
     } catch (e) {
-      setError(e instanceof Error ? `Payment form error: ${e.message}` : "Failed to initialize payment form");
+      setError(e instanceof Error ? tt.paymentFormErrorPrefix.replace("{message}", e.message) : tt.paymentFormErrorFallback);
     }
-  }, [initResp, scriptLoaded, method, successPath]);
+  }, [initResp, scriptLoaded, method, successPath, tt.paymentFormErrorPrefix, tt.paymentFormErrorFallback]);
 
   const handleSubmit = useCallback(async () => {
     if (!plan) return;
@@ -219,11 +218,11 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
         return;
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Checkout failed");
+      setError(e instanceof Error ? e.message : tt.checkoutFailedError);
     } finally {
       setSubmitting(false);
     }
-  }, [plan, method, pendingPath, successPath]);
+  }, [plan, method, pendingPath, successPath, tt.checkoutFailedError]);
 
   if (loading) {
     return (
@@ -238,7 +237,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
       <div className="bg-white rounded-2xl border border-red-100 p-8 text-center">
         <AlertCircle className="mx-auto text-red-500 mb-3" size={28} />
         <p className="text-sm text-red-600 mb-4">{error}</p>
-        <Link href={backHref} className="text-sm text-gray-600 underline">Back to plans</Link>
+        <Link href={backHref} className="text-sm text-gray-600 underline">{tt.backToPlans}</Link>
       </div>
     );
   }
@@ -267,7 +266,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
 
       <div>
         <Link href={backHref} className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700">
-          <ArrowLeft size={12} /> {locale === "ar" ? "العودة إلى الباقات" : "Back to plans"}
+          {isRTL ? <ArrowRight size={12} /> : <ArrowLeft size={12} />} {tt.backToPlans}
         </Link>
       </div>
 
@@ -276,12 +275,10 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
         <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-50">
             <h1 className="text-base font-semibold text-gray-900">
-              {locale === "ar" ? "إكمال الدفع" : "Complete your payment"}
+              {tt.completeTitle}
             </h1>
             <p className="text-xs text-gray-400 mt-0.5">
-              {locale === "ar"
-                ? "اختر طريقة الدفع المفضّلة. جميع المدفوعات مشفّرة وآمنة."
-                : "Choose your preferred payment method. All payments are encrypted and secure."}
+              {tt.completeSubtitle}
             </p>
           </div>
 
@@ -293,7 +290,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
                   <>
                     {error.replace(/from \/\S+ first\.?/, "")}{" "}
                     <Link href={backHref.replace(/\/plans$/, "")} className="underline font-semibold">
-                      {locale === "ar" ? "إدارة الاشتراك" : "Manage subscription"}
+                      {tt.manageSubscription}
                     </Link>
                   </>
                 ) : error}
@@ -305,12 +302,13 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
           {!initResp && (
             <div className="p-6 space-y-2">
               <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-3">
-                {locale === "ar" ? "طريقة الدفع" : "Payment method"}
+                {tt.paymentMethodLabel}
               </p>
-              {METHODS.map(({ value, labelEn, labelAr, hint, ...rest }) => {
+              {METHODS.map(({ value, labelEn, labelAr, hintKey, ...rest }) => {
                 const selected = method === value;
                 const Logo = "Logo" in rest ? rest.Logo : undefined;
                 const Icon = "Icon" in rest ? rest.Icon : undefined;
+                const hint = hintKey ? tt[hintKey] : undefined;
                 return (
                   <label
                     key={value}
@@ -356,13 +354,11 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
                 style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
               >
                 {submitting ? <Loader2 size={16} className="animate-spin" /> : <Lock size={14} />}
-                {locale === "ar" ? "متابعة الدفع" : "Continue to payment"}
+                {tt.continueToPayment}
               </button>
               <p className="text-[11px] text-gray-400 text-center mt-3">
                 <ShieldCheck size={11} className="inline -mt-0.5 me-1" />
-                {locale === "ar"
-                  ? "البيانات مشفّرة باستخدام TLS 1.3. لا نخزّن بيانات بطاقتك."
-                  : "Encrypted with TLS 1.3. We never store your card details."}
+                {tt.encryptedNotice}
               </p>
             </div>
           )}
@@ -373,7 +369,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
               providerPaymentId={initResp.providerPaymentId}
               successPath={successPath}
               invoiceId={initResp.invoice._id}
-              locale={locale}
+              tt={tt}
               router={router}
             />
           )}
@@ -382,7 +378,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
           {showMoyasarForm && (
             <div className="p-6">
               <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-4">
-                {locale === "ar" ? "أكمل البيانات" : "Enter your details"}
+                {tt.enterDetails}
               </p>
 
               {/*
@@ -401,7 +397,7 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
               {!scriptLoaded && (
                 <div className="flex items-center justify-center py-8 text-sm text-gray-400">
                   <Loader2 size={18} className="animate-spin me-2" />
-                  {locale === "ar" ? "جارٍ تحميل نموذج الدفع…" : "Loading payment form…"}
+                  {tt.loadingForm}
                 </div>
               )}
             </div>
@@ -414,35 +410,33 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
             {audience === "school"
               ? <Building2 size={14} className="text-gray-400" />
               : <GraduationCap size={14} className="text-gray-400" />}
-            <h2 className="text-sm font-semibold text-gray-900">{locale === "ar" ? "ملخّص الطلب" : "Order summary"}</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{tt.orderSummary}</h2>
           </div>
           <div className="px-5 py-4 space-y-4">
             <div>
               <p className="text-xs text-gray-400">
-                {audience === "school"
-                  ? (locale === "ar" ? "باقة المدرسة" : "School plan")
-                  : (locale === "ar" ? "باقة المعلم المميز" : "Premium Teacher")}
+                {audience === "school" ? tt.schoolPlanLabel : tt.premiumTeacherLabel}
               </p>
               <p className="text-base font-semibold text-gray-900 capitalize mt-0.5">{plan.name}</p>
               <p className="text-[11px] text-gray-400">
-                {plan.durationLabel} · {locale === "ar" ? "اشتراك" : "Subscription"}
+                {plan.durationLabel} · {tt.subscriptionLabel}
               </p>
             </div>
 
-            <Summary plan={plan} locale={locale} />
+            <Summary plan={plan} lang={lang} tt={tt} />
 
             <div className="pt-3 border-t border-gray-100 space-y-1.5 text-[11px] text-gray-500">
               <p>
                 <ShieldCheck size={11} className="inline -mt-0.5 me-1 text-emerald-500" />
-                {locale === "ar" ? "ضمان استرداد المال خلال 7 أيام" : "7-day money-back guarantee"}
+                {tt.moneyBackGuarantee}
               </p>
               <p>
                 <CheckCircle2 size={11} className="inline -mt-0.5 me-1 text-emerald-500" />
-                {locale === "ar" ? "ألغ في أي وقت" : "Cancel anytime"}
+                {tt.cancelAnytime}
               </p>
               <p>
                 <CheckCircle2 size={11} className="inline -mt-0.5 me-1 text-emerald-500" />
-                {locale === "ar" ? "فاتورة متوافقة مع هيئة الزكاة والضريبة" : "ZATCA-compliant invoice"}
+                {tt.zatcaInvoice}
               </p>
             </div>
           </div>
@@ -452,19 +446,19 @@ export function CheckoutForm({ planCode, audience, backHref, successPath, pendin
   );
 }
 
-function Summary({ plan, locale }: { plan: PricingPlan; locale: "en" | "ar" }) {
+function Summary({ plan, lang, tt }: { plan: PricingPlan; lang: "en" | "ar"; tt: BillingCheckoutTranslations }) {
   const vatHalala   = Math.round(plan.priceHalala * 0.15);
   const totalHalala = plan.priceHalala + vatHalala;
 
   return (
     <div className="space-y-2 text-sm">
-      <Row label={locale === "ar" ? "السعر" : "Subtotal"}                   value={`${halalaToSAR(plan.priceHalala)} SAR`} />
-      <Row label={locale === "ar" ? "ضريبة القيمة المضافة (15%)" : "VAT (15%)"} value={`${halalaToSAR(vatHalala)} SAR`} />
+      <Row label={tt.subtotal} value={formatCurrency(plan.priceHalala / 100, lang)} />
+      <Row label={tt.vatLabel} value={formatCurrency(vatHalala / 100, lang)} />
       <div className="border-t border-gray-100 mt-2 pt-3 flex items-baseline justify-between">
         <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          {locale === "ar" ? "الإجمالي" : "Total"}
+          {tt.total}
         </span>
-        <span className="text-2xl font-bold text-gray-900 tabular-nums">{halalaToSAR(totalHalala)} SAR</span>
+        <span className="text-2xl font-bold text-gray-900 tabular-nums">{formatCurrency(totalHalala / 100, lang)}</span>
       </div>
     </div>
   );
@@ -483,11 +477,11 @@ function Row({ label, value }: { label: string; value: string }) {
 // Rendered instead of the Moyasar form when the backend is running without
 // live Moyasar credentials. Calls the demo-complete endpoint which simulates
 // the Moyasar webhook server-side, then redirects to /success.
-function DemoSimulator({ providerPaymentId, successPath, invoiceId, locale, router }: {
+function DemoSimulator({ providerPaymentId, successPath, invoiceId, tt, router }: {
   providerPaymentId: string;
   successPath: string;
   invoiceId: string;
-  locale: "en" | "ar";
+  tt: BillingCheckoutTranslations;
   router: ReturnType<typeof useRouter>;
 }) {
   const [busy, setBusy] = useState(false);
@@ -501,7 +495,7 @@ function DemoSimulator({ providerPaymentId, successPath, invoiceId, locale, rout
       const qs = new URLSearchParams({ paymentId: providerPaymentId, invoiceId });
       router.push(`${successPath}?${qs.toString()}`);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to complete demo");
+      setErr(e instanceof Error ? e.message : tt.demoCompleteFailedError);
       setBusy(false);
     }
   };
@@ -513,12 +507,10 @@ function DemoSimulator({ providerPaymentId, successPath, invoiceId, locale, rout
           <Sparkles className="text-amber-600" size={22} />
         </div>
         <p className="text-sm font-semibold text-amber-900 mb-1">
-          {locale === "ar" ? "وضع العرض التجريبي" : "Demo Mode"}
+          {tt.demoTitle}
         </p>
         <p className="text-xs text-amber-700 mb-5 max-w-sm mx-auto leading-relaxed">
-          {locale === "ar"
-            ? "لم يتم تكوين Moyasar بعد. اضغط أدناه لمحاكاة دفعة ناجحة وتفعيل الاشتراك."
-            : "Moyasar isn't configured yet. Click below to simulate a successful payment and activate the subscription."}
+          {tt.demoBody}
         </p>
         <button
           type="button"
@@ -528,8 +520,8 @@ function DemoSimulator({ providerPaymentId, successPath, invoiceId, locale, rout
           style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}
         >
           {busy
-            ? <><Loader2 size={16} className="animate-spin" /> {locale === "ar" ? "جارٍ المحاكاة…" : "Simulating…"}</>
-            : <>{locale === "ar" ? "🧪 محاكاة الدفع الناجح" : "🧪 Simulate Successful Payment"}</>}
+            ? <><Loader2 size={16} className="animate-spin" /> {tt.simulating}</>
+            : <>{tt.simulateCta}</>}
         </button>
         {err && <p className="mt-3 text-xs text-red-600">{err}</p>}
         <p className="mt-4 text-[10px] text-amber-700 font-mono">

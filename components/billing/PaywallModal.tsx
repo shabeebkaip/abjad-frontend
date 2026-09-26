@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Lock, X, ArrowRight, CheckCircle2 } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // Paywall — shown when a gated action is attempted by a trialing / free user.
 // Generic; callers pass copy + the audience-specific plans path.
@@ -27,33 +27,14 @@ interface Props {
   fromKey?: string;
 }
 
-const DEFAULT_BULLETS_EN = [
-  "Unlimited job posts (vs 1 on trial)",
-  "Unlimited candidate CV views",
-  "Bulk candidate export (PDF)",
-  "Priority support · cancel anytime",
-];
-const DEFAULT_BULLETS_AR = [
-  "إعلانات وظائف غير محدودة (مقابل 1 في التجربة)",
-  "عدد غير محدود من مشاهدات السير الذاتية",
-  "تصدير مجمّع للمرشحين (PDF)",
-  "دعم بأولوية · ألغ في أي وقت",
-];
-
 export function PaywallModal({ open, onClose, audience, plansHref, title, message, bullets, fromKey }: Props) {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t } = useTranslation();
+  const tt = t.billingShared.paywall;
   if (!open) return null;
 
-  const heading = title ?? (audience === "school"
-    ? (locale === "ar" ? "ترقّى للاستمرار" : "Upgrade to continue")
-    : (locale === "ar" ? "ميزة المعلم المميز" : "Premium Teacher feature"));
-
-  const body = message ?? (audience === "school"
-    ? (locale === "ar" ? "هذه الميزة متاحة في الباقات المدفوعة. اختر باقة الآن لإكمال ما بدأته." : "This feature is part of paid plans. Pick one now to keep going.")
-    : (locale === "ar" ? "هذه الميزة جزء من باقة المعلم المميز." : "This feature is part of the Premium Teacher plan."));
-
-  const list = bullets ?? (locale === "ar" ? DEFAULT_BULLETS_AR : DEFAULT_BULLETS_EN);
+  const heading = title ?? (audience === "school" ? tt.schoolTitle : tt.teacherTitle);
+  const body = message ?? (audience === "school" ? tt.schoolBody : tt.teacherBody);
+  const list = bullets ?? tt.defaultBullets;
 
   const ctaHref = fromKey ? `${plansHref}?from=${encodeURIComponent(fromKey)}` : plansHref;
 
@@ -69,7 +50,7 @@ export function PaywallModal({ open, onClose, audience, plansHref, title, messag
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={tt.closeLabel}
           className="absolute top-4 end-4 text-gray-300 hover:text-gray-500 transition-colors"
         >
           <X size={18} />
@@ -96,7 +77,7 @@ export function PaywallModal({ open, onClose, audience, plansHref, title, messag
           className="flex items-center justify-center gap-1.5 w-full px-4 py-3 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all"
           style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
         >
-          {locale === "ar" ? "تصفّح الباقات" : "See plans"}
+          {tt.seePlans}
           <ArrowRight size={14} />
         </Link>
         <button
@@ -104,7 +85,7 @@ export function PaywallModal({ open, onClose, audience, plansHref, title, messag
           onClick={onClose}
           className="block w-full mt-2 text-xs text-gray-500 hover:text-gray-700 py-1"
         >
-          {locale === "ar" ? "ليس الآن" : "Maybe later"}
+          {tt.maybeLater}
         </button>
       </div>
     </div>

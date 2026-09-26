@@ -7,6 +7,10 @@ export interface AuthUser {
   schoolName?: string;
   isEmailVerified: boolean;
   hasPassword: boolean;
+  // Server-stored UI language preference ("ar" | "en", default "ar") — see
+  // PATCH /api/auth/language. Optional because older cached sessions/tests
+  // may not carry it; callers should fall back to the client default.
+  language?: "ar" | "en";
 }
 
 export interface VerifyOtpResult {

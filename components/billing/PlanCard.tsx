@@ -6,23 +6,12 @@ import { type PricingPlan } from "@/lib/api/pricing-page";
 import { type MySubscription } from "@/lib/api/billing";
 import { resolveCheckoutTarget } from "@/lib/auth/checkout-target";
 import { useAuth } from "@/lib/auth/useAuth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatCurrency } from "@/lib/i18n/format";
 
 // Shared plan card used on /billing/plans (teacher) and /school/billing/plans.
 // Two-column layout: price + CTA on the left, feature bullets grid on the right.
 // billingHref controls where "Manage subscription" links point.
-
-function halalaToSAR(h: number): string {
-  return (h / 100).toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-}
-function halalaToSARDecimal(h: number): string {
-  return (h / 100).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 interface PlanCardProps {
   plan: PricingPlan;
@@ -34,6 +23,8 @@ interface PlanCardProps {
 
 export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCardProps) {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const tt = t.billingShared.planCard;
 
   const target = resolveCheckoutTarget({
     planCode: plan.code,
@@ -64,7 +55,7 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
         >
           <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase text-white">
             <Star size={11} fill="currentColor" />
-            {locale === "ar" ? "الأكثر شعبية" : "Most Popular"}
+            {tt.mostPopular}
           </span>
         </div>
       )}
@@ -79,16 +70,16 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
           <div className="mb-1">
             <div className="flex items-baseline gap-2">
               <span className="text-6xl font-bold text-gray-900 tabular-nums leading-none">
-                {halalaToSAR(plan.effectiveMonthlyHalala)}
+                {formatCurrency(plan.effectiveMonthlyHalala / 100, locale).replace(/^SAR\s*/, "")}
               </span>
               <span className="text-base font-medium text-gray-500">
-                SAR/{locale === "ar" ? "شهر" : "month"}
+                SAR/{tt.perMonthUnit}
               </span>
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              {locale === "ar"
-                ? `يُفوتر ${plan.durationLabel} كـ ${halalaToSARDecimal(plan.priceHalala)} ر.س · لا تشمل ضريبة 15%`
-                : `Billed ${plan.durationLabel.toLowerCase()} as ${halalaToSARDecimal(plan.priceHalala)} SAR · excl. 15% VAT`}
+              {tt.billedAs
+                .replace("{duration}", locale === "ar" ? plan.durationLabel : plan.durationLabel.toLowerCase())
+                .replace("{amount}", formatCurrency(plan.priceHalala / 100, locale))}
             </p>
           </div>
 
@@ -96,9 +87,7 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
             <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2.5 text-center">
               <p className="text-sm font-semibold text-emerald-700">
                 💰{" "}
-                {locale === "ar"
-                  ? `وفّر ${halalaToSAR(plan.savings.vsMonthlyHalala)} ر.س مقارنةً بالشهري`
-                  : `Save ${halalaToSAR(plan.savings.vsMonthlyHalala)} SAR vs monthly`}
+                {tt.save.replace("{amount}", formatCurrency(plan.savings.vsMonthlyHalala / 100, locale))}
               </p>
             </div>
           )}
@@ -113,15 +102,13 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
             {samePlanAlready ? (
               <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-center">
                 <p className="text-sm font-semibold text-blue-700">
-                  {locale === "ar"
-                    ? "أنت مشترك في هذه الباقة حالياً"
-                    : "You're already on this plan"}
+                  {tt.alreadyOnPlan}
                 </p>
                 <Link
                   href={billingHref}
                   className="text-xs text-blue-600 underline mt-1 inline-block"
                 >
-                  {locale === "ar" ? "إدارة الاشتراك" : "Manage subscription"}
+                  {tt.manageSubscription}
                 </Link>
               </div>
             ) : target.kind === "checkout" ? (
@@ -132,17 +119,17 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
               >
                 <CreditCard size={16} />
                 {sub?.status === "trialing"
-                  ? locale === "ar" ? "ترقية الآن" : "Upgrade now"
+                  ? tt.upgradeNow
                   : isTeacher
-                  ? locale === "ar" ? "اشترك في المميزة" : "Subscribe to Premium"
-                  : locale === "ar" ? "اشترك" : "Continue to checkout"}
+                  ? tt.subscribeToPremium
+                  : tt.continueToCheckout}
               </Link>
             ) : null}
 
             {target.warning && !samePlanAlready && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center">
                 {locale === "ar" && target.warning.startsWith("You already have")
-                  ? "لديك اشتراك فعّال بالفعل. أدِر اشتراكك أو غيّر الباقة من صفحة الفوترة."
+                  ? tt.alreadyHaveWarning
                   : target.warning}
               </p>
             )}
@@ -150,15 +137,15 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
             <ul className="space-y-1.5 text-xs text-gray-500 pt-1">
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                {locale === "ar" ? "ضمان استرداد المال 7 أيام" : "7-day money-back guarantee"}
+                {tt.moneyBackGuarantee}
               </li>
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                {locale === "ar" ? "إلغاء في أي وقت" : "Cancel anytime"}
+                {tt.cancelAnytime}
               </li>
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-                {locale === "ar" ? "فاتورة متوافقة مع هيئة الزكاة" : "ZATCA-compliant invoice"}
+                {tt.zatcaInvoice}
               </li>
             </ul>
           </div>
@@ -167,7 +154,7 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
         {/* ── Right — feature bullets grid ── */}
         <div className="p-8 lg:p-10 bg-gray-50/50">
           <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase mb-5">
-            {locale === "ar" ? "كل ما هو مشمول" : "Everything included"}
+            {tt.everythingIncluded}
           </p>
           {plan.bullets.length > 0 ? (
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
@@ -188,7 +175,7 @@ export function PlanCard({ plan, locale, hasActive, sub, billingHref }: PlanCard
             </ul>
           ) : (
             <p className="text-sm text-gray-400 italic">
-              {locale === "ar" ? "لا توجد تفاصيل متاحة حالياً" : "Feature details coming soon"}
+              {tt.noFeatureDetails}
             </p>
           )}
         </div>

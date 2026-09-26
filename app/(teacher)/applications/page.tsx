@@ -9,9 +9,9 @@ import {
   Calendar,
   Clock,
   ChevronRight,
+  ChevronLeft,
   CheckCircle2,
   XCircle,
-  AlertCircle,
   Send,
   Star,
   Eye,
@@ -28,8 +28,11 @@ import { SARSymbol } from "@/components/ui/sar-symbol";
 import type { Offer } from "@/lib/api/teacher";
 import { PostHireFeedbackModal, type PostHireFeedbackPayload } from "@/components/teacher/PostHireFeedbackModal";
 import type { Application, ApplicationStats } from "@/lib/api/teacher";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatNumber } from "@/lib/i18n/format";
 
-// ── Status display config ─────────────────────────────────────────────────────
+// ── Status display config — canonical (English) keys used internally for
+// styling/state; DISPLAY text always comes from tt.statusLabels[uiStatus]. ──
 
 type UIStatus = "Submitted" | "Reviewing" | "Shortlisted" | "Interview Scheduled" | "Offer Received" | "Hired" | "Rejected" | "Withdrawn";
 
@@ -60,36 +63,36 @@ const STATUS_CONFIG: Record<UIStatus, { color: string; bg: string; icon: React.R
 
 const PIPELINE_STEPS: UIStatus[] = ["Submitted", "Shortlisted", "Interview Scheduled", "Offer Received", "Hired"];
 
-const ALL_TABS: { label: string; value: Application["status"] | "all" }[] = [
-  { label: "All",                value: "all" },
-  { label: "Submitted",          value: "submitted" },
-  { label: "Shortlisted",        value: "shortlisted" },
-  { label: "Interview Scheduled",value: "interview_scheduled" },
-  { label: "Offer Received",     value: "offer_extended" },
-  { label: "Hired",              value: "hired" },
-  { label: "Rejected",           value: "rejected" },
+const ALL_TABS: (Application["status"] | "all")[] = [
+  "all", "submitted", "shortlisted", "interview_scheduled", "offer_extended", "hired", "rejected",
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+function tabLabel(tt: ReturnType<typeof useTranslation>["t"]["teacher"]["applications"], tab: Application["status"] | "all"): string {
+  if (tab === "all") return tt.tabAll;
+  const uiMap: Record<Application["status"], UIStatus> = {
+    submitted: "Submitted", reviewing: "Reviewing", shortlisted: "Shortlisted",
+    interview_scheduled: "Interview Scheduled", offer_extended: "Offer Received",
+    hired: "Hired", rejected: "Rejected", withdrawn: "Withdrawn",
+  };
+  return tt.statusLabels[uiMap[tab]] ?? tab;
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function jobCity(app: Application): string {
   return typeof app.jobId === "object" ? app.jobId.city ?? "" : "";
 }
 
-function jobTitle(app: Application): string {
-  return typeof app.jobId === "object" ? app.jobId.title : "Job";
+function jobTitle(app: Application, fallback: string): string {
+  return typeof app.jobId === "object" ? app.jobId.title : fallback;
 }
 
-function jobSalary(app: Application): React.ReactNode {
+function jobSalary(app: Application, tt: ReturnType<typeof useTranslation>["t"]["teacher"]["applications"]): React.ReactNode {
   if (typeof app.jobId !== "object") return "";
   const s = app.jobId.salary;
-  if (!s || s.display === "hide") return "Undisclosed";
-  if (s.display === "negotiable") return "Negotiable";
-  if (s.min && s.max) return <><SARSymbol />{s.min.toLocaleString()}–{s.max.toLocaleString()}/mo</>;
+  if (!s || s.display === "hide") return tt.undisclosed;
+  if (s.display === "negotiable") return tt.negotiable;
+  if (s.min && s.max) return <><SARSymbol />{formatNumber(s.min, "en")}–{formatNumber(s.max, "en")}/mo</>;
   return "";
 }
 
@@ -107,11 +110,11 @@ function ProgressBar({ uiStatus }: { uiStatus: UIStatus }) {
   );
 }
 
-function StatusBadge({ uiStatus }: { uiStatus: UIStatus }) {
+function StatusBadge({ uiStatus, tt }: { uiStatus: UIStatus; tt: ReturnType<typeof useTranslation>["t"]["teacher"]["applications"] }) {
   const cfg = STATUS_CONFIG[uiStatus];
   return (
     <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium ${cfg.color} ${cfg.bg}`}>
-      {cfg.icon} {uiStatus}
+      {cfg.icon} {tt.statusLabels[uiStatus] ?? uiStatus}
     </span>
   );
 }
@@ -119,6 +122,9 @@ function StatusBadge({ uiStatus }: { uiStatus: UIStatus }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ApplicationsPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.applications;
+
   const [applications, setApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<ApplicationStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,6 +132,7 @@ export default function ApplicationsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [withdrawing, setWithdrawing] = useState<string | null>(null);
   const [respondingOffer, setRespondingOffer] = useState<string | null>(null);
+  void respondingOffer;
 
   // SRD 2.7.3 — keep offers keyed by applicationId so the Hired card can show
   // a "Download Contract" link without an extra round-trip per card.
@@ -219,8 +226,8 @@ export default function ApplicationsPage() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-5">
-        <h1 className="text-2xl font-bold text-slate-800">My Applications</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Track all your job applications in one place</p>
+        <h1 className="text-2xl font-bold text-slate-800">{tt.title}</h1>
+        <p className="text-sm text-slate-500 mt-0.5">{tt.subtitle}</p>
       </div>
 
       <div className="p-6 space-y-6">
@@ -233,10 +240,10 @@ export default function ApplicationsPage() {
             {/* Analytics Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total Applied",     value: stats?.total ?? 0,     icon: <FileText className="w-5 h-5 text-blue-500" />,     bg: "bg-blue-50" },
-                { label: "Response Rate",     value: `${responseRate}%`,    icon: <TrendingUp className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-50" },
-                { label: "Avg Response Time", value: avgResponse,           icon: <Clock className="w-5 h-5 text-amber-500" />,       bg: "bg-amber-50" },
-                { label: "Success Rate",      value: `${successRate}%`,     icon: <Award className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />, bg: "bg-slate-100" },
+                { label: tt.statTotalApplied,     value: stats?.total ?? 0,     icon: <FileText className="w-5 h-5 text-blue-500" />,     bg: "bg-blue-50" },
+                { label: tt.statResponseRate,     value: `${responseRate}%`,    icon: <TrendingUp className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-50" },
+                { label: tt.statAvgResponseTime, value: avgResponse,           icon: <Clock className="w-5 h-5 text-amber-500" />,       bg: "bg-amber-50" },
+                { label: tt.statSuccessRate,      value: `${successRate}%`,     icon: <Award className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />, bg: "bg-slate-100" },
               ].map((s) => (
                 <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center`}>{s.icon}</div>
@@ -250,7 +257,7 @@ export default function ApplicationsPage() {
 
             {/* Pipeline */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5">
-              <h2 className="text-sm font-semibold text-slate-700 mb-4">Application Pipeline</h2>
+              <h2 className="text-sm font-semibold text-slate-700 mb-4">{tt.pipelineTitle}</h2>
               <div className="flex items-center gap-0">
                 {PIPELINE_STEPS.map((step, idx) => {
                   const count = pipelineCount(step);
@@ -260,13 +267,11 @@ export default function ApplicationsPage() {
                       <div
                         className="flex-1 flex flex-col items-center cursor-pointer group"
                         onClick={() => {
-                          const apiKey = Object.entries(STATUS_CONFIG).find(([, v]) => v === cfg);
                           if (step === "Submitted")          setActiveTab("submitted");
                           else if (step === "Shortlisted")   setActiveTab("shortlisted");
                           else if (step === "Interview Scheduled") setActiveTab("interview_scheduled");
                           else if (step === "Offer Received") setActiveTab("offer_extended");
                           else if (step === "Hired")          setActiveTab("hired");
-                          void apiKey;
                         }}
                       >
                         <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mb-1 transition-all ${
@@ -275,7 +280,7 @@ export default function ApplicationsPage() {
                           {cfg.icon}
                         </div>
                         <p className={`text-xs font-semibold ${count > 0 ? cfg.color : "text-slate-400"}`}>{count}</p>
-                        <p className="text-[10px] text-slate-400 text-center leading-tight mt-0.5 hidden md:block">{step}</p>
+                        <p className="text-[10px] text-slate-400 text-center leading-tight mt-0.5 hidden md:block">{tt.statusLabels[step] ?? step}</p>
                       </div>
                       {idx < PIPELINE_STEPS.length - 1 && (
                         <div className="w-full h-px bg-slate-200 -mt-5 flex-1 max-w-8" />
@@ -290,21 +295,21 @@ export default function ApplicationsPage() {
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="flex overflow-x-auto border-b border-slate-200">
                 {ALL_TABS.map((tab) => {
-                  const count = tabCount(tab.value);
+                  const count = tabCount(tab);
                   return (
                     <button
-                      key={tab.value}
-                      onClick={() => setActiveTab(tab.value)}
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
                       className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                        activeTab === tab.value
+                        activeTab === tab
                           ? "border-[var(--brand-primary)] text-[var(--brand-primary)] bg-slate-50/70"
                           : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                       }`}
                     >
-                      {tab.label}
+                      {tabLabel(tt, tab)}
                       {count > 0 && (
                         <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                          activeTab === tab.value ? "bg-[var(--brand-primary)] text-white" : "bg-slate-100 text-slate-500"
+                          activeTab === tab ? "bg-[var(--brand-primary)] text-white" : "bg-slate-100 text-slate-500"
                         }`}>
                           {count}
                         </span>
@@ -320,8 +325,8 @@ export default function ApplicationsPage() {
                     <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Briefcase className="w-6 h-6 text-slate-400" />
                     </div>
-                    <p className="font-medium text-slate-600">No applications yet</p>
-                    <p className="text-sm text-slate-400 mt-1">Applications in this status will appear here</p>
+                    <p className="font-medium text-slate-600">{tt.emptyTitle}</p>
+                    <p className="text-sm text-slate-400 mt-1">{tt.emptyBody}</p>
                   </div>
                 ) : (
                   filtered.map((app) => (
@@ -331,11 +336,13 @@ export default function ApplicationsPage() {
                       offer={offersByApp[app._id]}
                       expanded={expandedId === app._id}
                       withdrawing={withdrawing === app._id}
-                      respondingOffer={respondingOffer === app._id}
                       hasFeedback={feedbackSubmitted.has(app._id)}
                       onToggle={() => setExpandedId(expandedId === app._id ? null : app._id)}
                       onWithdraw={handleWithdraw}
                       onOpenFeedback={() => setFeedbackAppId(app._id)}
+                      tt={tt}
+                      lang={lang}
+                      isRTL={isRTL}
                     />
                   ))
                 )}
@@ -366,30 +373,37 @@ export default function ApplicationsPage() {
 
 // ── Application Card ──────────────────────────────────────────────────────────
 
+type TT = ReturnType<typeof useTranslation>["t"]["teacher"]["applications"];
+
 function ApplicationCard({
   app,
   offer,
   expanded,
   withdrawing,
-  respondingOffer,
   hasFeedback,
   onToggle,
   onWithdraw,
   onOpenFeedback,
+  tt,
+  lang,
+  isRTL,
 }: {
   app: Application;
   offer?: Offer;
   expanded: boolean;
   withdrawing: boolean;
-  respondingOffer: boolean;
   hasFeedback: boolean;
   onToggle: () => void;
   onWithdraw: (id: string) => void;
   onOpenFeedback: () => void;
+  tt: TT;
+  lang: "en" | "ar";
+  isRTL: boolean;
 }) {
   const uiStatus = toUIStatus(app.status);
   const isActive = !["Rejected", "Withdrawn"].includes(uiStatus);
   const canWithdraw = app.status === "submitted" || app.status === "reviewing";
+  const title = jobTitle(app, tt.jobFallback);
 
   return (
     <div className="p-5 hover:bg-slate-50/50 transition-colors">
@@ -399,14 +413,14 @@ function ApplicationCard({
           className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0"
           style={{ background: "var(--brand-gradient)" }}
         >
-          {jobTitle(app)[0]}
+          {title[0]}
         </div>
 
         {/* Main */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-slate-800 leading-snug">{jobTitle(app)}</h3>
+              <h3 className="font-semibold text-slate-800 leading-snug">{title}</h3>
               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 {jobCity(app) && (
                   <span className="flex items-center gap-1 text-sm text-slate-500">
@@ -421,13 +435,13 @@ function ApplicationCard({
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <StatusBadge uiStatus={uiStatus} />
+              <StatusBadge uiStatus={uiStatus} tt={tt} />
               {canWithdraw && (
                 <button
                   disabled={withdrawing}
                   onClick={() => onWithdraw(app._id)}
                   className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-                  title="Withdraw application"
+                  title={tt.withdrawTooltip}
                 >
                   {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
                 </button>
@@ -440,11 +454,11 @@ function ApplicationCard({
             <div className="mt-3 mb-2">
               <ProgressBar uiStatus={uiStatus} />
               <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                <span>Submitted</span>
-                <span>Shortlisted</span>
-                <span>Interview</span>
-                <span>Offer</span>
-                <span>Hired</span>
+                <span>{tt.progressSubmitted}</span>
+                <span>{tt.progressShortlisted}</span>
+                <span>{tt.progressInterview}</span>
+                <span>{tt.progressOffer}</span>
+                <span>{tt.progressHired}</span>
               </div>
             </div>
           )}
@@ -452,26 +466,26 @@ function ApplicationCard({
           {/* Meta */}
           <div className="flex items-center gap-4 mt-2 text-xs text-slate-400 flex-wrap">
             <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" /> Applied {formatDate(app.createdAt)}
+              <Calendar className="w-3.5 h-3.5" /> {tt.appliedOn.replace("{date}", formatDate(app.createdAt, lang))}
             </span>
             {app.updatedAt && (
               <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" /> Updated {formatDate(app.updatedAt)}
+                <Clock className="w-3.5 h-3.5" /> {tt.updatedOn.replace("{date}", formatDate(app.updatedAt, lang))}
               </span>
             )}
             {app.matchScore !== undefined && (
               <span className="flex items-center gap-1">
-                <Star className="w-3.5 h-3.5 text-amber-400" /> {app.matchScore}% match
+                <Star className="w-3.5 h-3.5 text-amber-400" /> {tt.matchPercent.replace("{n}", String(app.matchScore))}
               </span>
             )}
-            {jobSalary(app) && <span>{jobSalary(app)}</span>}
+            {jobSalary(app, tt) && <span>{jobSalary(app, tt)}</span>}
           </div>
 
           {/* Alerts */}
           {app.status === "offer_extended" && (
             <div className="mt-3 flex items-center gap-2 text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-xl px-3 py-2">
               <Award className="w-4 h-4 shrink-0" />
-              <span>Offer received — Review and respond</span>
+              <span>{tt.offerReceivedAlert}</span>
             </div>
           )}
           {app.status === "hired" && (() => {
@@ -479,15 +493,13 @@ function ApplicationCard({
             // to the original offer letter so the teacher always has something
             // to download if either is present.
             const contractHref = offer?.contractUrl ?? offer?.offerLetterUrl;
-            const hiredOn = offer?.hireConfirmedAt
-              ? new Date(offer.hireConfirmedAt).toLocaleDateString("en-SA", { dateStyle: "medium" })
-              : null;
+            const hiredOn = offer?.hireConfirmedAt ? formatDate(offer.hireConfirmedAt, lang) : null;
             return (
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5">
                 <div className="flex items-center gap-2 min-w-0">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span className="font-medium">
-                    Congratulations! You were hired for this position{hiredOn ? ` on ${hiredOn}` : ""}.
+                    {tt.hiredAlert.replace("{suffix}", hiredOn ? ` (${hiredOn})` : "")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -499,17 +511,15 @@ function ApplicationCard({
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      {offer?.contractUrl ? "Download Contract" : "Download Offer Letter"}
+                      {offer?.contractUrl ? tt.downloadContract : tt.downloadOfferLetter}
                     </a>
                   ) : (
-                    <span className="text-xs text-emerald-600/70 italic">
-                      Contract document will appear here when the school uploads it.
-                    </span>
+                    <span className="text-xs text-emerald-600/70 italic">{tt.contractPending}</span>
                   )}
                   {/* SRD 2.9.5 — post-hire feedback */}
                   {hasFeedback ? (
                     <span className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-700">
-                      <CheckCircle2 className="w-3 h-3" /> Feedback shared
+                      <CheckCircle2 className="w-3 h-3" /> {tt.feedbackShared}
                     </span>
                   ) : (
                     <button
@@ -517,7 +527,7 @@ function ApplicationCard({
                       onClick={onOpenFeedback}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border border-emerald-600 text-emerald-700 bg-white hover:bg-emerald-100 transition-colors"
                     >
-                      <Star className="w-3.5 h-3.5" /> Share Feedback
+                      <Star className="w-3.5 h-3.5" /> {tt.shareFeedback}
                     </button>
                   )}
                 </div>
@@ -532,32 +542,39 @@ function ApplicationCard({
             style={{ color: "var(--brand-primary)" }}
           >
             <Eye className="w-3.5 h-3.5" />
-            {expanded ? "Hide timeline" : "View timeline"}
-            <ChevronRight className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`} />
+            {expanded ? tt.hideTimeline : tt.viewTimeline}
+            {/* Disclosure caret — vertical-axis behavior (rotates toward "down"
+                when open); not a reading-direction cue, so no RTL flip
+                (DESIGN_SPEC §1.2 "dropdown/accordion" rule extended here —
+                edge case not explicitly listed in the spec, see M2 report). */}
+            {isRTL
+              ? <ChevronLeft className={`w-3.5 h-3.5 transition-transform ${expanded ? "-rotate-90" : ""}`} />
+              : <ChevronRight className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`} />
+            }
           </button>
 
           {/* Timeline */}
           {expanded && (
-            <div className="mt-4 pl-4 border-l-2 border-slate-200 space-y-3">
+            <div className="mt-4 ps-4 border-s-2 border-slate-200 space-y-3">
               {app.statusHistory.map((event, idx) => {
                 const eventUI = toUIStatus(event.status as Application["status"]);
                 const cfg     = STATUS_CONFIG[eventUI] ?? STATUS_CONFIG.Submitted;
                 return (
                   <div key={idx} className="relative">
                     <div
-                      className="absolute -left-5.25 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center"
+                      className="absolute -start-5.25 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center"
                       style={idx === app.statusHistory.length - 1 ? { backgroundColor: "var(--brand-primary)" } : { backgroundColor: "#fff", border: "2px solid #cbd5e1" }}
                     >
                       <div className="w-1.5 h-1.5 rounded-full bg-current" style={{ color: idx === app.statusHistory.length - 1 ? "#fff" : "#94a3b8" }} />
                     </div>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className={`text-xs font-semibold ${cfg.color}`}>{eventUI}</span>
+                        <span className={`text-xs font-semibold ${cfg.color}`}>{tt.statusLabels[eventUI] ?? eventUI}</span>
                         {event.note && (
                           <p className="text-xs text-slate-500 mt-0.5">{event.note}</p>
                         )}
                       </div>
-                      <span className="text-xs text-slate-400 shrink-0">{formatDate(event.timestamp)}</span>
+                      <span className="text-xs text-slate-400 shrink-0">{formatDate(event.timestamp, lang)}</span>
                     </div>
                   </div>
                 );
@@ -572,4 +589,3 @@ function ApplicationCard({
 
 // silence unused import warning
 void respondToOffer;
-void AlertCircle;

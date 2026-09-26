@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Sparkles, ArrowRight, AlertCircle } from "lucide-react";
 import { useMySubscription } from "@/lib/billing/useMySubscription";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // Trial banner — shown on top of /school/dashboard while the user is on
 // trial, or when they have no subscription. Drives them to /school/billing/
@@ -20,8 +20,8 @@ interface Props {
 }
 
 export function TrialBanner({ audience, plansHref }: Props) {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t } = useTranslation();
+  const tt = t.billingShared.trialBanner;
   const { subscription, isTrialing, isPaid, isLegacy, loading } = useMySubscription();
 
   if (loading) return null;
@@ -36,14 +36,10 @@ export function TrialBanner({ audience, plansHref }: Props) {
         </div>
         <div className="flex-1">
           <p className="text-sm font-semibold text-gray-900">
-            {audience === "school"
-              ? (locale === "ar" ? "ابدأ تجربة مجانية لمدة 5 أيام" : "Start your 5-day free trial")
-              : (locale === "ar" ? "ارتقِ إلى المعلم المميز" : "Upgrade to Premium Teacher")}
+            {audience === "school" ? tt.schoolTitle : tt.teacherTitle}
           </p>
           <p className="text-xs text-gray-600 mt-0.5">
-            {audience === "school"
-              ? (locale === "ar" ? "انشر وظيفة واطلع على المرشحين بدون بطاقة ائتمان." : "Post a job and view candidates with no card required.")
-              : (locale === "ar" ? "ظهور أولوي للمدارس + شارة معلم مميز." : "Priority placement in school searches + Premium badge.")}
+            {audience === "school" ? tt.schoolBody : tt.teacherBody}
           </p>
         </div>
         <Link
@@ -51,9 +47,7 @@ export function TrialBanner({ audience, plansHref }: Props) {
           className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all shrink-0"
           style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
         >
-          {audience === "school"
-            ? (locale === "ar" ? "ابدأ الآن" : "See plans")
-            : (locale === "ar" ? "ارتقِ الآن" : "Upgrade now")}
+          {audience === "school" ? tt.schoolCta : tt.teacherCta}
           <ArrowRight size={12} />
         </Link>
       </div>
@@ -64,6 +58,7 @@ export function TrialBanner({ audience, plansHref }: Props) {
   if (isTrialing) {
     const left = daysUntil(subscription.trialEndsAt);
     const urgent = (left ?? 99) <= 2;
+    const dayWord = left === 1 ? tt.daySingular : tt.dayPlural;
     return (
       <div className={`rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center gap-3 ${
         urgent ? "border-rose-200 bg-rose-50" : "border-amber-200 bg-amber-50"
@@ -73,14 +68,10 @@ export function TrialBanner({ audience, plansHref }: Props) {
         </div>
         <div className="flex-1">
           <p className="text-sm font-semibold text-gray-900">
-            {locale === "ar"
-              ? (left === 0 ? "تنتهي تجربتك اليوم" : `${left} ${left === 1 ? "يوم" : "أيام"} متبقية في تجربتك`)
-              : (left === 0 ? "Your trial ends today" : `${left} ${left === 1 ? "day" : "days"} left in your trial`)}
+            {left === 0 ? tt.trialEndsToday : tt.daysLeftInTrial.replace("{count}", String(left)).replace("{dayWord}", dayWord)}
           </p>
           <p className="text-xs text-gray-600 mt-0.5">
-            {locale === "ar"
-              ? "اختر باقة مدفوعة الآن لتستمر بنفس البيانات والإعدادات."
-              : "Pick a paid plan now to keep your data and continue without limits."}
+            {tt.pickPlanBody}
           </p>
         </div>
         <Link
@@ -88,7 +79,7 @@ export function TrialBanner({ audience, plansHref }: Props) {
           className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all shrink-0"
           style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
         >
-          {locale === "ar" ? "اختر باقة" : "Choose plan"}
+          {tt.choosePlan}
           <ArrowRight size={12} />
         </Link>
       </div>
@@ -104,10 +95,10 @@ export function TrialBanner({ audience, plansHref }: Props) {
         </div>
         <div className="flex-1">
           <p className="text-sm font-semibold text-gray-900">
-            {locale === "ar" ? "اشتراكك منتهٍ" : "Your subscription has ended"}
+            {tt.endedTitle}
           </p>
           <p className="text-xs text-gray-600 mt-0.5">
-            {locale === "ar" ? "أعد الاشتراك للاستفادة من جميع الميزات." : "Re-subscribe to access all features again."}
+            {tt.endedBody}
           </p>
         </div>
         <Link
@@ -115,7 +106,7 @@ export function TrialBanner({ audience, plansHref }: Props) {
           className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all shrink-0"
           style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
         >
-          {locale === "ar" ? "أعد الاشتراك" : "Re-subscribe"}
+          {tt.resubscribe}
           <ArrowRight size={12} />
         </Link>
       </div>

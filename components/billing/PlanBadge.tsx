@@ -5,8 +5,9 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Sparkles, CheckCircle2, Clock, AlertCircle, XCircle } from "lucide-react";
 import { useMySubscription } from "@/lib/billing/useMySubscription";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { MySubscription } from "@/lib/api/billing";
+import type { BillingPlanBadgeTranslations } from "@/lib/i18n/types";
 
 // Compact subscription pill — used in school/teacher header rows. Click
 // routes to the billing overview. Returns null in three states:
@@ -23,7 +24,7 @@ interface Props {
   billingHref: string;
 }
 
-function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolean, locale: "en" | "ar"): {
+function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolean, tt: BillingPlanBadgeTranslations): {
   tone: string;
   Icon: React.ElementType;
   label: string;
@@ -33,7 +34,7 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
     return {
       tone: "bg-amber-50 text-amber-700 border-amber-200",
       Icon: Sparkles,
-      label: locale === "ar" ? "تجربة مجانية" : "Start trial",
+      label: tt.startTrial,
     };
   }
   if (isTrialing) {
@@ -44,10 +45,8 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
         ? "bg-rose-50 text-rose-700 border-rose-200"
         : "bg-amber-50 text-amber-700 border-amber-200",
       Icon: Clock,
-      label: locale === "ar" ? "تجربة" : "Trial",
-      detail: left === 0
-        ? (locale === "ar" ? "اليوم الأخير" : "Last day")
-        : `${left}${locale === "ar" ? "ي" : "d"}`,
+      label: tt.trial,
+      detail: left === 0 ? tt.lastDay : `${left}${tt.daySuffix}`,
     };
   }
   if (isPaid) {
@@ -55,7 +54,7 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
       return {
         tone: "bg-rose-50 text-rose-700 border-rose-200",
         Icon: AlertCircle,
-        label: locale === "ar" ? "متأخّر السداد" : "Past due",
+        label: tt.pastDue,
       };
     }
     const left = daysUntil(sub.currentPeriodEnd);
@@ -63,8 +62,8 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
       return {
         tone: "bg-slate-100 text-slate-600 border-slate-200",
         Icon: XCircle,
-        label: locale === "ar" ? "ملغى" : "Cancelled",
-        detail: left != null ? `${left}${locale === "ar" ? "ي" : "d"}` : undefined,
+        label: tt.cancelled,
+        detail: left != null ? `${left}${tt.daySuffix}` : undefined,
       };
     }
     // Only surface "renews soon" when actually soon
@@ -72,8 +71,8 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
       return {
         tone: "bg-amber-50 text-amber-700 border-amber-200",
         Icon: Clock,
-        label: locale === "ar" ? "يجدّد قريباً" : "Renews soon",
-        detail: `${left}${locale === "ar" ? "ي" : "d"}`,
+        label: tt.renewsSoon,
+        detail: `${left}${tt.daySuffix}`,
       };
     }
     return null;   // happy path — no pill
@@ -82,15 +81,13 @@ function pillFor(sub: MySubscription | null, isTrialing: boolean, isPaid: boolea
   return {
     tone: "bg-slate-100 text-slate-700 border-slate-200",
     Icon: XCircle,
-    label: sub.status === "cancelled"
-      ? (locale === "ar" ? "ملغى" : "Cancelled")
-      : (locale === "ar" ? "منتهٍ" : "Expired"),
+    label: sub.status === "cancelled" ? tt.cancelled : tt.expired,
   };
 }
 
 export function PlanBadge({ billingHref }: Props) {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t } = useTranslation();
+  const tt = t.billingShared.planBadge;
   const pathname = usePathname();
   const { subscription, isTrialing, isPaid, isLegacy, loading, refetch } = useMySubscription();
 
@@ -100,7 +97,7 @@ export function PlanBadge({ billingHref }: Props) {
 
   if (loading || isLegacy) return null;
 
-  const pill = pillFor(subscription, isTrialing, isPaid, locale);
+  const pill = pillFor(subscription, isTrialing, isPaid, tt);
   if (!pill) return null;
 
   const Icon = pill.Icon;

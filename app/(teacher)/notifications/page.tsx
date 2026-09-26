@@ -14,6 +14,7 @@ import {
   Trash2,
   Check,
   ChevronRight,
+  ChevronLeft,
   Filter,
   Loader2,
   Settings,
@@ -29,8 +30,11 @@ import {
   deleteNotification,
 } from "@/lib/api/teacher";
 import type { Notification } from "@/lib/api/teacher";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate } from "@/lib/i18n/format";
 
-// Map API notification types to UI display config
+// Map API notification types to UI display config (canonical keys — display
+// text comes from tt.typeLabels / tt.filterLabels)
 type UIType = "job_match" | "application_update" | "interview" | "offer" | "system" | "announcement";
 
 function uiType(apiType: Notification["type"]): UIType {
@@ -47,63 +51,31 @@ function uiType(apiType: Notification["type"]): UIType {
   return map[apiType] ?? "system";
 }
 
-const TYPE_CONFIG: Record<UIType, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
-  job_match: {
-    label: "Job Match",
-    icon: <Star className="w-4 h-4" />,
-    color: "text-amber-600",
-    bg: "bg-amber-100",
-  },
-  application_update: {
-    label: "Application",
-    icon: <BriefcaseIcon className="w-4 h-4" />,
-    color: "text-blue-600",
-    bg: "bg-blue-100",
-  },
-  interview: {
-    label: "Interview",
-    icon: <Calendar className="w-4 h-4" />,
-    color: "text-purple-600",
-    bg: "bg-purple-100",
-  },
-  offer: {
-    label: "Offer",
-    icon: <Award className="w-4 h-4" />,
-    color: "text-[#0D2542]",
-    bg: "bg-[rgba(13,37,66,0.08)]",
-  },
-  system: {
-    label: "System",
-    icon: <Info className="w-4 h-4" />,
-    color: "text-slate-600",
-    bg: "bg-slate-100",
-  },
-  announcement: {
-    label: "News",
-    icon: <Megaphone className="w-4 h-4" />,
-    color: "text-emerald-600",
-    bg: "bg-emerald-100",
-  },
+const TYPE_STYLE: Record<UIType, { icon: React.ReactNode; color: string; bg: string }> = {
+  job_match:           { icon: <Star className="w-4 h-4" />,          color: "text-amber-600",       bg: "bg-amber-100" },
+  application_update:  { icon: <BriefcaseIcon className="w-4 h-4" />, color: "text-blue-600",        bg: "bg-blue-100" },
+  interview:           { icon: <Calendar className="w-4 h-4" />,      color: "text-purple-600",      bg: "bg-purple-100" },
+  offer:               { icon: <Award className="w-4 h-4" />,         color: "text-[#0D2542]",       bg: "bg-[rgba(13,37,66,0.08)]" },
+  system:              { icon: <Info className="w-4 h-4" />,          color: "text-slate-600",       bg: "bg-slate-100" },
+  announcement:        { icon: <Megaphone className="w-4 h-4" />,     color: "text-emerald-600",     bg: "bg-emerald-100" },
 };
 
-const FILTER_OPTIONS: { value: UIType | "all"; label: string }[] = [
-  { value: "all",                label: "All" },
-  { value: "job_match",          label: "Job Matches" },
-  { value: "application_update", label: "Applications" },
-  { value: "interview",          label: "Interviews" },
-  { value: "offer",              label: "Offers" },
-  { value: "system",             label: "System" },
-];
+const FILTER_VALUES: (UIType | "all")[] = ["all", "job_match", "application_update", "interview", "offer", "system"];
 
-function timeAgo(isoStr: string): string {
+type TT = ReturnType<typeof useTranslation>["t"]["teacher"]["notifications"];
+
+function timeAgo(isoStr: string, tt: TT, lang: "en" | "ar"): string {
   const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 3600)   return `${Math.floor(secs / 60)} min ago`;
-  if (secs < 86400)  return `${Math.floor(secs / 3600)} hours ago`;
-  if (secs < 172800) return "Yesterday";
-  return new Date(isoStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  if (secs < 3600)   return tt.minAgo.replace("{n}", String(Math.floor(secs / 60)));
+  if (secs < 86400)  return tt.hoursAgo.replace("{n}", String(Math.floor(secs / 3600)));
+  if (secs < 172800) return tt.yesterday;
+  return formatDate(isoStr, lang, { month: "short", day: "numeric", year: "numeric" });
 }
 
 export default function NotificationsPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.notifications;
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<UIType | "all">("all");
@@ -173,7 +145,7 @@ export default function NotificationsPage() {
     return true;
   });
 
-  const countByUIType = (t: UIType) => notifications.filter((n) => uiType(n.type) === t).length;
+  const countByUIType = (t2: UIType) => notifications.filter((n) => uiType(n.type) === t2).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -182,14 +154,14 @@ export default function NotificationsPage() {
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-slate-800">Notifications</h1>
+              <h1 className="text-2xl font-bold text-slate-800">{tt.title}</h1>
               {unreadCount > 0 && (
                 <span className="text-white text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--brand-primary)" }}>
-                  {unreadCount} new
+                  {tt.newBadge.replace("{n}", String(unreadCount))}
                 </span>
               )}
             </div>
-            <p className="text-sm text-slate-500 mt-0.5">Stay updated on your applications and job matches</p>
+            <p className="text-sm text-slate-500 mt-0.5">{tt.subtitle}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {unreadCount > 0 && (
@@ -198,7 +170,7 @@ export default function NotificationsPage() {
                 className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl transition-colors hover:bg-brand-primary-light"
                 style={{ color: "var(--brand-primary)" }}
               >
-                <Check className="w-4 h-4" /> Mark all as read
+                <Check className="w-4 h-4" /> {tt.markAllAsRead}
               </button>
             )}
             {/* SRD 2.8.2 — preferences link */}
@@ -206,7 +178,7 @@ export default function NotificationsPage() {
               href="/notifications/preferences"
               className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
             >
-              <Settings className="w-4 h-4" /> Preferences
+              <Settings className="w-4 h-4" /> {tt.preferences}
             </Link>
           </div>
         </div>
@@ -217,19 +189,19 @@ export default function NotificationsPage() {
         <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
           {/* SRD 2.8.3 — title/body search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by title or message…"
-              className="w-full pl-9 pr-9 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-brand-primary transition-colors"
+              placeholder={tt.searchPlaceholder}
+              className="w-full ps-9 pe-9 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-brand-primary transition-colors"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-slate-600"
-                aria-label="Clear search"
+                className="absolute end-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-slate-600"
+                aria-label={tt.clearSearch}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -239,31 +211,31 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5 text-sm text-slate-500">
               <Filter className="w-4 h-4" />
-              <span className="font-medium">Filter:</span>
+              <span className="font-medium">{tt.filterLabel}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {FILTER_OPTIONS.map((opt) => {
-                const count = opt.value === "all" ? notifications.length : countByUIType(opt.value);
+              {FILTER_VALUES.map((val) => {
+                const count = val === "all" ? notifications.length : countByUIType(val);
                 return (
                   <button
-                    key={opt.value}
-                    onClick={() => setFilter(opt.value)}
+                    key={val}
+                    onClick={() => setFilter(val)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl border transition-colors ${
-                      filter === opt.value
+                      filter === val
                         ? "text-white border-transparent"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
-                    style={filter === opt.value ? { backgroundColor: "var(--brand-primary)" } : {}}
+                    style={filter === val ? { backgroundColor: "var(--brand-primary)" } : {}}
                   >
-                    {opt.label}
-                    <span className={`text-xs ${filter === opt.value ? "text-white/70" : "text-slate-400"}`}>
+                    {tt.filterLabels[val]}
+                    <span className={`text-xs ${filter === val ? "text-white/70" : "text-slate-400"}`}>
                       {count}
                     </span>
                   </button>
                 );
               })}
             </div>
-            <div className="ml-auto">
+            <div className="ms-auto">
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                 <input
                   type="checkbox"
@@ -272,7 +244,7 @@ export default function NotificationsPage() {
                   className="w-4 h-4 rounded"
                   style={{ accentColor: "var(--brand-primary)" }}
                 />
-                Unread only
+                {tt.unreadOnly}
               </label>
             </div>
           </div>
@@ -289,9 +261,9 @@ export default function NotificationsPage() {
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Bell className="w-7 h-7 text-slate-300" />
               </div>
-              <p className="font-medium text-slate-500">No notifications</p>
+              <p className="font-medium text-slate-500">{tt.emptyTitle}</p>
               <p className="text-sm text-slate-400 mt-1">
-                {showUnreadOnly ? "All caught up! No unread notifications." : "Nothing here yet."}
+                {showUnreadOnly ? tt.emptyAllCaughtUp : tt.emptyNothingHere}
               </p>
               {showUnreadOnly && (
                 <button
@@ -299,7 +271,7 @@ export default function NotificationsPage() {
                   className="mt-3 text-sm font-medium"
                   style={{ color: "var(--brand-primary)" }}
                 >
-                  Show all notifications
+                  {tt.showAllNotifications}
                 </button>
               )}
             </div>
@@ -312,6 +284,8 @@ export default function NotificationsPage() {
                   onRead={handleMarkRead}
                   onUnread={handleMarkUnread}
                   onDismiss={handleDismiss}
+                  tt={tt}
+                  lang={lang}
                 />
               ))}
             </div>
@@ -325,19 +299,18 @@ export default function NotificationsPage() {
               <Bell className="w-5 h-5 text-slate-300" />
             </div>
             <div>
-              <p className="font-semibold text-white text-sm">Notification Preferences</p>
-              <p className="text-slate-400 text-xs mt-0.5">
-                Control which notifications you receive via email and WhatsApp
-              </p>
+              <p className="font-semibold text-white text-sm">{tt.teaserTitle}</p>
+              <p className="text-slate-400 text-xs mt-0.5">{tt.teaserBody}</p>
             </div>
           </div>
-          <button
+          <Link
+            href="/notifications/preferences"
             className="flex items-center gap-1.5 px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors hover:opacity-90 shrink-0"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Manage
-            <ChevronRight className="w-4 h-4" />
-          </button>
+            {tt.manage}
+            {isRTL ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </Link>
         </div>
       </div>
     </div>
@@ -351,13 +324,18 @@ function NotificationItem({
   onRead,
   onUnread,
   onDismiss,
+  tt,
+  lang,
 }: {
   notification: Notification;
   onRead: (id: string) => void;
   onUnread: (id: string) => void;
   onDismiss: (id: string) => void;
+  tt: TT;
+  lang: "en" | "ar";
 }) {
-  const cfg = TYPE_CONFIG[uiType(n.type)];
+  const type = uiType(n.type);
+  const style = TYPE_STYLE[type];
 
   return (
     <div
@@ -369,14 +347,14 @@ function NotificationItem({
       {/* Unread bar */}
       {!n.isRead && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full"
+          className="absolute start-0 top-0 bottom-0 w-1 rounded-e-full"
           style={{ backgroundColor: "var(--brand-primary)" }}
         />
       )}
 
       {/* Icon */}
-      <div className={`w-10 h-10 rounded-xl ${cfg.bg} ${cfg.color} flex items-center justify-center shrink-0 mt-0.5`}>
-        {cfg.icon}
+      <div className={`w-10 h-10 rounded-xl ${style.bg} ${style.color} flex items-center justify-center shrink-0 mt-0.5`}>
+        {style.icon}
       </div>
 
       {/* Content */}
@@ -387,30 +365,30 @@ function NotificationItem({
               <p className={`text-sm font-semibold ${n.isRead ? "text-slate-700" : "text-slate-900"}`}>
                 {n.title}
               </p>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${cfg.bg} ${cfg.color} font-medium`}>
-                {cfg.label}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${style.bg} ${style.color} font-medium`}>
+                {tt.typeLabels[type]}
               </span>
             </div>
             <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
+            <span className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(n.createdAt, tt, lang)}</span>
             {/* SRD 2.8.3 — mark a read notification as unread */}
             {n.isRead && (
               <button
                 onClick={(e) => { e.stopPropagation(); onUnread(n._id); }}
-                className="p-1 text-slate-300 hover:text-slate-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-1"
-                title="Mark as unread"
-                aria-label="Mark as unread"
+                className="p-1 text-slate-300 hover:text-slate-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all ms-1"
+                title={tt.markUnread}
+                aria-label={tt.markUnread}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
             )}
             <button
               onClick={(e) => { e.stopPropagation(); onDismiss(n._id); }}
-              className="p-1 text-slate-300 hover:text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-1"
-              title="Delete"
-              aria-label="Delete"
+              className="p-1 text-slate-300 hover:text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-all ms-1"
+              title={tt.deleteLabel}
+              aria-label={tt.deleteLabel}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -422,7 +400,7 @@ function NotificationItem({
               onClick={(e) => { e.stopPropagation(); onRead(n._id); }}
               className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1"
             >
-              <CheckCircle2 className="w-3 h-3" /> Mark read
+              <CheckCircle2 className="w-3 h-3" /> {tt.markReadLabel}
             </button>
           </div>
         )}

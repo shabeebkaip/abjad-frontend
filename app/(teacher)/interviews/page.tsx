@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Calendar,
   Clock,
-  MapPin,
   Building2,
   Video,
   Phone,
@@ -14,6 +13,7 @@ import {
   CalendarDays,
   Bell,
   ChevronRight,
+  ChevronLeft,
   ExternalLink,
   BookOpen,
   RefreshCw,
@@ -26,8 +26,11 @@ import { listInterviews, respondToInterview, submitInterviewFeedback } from "@/l
 import { InterviewResponseModal, type InterviewResponseMode } from "@/components/teacher/InterviewResponseModal";
 import { InterviewFeedbackModal } from "@/components/teacher/InterviewFeedbackModal";
 import type { Interview as ApiInterview } from "@/lib/api/teacher";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatTime } from "@/lib/i18n/format";
 
-// ── Type mapping ──────────────────────────────────────────────────────────────
+// ── Type mapping — canonical (English) keys used internally; display text
+// always comes from tt.typeLabels / tt.statusLabels. ─────────────────────────
 
 type UIInterviewType = "Video" | "In-Person" | "Phone";
 type UIInterviewStatus = "Confirmed" | "Pending" | "Completed" | "Cancelled" | "Rescheduled";
@@ -48,24 +51,6 @@ function toUIStatus(apiStatus: ApiInterview["status"]): UIInterviewStatus {
     cancelled:  "Cancelled",
   };
   return map[apiStatus] ?? "Pending";
-}
-
-function schoolName(schoolId: ApiInterview["schoolId"]): string {
-  return typeof schoolId === "object" ? schoolId.name : "School";
-}
-
-function jobTitle(jobId: ApiInterview["jobId"]): string {
-  return typeof jobId === "object" ? jobId.title : "Job";
-}
-
-function formatDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString("en-US", {
-    weekday: "short", month: "short", day: "numeric", year: "numeric",
-  });
-}
-
-function formatTime(isoStr: string): string {
-  return new Date(isoStr).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
 // ── Style maps ────────────────────────────────────────────────────────────────
@@ -93,10 +78,22 @@ const STATUS_STYLE: Record<UIInterviewStatus, string> = {
 const UPCOMING_API_STATUSES: ApiInterview["status"][] = ["pending", "accepted", "rescheduled"];
 
 type TabView = "upcoming" | "all" | "completed";
+type TT = ReturnType<typeof useTranslation>["t"]["teacher"]["interviews"];
+
+function schoolName(schoolId: ApiInterview["schoolId"], fallback: string): string {
+  return typeof schoolId === "object" ? schoolId.name : fallback;
+}
+
+function jobTitle(jobId: ApiInterview["jobId"], fallback: string): string {
+  return typeof jobId === "object" ? jobId.title : fallback;
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function InterviewsPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.interviews;
+
   const [interviews, setInterviews] = useState<ApiInterview[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabView>("upcoming");
@@ -191,8 +188,8 @@ export default function InterviewsPage() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-5">
-        <h1 className="text-2xl font-bold text-slate-800">Interviews</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Manage your scheduled interviews and preparation</p>
+        <h1 className="text-2xl font-bold text-slate-800">{tt.title}</h1>
+        <p className="text-sm text-slate-500 mt-0.5">{tt.subtitle}</p>
       </div>
 
       <div className="p-6 space-y-6">
@@ -208,19 +205,19 @@ export default function InterviewsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-white/70 text-xs font-medium uppercase tracking-wide mb-1">
-                      Next Interview
+                      {tt.nextInterview}
                     </p>
-                    <h2 className="text-xl font-bold">{jobTitle(nextInterview.jobId)}</h2>
-                    <p className="text-white/70 mt-0.5">{schoolName(nextInterview.schoolId)}</p>
+                    <h2 className="text-xl font-bold">{jobTitle(nextInterview.jobId, tt.jobFallback)}</h2>
+                    <p className="text-white/70 mt-0.5">{schoolName(nextInterview.schoolId, tt.schoolFallback)}</p>
                     <div className="flex items-center gap-4 mt-3 text-sm text-white/60 flex-wrap">
                       <span className="flex items-center gap-1.5">
-                        <CalendarDays className="w-4 h-4" /> {formatDate(nextInterview.scheduledAt)}
+                        <CalendarDays className="w-4 h-4" /> {formatDate(nextInterview.scheduledAt, lang, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Clock className="w-4 h-4" /> {formatTime(nextInterview.scheduledAt)} · {nextInterview.duration} min
+                        <Clock className="w-4 h-4" /> {formatTime(nextInterview.scheduledAt, lang)} · {nextInterview.duration} {tt.minutesSuffix}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        {TYPE_ICONS[toUIType(nextInterview.type)]} {toUIType(nextInterview.type)}
+                        {TYPE_ICONS[toUIType(nextInterview.type)]} {tt.typeLabels[toUIType(nextInterview.type)]}
                       </span>
                     </div>
                   </div>
@@ -233,15 +230,15 @@ export default function InterviewsPage() {
                         className="flex items-center gap-1.5 px-4 py-2 bg-white rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors"
                         style={{ color: "var(--brand-primary)" }}
                       >
-                        <Video className="w-4 h-4" /> Join Meeting
+                        <Video className="w-4 h-4" /> {tt.joinMeeting}
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
                     <button
-                      onClick={() => openCalendar(nextInterview)}
+                      onClick={() => openCalendar(nextInterview, tt)}
                       className="flex items-center gap-1.5 px-4 py-2 bg-white/10 text-white border border-white/20 rounded-xl text-sm font-medium hover:bg-white/20 transition-colors"
                     >
-                      <Download className="w-4 h-4" /> Add to Calendar
+                      <Download className="w-4 h-4" /> {tt.addToCalendar}
                     </button>
                   </div>
                 </div>
@@ -251,10 +248,10 @@ export default function InterviewsPage() {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Upcoming",  value: upcomingCount,  icon: <Calendar className="w-5 h-5 text-amber-500" />,   bg: "bg-amber-50" },
-                { label: "Confirmed", value: confirmedCount, icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-50" },
-                { label: "Completed", value: completedCount, icon: <Star className="w-5 h-5 text-blue-500" />,         bg: "bg-blue-50" },
-                { label: "Cancelled", value: cancelledCount, icon: <XCircle className="w-5 h-5 text-red-400" />,       bg: "bg-red-50" },
+                { label: tt.statUpcoming,  value: upcomingCount,  icon: <Calendar className="w-5 h-5 text-amber-500" />,   bg: "bg-amber-50" },
+                { label: tt.statConfirmed, value: confirmedCount, icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-50" },
+                { label: tt.statCompleted, value: completedCount, icon: <Star className="w-5 h-5 text-blue-500" />,         bg: "bg-blue-50" },
+                { label: tt.statCancelled, value: cancelledCount, icon: <XCircle className="w-5 h-5 text-red-400" />,       bg: "bg-red-50" },
               ].map((stat) => (
                 <div key={stat.label} className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center`}>
@@ -272,9 +269,9 @@ export default function InterviewsPage() {
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="flex border-b border-slate-200">
                 {([
-                  { value: "upcoming",  label: `Upcoming (${upcomingCount})` },
-                  { value: "all",       label: `All (${interviews.length})` },
-                  { value: "completed", label: "Past" },
+                  { value: "upcoming",  label: tt.tabUpcoming.replace("{n}", String(upcomingCount)) },
+                  { value: "all",       label: tt.tabAll.replace("{n}", String(interviews.length)) },
+                  { value: "completed", label: tt.tabPast },
                 ] as { value: TabView; label: string }[]).map((tab) => (
                   <button
                     key={tab.value}
@@ -294,7 +291,7 @@ export default function InterviewsPage() {
                 {filtered.length === 0 ? (
                   <div className="text-center py-16 text-slate-400">
                     <Calendar className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium text-slate-500">No interviews here</p>
+                    <p className="font-medium text-slate-500">{tt.emptyTitle}</p>
                   </div>
                 ) : (
                   filtered.map((interview) => (
@@ -306,6 +303,9 @@ export default function InterviewsPage() {
                       onToggle={() => setExpandedId(expandedId === interview._id ? null : interview._id)}
                       onRespond={handleRespond}
                       onOpenFeedback={() => setFeedbackModalId(interview._id)}
+                      tt={tt}
+                      lang={lang}
+                      isRTL={isRTL}
                     />
                   ))
                 )}
@@ -316,17 +316,10 @@ export default function InterviewsPage() {
             <div className="bg-white rounded-2xl border border-slate-200 p-5">
               <h2 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
                 <BookOpen className="w-4 h-4" style={{ color: "var(--brand-primary)" }} />
-                General Interview Preparation Tips
+                {tt.generalTipsTitle}
               </h2>
               <div className="grid md:grid-cols-2 gap-3">
-                {[
-                  "Research the school's vision, curriculum, and student demographic before the interview.",
-                  "Prepare a 2–3 minute personal introduction covering your teaching philosophy.",
-                  "Have 2–3 example lesson plans ready to discuss or present.",
-                  "Be prepared to answer competency-based questions about classroom management.",
-                  "Dress professionally even for video interviews — first impressions matter.",
-                  "Follow up with a thank-you message within 24 hours of the interview.",
-                ].map((tip, i) => (
+                {tt.tips.map((tip, i) => (
                   <div key={i} className="flex items-start gap-2.5 text-sm text-slate-600">
                     <div
                       className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
@@ -386,6 +379,9 @@ function InterviewCard({
   onToggle,
   onRespond,
   onOpenFeedback,
+  tt,
+  lang,
+  isRTL,
 }: {
   interview: ApiInterview;
   expanded: boolean;
@@ -393,12 +389,16 @@ function InterviewCard({
   onToggle: () => void;
   onRespond: (id: string, action: "accepted" | "declined" | "reschedule_requested") => void;
   onOpenFeedback: () => void;
+  tt: TT;
+  lang: "en" | "ar";
+  isRTL: boolean;
 }) {
   const uiT  = toUIType(interview.type);
   const uiS  = toUIStatus(interview.status);
   const isActive = UPCOMING_API_STATUSES.includes(interview.status);
-  const dateStr = formatDate(interview.scheduledAt);
-  const dateParts = dateStr.split(" "); // ["Mon,", "Jan", "1,", "2025"]
+  const day = formatDate(interview.scheduledAt, lang, { day: "numeric" });
+  const month = formatDate(interview.scheduledAt, lang, { month: "short" });
+  const weekday = formatDate(interview.scheduledAt, lang, { weekday: "short" });
 
   return (
     <div className={`p-5 hover:bg-slate-50/50 transition-colors ${uiS === "Cancelled" ? "opacity-60" : ""}`}>
@@ -406,9 +406,9 @@ function InterviewCard({
         {/* Date block */}
         <div className="w-14 shrink-0 text-center">
           <div className="bg-slate-100 rounded-xl p-2">
-            <p className="text-[10px] text-slate-500 uppercase font-semibold">{dateParts[0]?.replace(",", "")}</p>
-            <p className="text-xl font-bold text-slate-800 leading-none mt-0.5">{dateParts[2]?.replace(",", "")}</p>
-            <p className="text-[10px] text-slate-500">{dateParts[1]}</p>
+            <p className="text-[10px] text-slate-500 uppercase font-semibold">{weekday}</p>
+            <p className="text-xl font-bold text-slate-800 leading-none mt-0.5">{day}</p>
+            <p className="text-[10px] text-slate-500">{month}</p>
           </div>
         </div>
 
@@ -416,17 +416,17 @@ function InterviewCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-slate-800 leading-snug">{jobTitle(interview.jobId)}</h3>
+              <h3 className="font-semibold text-slate-800 leading-snug">{jobTitle(interview.jobId, tt.jobFallback)}</h3>
               <p className="text-sm text-slate-500 flex items-center gap-1.5 mt-0.5">
-                <Building2 className="w-3.5 h-3.5" /> {schoolName(interview.schoolId)}
+                <Building2 className="w-3.5 h-3.5" /> {schoolName(interview.schoolId, tt.schoolFallback)}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
               <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border font-medium ${TYPE_STYLE[uiT]}`}>
-                {TYPE_ICONS[uiT]} {uiT}
+                {TYPE_ICONS[uiT]} {tt.typeLabels[uiT]}
               </span>
               <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border font-medium ${STATUS_STYLE[uiS]}`}>
-                {uiS}
+                {tt.statusLabels[uiS]}
               </span>
             </div>
           </div>
@@ -434,11 +434,11 @@ function InterviewCard({
           {/* Meta */}
           <div className="flex items-center gap-4 mt-2 text-xs text-slate-500 flex-wrap">
             <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" /> {formatTime(interview.scheduledAt)} · {interview.duration} min
+              <Clock className="w-3.5 h-3.5" /> {formatTime(interview.scheduledAt, lang)} · {interview.duration} {tt.minutesSuffix}
             </span>
             {interview.meetingLink && (
               <span className="flex items-center gap-1">
-                <Video className="w-3.5 h-3.5" /> Meeting link available
+                <Video className="w-3.5 h-3.5" /> {tt.meetingLinkAvailable}
               </span>
             )}
           </div>
@@ -454,7 +454,7 @@ function InterviewCard({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-medium rounded-lg transition-colors hover:opacity-90"
                   style={{ backgroundColor: "var(--brand-primary)" }}
                 >
-                  <Video className="w-3.5 h-3.5" /> Join Meeting
+                  <Video className="w-3.5 h-3.5" /> {tt.joinMeeting}
                   <ExternalLink className="w-3 h-3" />
                 </a>
               )}
@@ -466,29 +466,29 @@ function InterviewCard({
                     className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
                     {responding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                    Confirm
+                    {tt.confirm}
                   </button>
                   <button
                     disabled={responding}
                     onClick={() => onRespond(interview._id, "reschedule_requested")}
                     className="flex items-center gap-1 px-3 py-1.5 border border-amber-300 text-amber-600 bg-amber-50 hover:bg-amber-100 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
-                    <RefreshCw className="w-3.5 h-3.5" /> Reschedule
+                    <RefreshCw className="w-3.5 h-3.5" /> {tt.reschedule}
                   </button>
                   <button
                     disabled={responding}
                     onClick={() => onRespond(interview._id, "declined")}
                     className="flex items-center gap-1 px-3 py-1.5 border border-red-200 text-red-500 bg-red-50 hover:bg-red-100 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
-                    <XCircle className="w-3.5 h-3.5" /> Decline
+                    <XCircle className="w-3.5 h-3.5" /> {tt.decline}
                   </button>
                 </>
               )}
               <button
-                onClick={() => openCalendar(interview)}
+                onClick={() => openCalendar(interview, tt)}
                 className="flex items-center gap-1 px-3 py-1.5 text-xs border border-slate-200 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors"
               >
-                <Download className="w-3.5 h-3.5" /> Add to Calendar
+                <Download className="w-3.5 h-3.5" /> {tt.addToCalendar}
               </button>
             </div>
           )}
@@ -503,7 +503,7 @@ function InterviewCard({
                 style={{ background: "var(--brand-gradient)" }}
               >
                 {responding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Star className="w-3.5 h-3.5" />}
-                {interview.teacherFeedback ? "Edit Feedback" : "Submit Feedback"}
+                {interview.teacherFeedback ? tt.editFeedback : tt.submitFeedback}
               </button>
               {interview.teacherFeedback && (
                 <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
@@ -514,14 +514,19 @@ function InterviewCard({
             </div>
           )}
 
-          {/* Expand toggle */}
+          {/* Expand toggle — disclosure caret, vertical-axis behavior, no RTL
+              flip (same reasoning as applications page; edge case noted in
+              M2 report since DESIGN_SPEC didn't cover this exact pattern). */}
           <button
             onClick={onToggle}
             className="mt-2 flex items-center gap-1 text-xs font-medium"
             style={{ color: "var(--brand-primary)" }}
           >
-            {expanded ? "Hide details" : "Show details"}
-            <ChevronRight className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`} />
+            {expanded ? tt.hideDetails : tt.showDetails}
+            {isRTL
+              ? <ChevronLeft className={`w-3.5 h-3.5 transition-transform ${expanded ? "-rotate-90" : ""}`} />
+              : <ChevronRight className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`} />
+            }
           </button>
 
           {/* Expanded details */}
@@ -529,7 +534,7 @@ function InterviewCard({
             <div className="mt-4 space-y-4">
               {(interview.interviewers ?? []).length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Interviewers</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{tt.interviewersLabel}</p>
                   <div className="flex flex-wrap gap-2">
                     {interview.interviewers!.map((iv, i) => (
                       <span key={i} className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
@@ -548,7 +553,7 @@ function InterviewCard({
               {interview.responseDeadline && interview.status === "pending" && (
                 <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                   <Bell className="w-3.5 h-3.5 shrink-0" />
-                  Respond by {formatDate(interview.responseDeadline)}
+                  {tt.respondBy.replace("{date}", formatDate(interview.responseDeadline, lang))}
                 </div>
               )}
             </div>
@@ -561,10 +566,10 @@ function InterviewCard({
 
 // ── Calendar helper ───────────────────────────────────────────────────────────
 
-function openCalendar(interview: ApiInterview) {
-  const title   = encodeURIComponent(`Interview: ${jobTitle(interview.jobId)} at ${schoolName(interview.schoolId)}`);
+function openCalendar(interview: ApiInterview, tt: TT) {
+  const title   = encodeURIComponent(`${jobTitle(interview.jobId, tt.jobFallback)} — ${schoolName(interview.schoolId, tt.schoolFallback)}`);
   const details = encodeURIComponent(
-    `Interview type: ${interview.type}${interview.meetingLink ? `\nLink: ${interview.meetingLink}` : ""}`
+    `${tt.typeLabels[toUIType(interview.type)]}${interview.meetingLink ? `\n${interview.meetingLink}` : ""}`
   );
   window.open(`https://calendar.google.com/calendar/r/eventedit?text=${title}&details=${details}`, "_blank");
 }

@@ -74,6 +74,14 @@ const authApi = {
     if (!res.data) throw new Error('Invalid response from server');
     return res.data;
   },
+
+  // Server-stored language preference (PROJECT_PLAN_PANEL_I18N.md Decision 1).
+  async updateLanguage(language: 'ar' | 'en'): Promise<void> {
+    await apiFetch('/api/auth/language', {
+      method: 'PATCH',
+      body: JSON.stringify({ language }),
+    });
+  },
 };
 
 export default authApi;

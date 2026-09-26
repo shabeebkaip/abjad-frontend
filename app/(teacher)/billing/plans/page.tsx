@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Loader2, AlertCircle, ArrowLeft, GraduationCap } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { Loader2, AlertCircle, ArrowLeft, ArrowRight, GraduationCap } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getPricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
 import { getMySubscription, type MySubscription } from "@/lib/api/billing";
 import { PlanCard } from "@/components/billing/PlanCard";
@@ -12,8 +12,9 @@ import { PlanCard } from "@/components/billing/PlanCard";
 // /billing/plans — in-app teacher premium picker.
 
 export default function TeacherPlansPage() {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.billingPlans;
+  const locale = lang;
   const searchParams = useSearchParams();
   const preselected = searchParams.get("selected") ?? undefined;
 
@@ -63,20 +64,18 @@ export default function TeacherPlansPage() {
   return (
     <div className="p-4 lg:p-8 space-y-8 max-w-6xl mx-auto">
       <Link href="/billing" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700">
-        <ArrowLeft size={12} /> {locale === "ar" ? "العودة إلى الفوترة" : "Back to billing"}
+        {isRTL ? <ArrowRight size={12} /> : <ArrowLeft size={12} />} {tt.backToBilling}
       </Link>
 
       <div className="text-center">
         <div className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide rounded-full px-3 py-1 bg-amber-100 text-amber-800 mb-3">
-          <GraduationCap size={12} /> {locale === "ar" ? "باقة المعلمين المميزة" : "Premium Teacher"}
+          <GraduationCap size={12} /> {tt.badge}
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-          {locale === "ar" ? "كن من أوائل الذين يرونهم المدارس" : "Be the first teacher schools see"}
+          {tt.title}
         </h1>
         <p className="text-sm text-gray-500 max-w-lg mx-auto">
-          {locale === "ar"
-            ? "ظهور أولوي في عمليات بحث المدارس + شارة معلم مميز على ملفك الشخصي."
-            : "Priority placement in school searches and a Premium Teacher badge on your profile."}
+          {tt.subtitle}
         </p>
       </div>
 
@@ -91,7 +90,7 @@ export default function TeacherPlansPage() {
           <Loader2 className="animate-spin text-gray-400" size={24} />
         </div>
       ) : plans.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-10">No plans available right now.</p>
+        <p className="text-sm text-gray-400 text-center py-10">{tt.noPlans}</p>
       ) : activePlan ? (
         <>
           {/* Duration toggle */}

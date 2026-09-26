@@ -1,6 +1,6 @@
-import type { Translations } from "./en";
+import type { CommonTranslations } from "../types";
 
-export const ar: Translations = {
+export const common: CommonTranslations = {
   nav: {
     signIn: "تسجيل الدخول",
     register: "إنشاء حساب",

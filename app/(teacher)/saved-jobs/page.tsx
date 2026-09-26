@@ -13,51 +13,16 @@ import {
 import { getSavedJobs, unsaveJob, applyForJob } from "@/lib/api/teacher";
 import type { Job } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatNumber } from "@/lib/i18n/format";
 import { ApplyJobModal } from "@/components/teacher/ApplyJobModal";
 import { SARSymbol } from "@/components/ui/sar-symbol";
 
 const PAGE_SIZE = 20;
 
-const CITY_LABELS: Record<string, string> = {
-  riyadh: "Riyadh", jeddah: "Jeddah", khobar: "Khobar", dammam: "Dammam",
-  mecca: "Makkah", medina: "Madinah", abha: "Abha", tabuk: "Tabuk",
-};
-
-function salaryText(job: Job): React.ReactNode {
-  if (job.salary.display === "negotiable") return "Negotiable";
-  if (job.salary.display === "hide")       return "Undisclosed";
-  if (job.salary.min && job.salary.max) {
-    return <><SARSymbol />{job.salary.min.toLocaleString()}–{job.salary.max.toLocaleString()}/mo</>;
-  }
-  return "Salary on request";
-}
-
-function daysUntil(isoStr: string): number {
-  return Math.ceil((new Date(isoStr).getTime() - Date.now()) / 86_400_000);
-}
-
-function deadlinePill(deadline?: string): { label: string; cls: string } {
-  if (!deadline) return { label: "", cls: "" };
-  const days = daysUntil(deadline);
-  if (days < 0)  return { label: "Closed",          cls: "bg-slate-100 text-slate-400" };
-  if (days <= 3) return { label: `Closes in ${days}d`, cls: "bg-red-50 text-red-600" };
-  if (days <= 7) return { label: `Closes in ${days}d`, cls: "bg-amber-50 text-amber-700" };
-  return { label: `${days}d left`, cls: "bg-slate-50 text-slate-500" };
-}
-
-function postedLabel(iso?: string): string {
-  if (!iso) return "";
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days === 0) return "Posted today";
-  if (days === 1) return "Posted 1d ago";
-  return `Posted ${days}d ago`;
-}
-
-function schoolInitial(job: Job): string {
-  return job.school?.name?.[0]?.toUpperCase() ?? "A";
-}
-
 export default function SavedJobsPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.savedJobs;
   const [jobs, setJobs]             = useState<Job[]>([]);
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
@@ -90,7 +55,7 @@ export default function SavedJobsPage() {
       await unsaveJob(id);
       // Remove from current page list
       setJobs((prev) => prev.filter((j) => j._id !== id));
-      setTotal((t) => Math.max(0, t - 1));
+      setTotal((t2) => Math.max(0, t2 - 1));
       // If we just emptied the current page (and not the only one), step back
       if (jobs.length === 1 && page > 1) {
         load(page - 1);
@@ -133,6 +98,37 @@ export default function SavedJobsPage() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const salaryText = (job: Job): React.ReactNode => {
+    if (job.salary.display === "negotiable") return tt.salaryNegotiable;
+    if (job.salary.display === "hide")       return tt.salaryUndisclosed;
+    if (job.salary.min && job.salary.max) {
+      return <><SARSymbol />{formatNumber(job.salary.min, lang)}–{formatNumber(job.salary.max, lang)}/mo</>;
+    }
+    return tt.salaryOnRequest;
+  };
+
+  const daysUntil = (isoStr: string): number =>
+    Math.ceil((new Date(isoStr).getTime() - Date.now()) / 86_400_000);
+
+  const deadlinePill = (deadline?: string): { label: string; cls: string } => {
+    if (!deadline) return { label: "", cls: "" };
+    const days = daysUntil(deadline);
+    if (days < 0)  return { label: tt.closedLabel, cls: "bg-slate-100 text-slate-400" };
+    if (days <= 3) return { label: tt.daysLeftLabel.replace("{n}", String(days)), cls: "bg-red-50 text-red-600" };
+    if (days <= 7) return { label: tt.daysLeftLabel.replace("{n}", String(days)), cls: "bg-amber-50 text-amber-700" };
+    return { label: tt.daysLeftLabel.replace("{n}", String(days)), cls: "bg-slate-50 text-slate-500" };
+  };
+
+  const postedLabel = (iso?: string): string => {
+    if (!iso) return "";
+    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+    if (days === 0) return tt.postedToday;
+    if (days === 1) return tt.postedOneDayAgo;
+    return tt.postedDaysAgo.replace("{n}", String(days));
+  };
+
+  const schoolInitial = (job: Job): string => job.school?.name?.[0]?.toUpperCase() ?? "A";
+
   return (
     <div className="max-w-4xl mx-auto px-4 lg:px-6 py-6">
       {/* Header */}
@@ -140,17 +136,17 @@ export default function SavedJobsPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Bookmark size={20} className="fill-current" style={{ color: "var(--brand-primary)" }} />
-            Saved Jobs
+            {tt.title}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            {loading ? "Loading…" : total === 0 ? "Bookmarked roles will appear here" : `${total} saved role${total === 1 ? "" : "s"}`}
+            {loading ? tt.loading : total === 0 ? tt.emptyCount : tt.savedCount.replace("{n}", String(total)).replace("{plural}", total === 1 ? "" : lang === "ar" ? "" : "s")}
           </p>
         </div>
         <Link
           href="/jobs"
           className="text-sm font-semibold flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
         >
-          <Search size={14} /> Browse Jobs
+          <Search size={14} /> {tt.browseJobs}
         </Link>
       </div>
 
@@ -158,7 +154,7 @@ export default function SavedJobsPage() {
       {loading ? (
         <SkeletonList />
       ) : jobs.length === 0 ? (
-        <EmptyState />
+        <EmptyState tt={tt} />
       ) : (
         <>
           <div className="space-y-3">
@@ -171,6 +167,12 @@ export default function SavedJobsPage() {
                 isRemoving={removingId === job._id}
                 onApply={handleApply}
                 onRemove={handleRemove}
+                tt={tt}
+                lang={lang}
+                salaryText={salaryText}
+                deadlinePill={deadlinePill}
+                postedLabel={postedLabel}
+                schoolInitial={schoolInitial}
               />
             ))}
           </div>
@@ -178,7 +180,10 @@ export default function SavedJobsPage() {
           {total > PAGE_SIZE && (
             <div className="mt-6 flex items-center justify-between gap-3">
               <span className="text-xs text-slate-500">
-                Showing <span className="font-semibold text-slate-700">{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</span> of {total}
+                {tt.showingOf
+                  .replace("{start}", String((page - 1) * PAGE_SIZE + 1))
+                  .replace("{end}", String(Math.min(page * PAGE_SIZE, total)))
+                  .replace("{total}", String(total))}
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -186,9 +191,9 @@ export default function SavedJobsPage() {
                   onClick={() => handlePageChange(page - 1)}
                   disabled={page <= 1}
                   className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Previous page"
+                  aria-label={tt.previousPageLabel}
                 >
-                  <ChevronLeft size={14} />
+                  {isRTL ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
                 </button>
                 <span className="text-xs font-semibold text-slate-700 px-2">
                   {page} / {totalPages}
@@ -198,9 +203,9 @@ export default function SavedJobsPage() {
                   onClick={() => handlePageChange(page + 1)}
                   disabled={page >= totalPages}
                   className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Next page"
+                  aria-label={tt.nextPageLabel}
                 >
-                  <ChevronRight size={14} />
+                  {isRTL ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
                 </button>
               </div>
             </div>
@@ -225,13 +230,21 @@ export default function SavedJobsPage() {
 
 // ── Components ────────────────────────────────────────────────────────────────
 
-function SavedJobCard({ job, isApplied, isApplying, isRemoving, onApply, onRemove }: {
+type TT = ReturnType<typeof useTranslation>["t"]["teacher"]["savedJobs"];
+
+function SavedJobCard({ job, isApplied, isApplying, isRemoving, onApply, onRemove, tt, lang, salaryText, deadlinePill, postedLabel, schoolInitial }: {
   job: Job;
   isApplied: boolean;
   isApplying: boolean;
   isRemoving: boolean;
   onApply: (id: string) => void;
   onRemove: (id: string) => void;
+  tt: TT;
+  lang: "en" | "ar";
+  salaryText: (job: Job) => React.ReactNode;
+  deadlinePill: (deadline?: string) => { label: string; cls: string };
+  postedLabel: (iso?: string) => string;
+  schoolInitial: (job: Job) => string;
 }) {
   const deadline = deadlinePill(job.deadline);
   return (
@@ -256,11 +269,11 @@ function SavedJobCard({ job, isApplied, isApplying, isRemoving, onApply, onRemov
 
       {/* Meta row */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4 text-xs text-slate-500">
-        <span className="flex items-center gap-1"><MapPin size={12} />{CITY_LABELS[job.city] ?? job.city}</span>
+        <span className="flex items-center gap-1"><MapPin size={12} />{tt.cityLabels[job.city] ?? job.city}</span>
         {job.subjects?.[0] && <span className="flex items-center gap-1"><BookOpen size={12} />{job.subjects[0]}</span>}
         <span className="flex items-center gap-1"><Clock size={12} />{job.employmentType?.replace("_", "-")}</span>
         {job.deadline && (
-          <span className="flex items-center gap-1"><Calendar size={12} />{new Date(job.deadline).toLocaleDateString("en-SA")}</span>
+          <span className="flex items-center gap-1"><Calendar size={12} />{formatDate(job.deadline, lang)}</span>
         )}
       </div>
 
@@ -273,7 +286,7 @@ function SavedJobCard({ job, isApplied, isApplying, isRemoving, onApply, onRemov
             job.matchScore >= 60 ? "bg-blue-50 text-blue-700" :
             "bg-slate-100 text-slate-500"
           }`}>
-            {job.matchScore}% match
+            {tt.matchPercent.replace("{n}", String(job.matchScore))}
           </span>
         )}
         {deadline.label && (
@@ -290,12 +303,12 @@ function SavedJobCard({ job, isApplied, isApplying, isRemoving, onApply, onRemov
           className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
         >
           {isRemoving ? <Loader2 size={12} className="animate-spin" /> : <X size={12} />}
-          Remove
+          {tt.removeBtn}
         </button>
         <div className="flex-1" />
         {isApplied ? (
           <span className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-600">
-            <CheckCircle2 size={12} /> Applied
+            <CheckCircle2 size={12} /> {tt.applied}
           </span>
         ) : (
           <button
@@ -306,7 +319,7 @@ function SavedJobCard({ job, isApplied, isApplying, isRemoving, onApply, onRemov
             style={{ background: "var(--brand-gradient)" }}
           >
             {isApplying ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
-            {isApplying ? "Applying…" : "Apply Now"}
+            {isApplying ? tt.applying : tt.applyNow}
           </button>
         )}
       </div>
@@ -334,22 +347,20 @@ function SkeletonList() {
   );
 }
 
-function EmptyState() {
+function EmptyState({ tt }: { tt: TT }) {
   return (
     <div className="bg-white rounded-2xl border border-dashed border-slate-200 px-6 py-16 text-center">
       <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4">
         <Bookmark size={24} className="text-slate-300" />
       </div>
-      <h3 className="text-base font-semibold text-slate-700 mb-1">No saved jobs yet</h3>
-      <p className="text-sm text-slate-400 mb-5">
-        Tap the bookmark icon on any job to save it for later.
-      </p>
+      <h3 className="text-base font-semibold text-slate-700 mb-1">{tt.emptyTitle}</h3>
+      <p className="text-sm text-slate-400 mb-5">{tt.emptyBody}</p>
       <Link
         href="/jobs"
         className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-lg text-white shadow-sm hover:opacity-90 transition-opacity"
         style={{ background: "var(--brand-gradient)" }}
       >
-        <Search size={14} /> Browse Jobs
+        <Search size={14} /> {tt.browseJobs}
       </Link>
     </div>
   );

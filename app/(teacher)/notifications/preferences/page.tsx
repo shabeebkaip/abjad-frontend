@@ -19,19 +19,28 @@ import {
   type NotificationPreferences,
   type NotificationTypeKey,
 } from "@/lib/api/teacher";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const TYPE_META: Array<{ key: NotificationTypeKey; label: string; description: string; icon: React.ReactNode }> = [
-  { key: "job_match",            label: "Job Matches",          description: "New roles that match your profile",                       icon: <Briefcase size={16} /> },
-  { key: "application_status",   label: "Application Updates",  description: "When the status of one of your applications changes",     icon: <FileText size={16} /> },
-  { key: "interview_invitation", label: "Interview Invitations", description: "When a school invites you to an interview",              icon: <Calendar size={16} /> },
-  { key: "interview_reminder",   label: "Interview Reminders",  description: "24-hour and 1-hour reminders before scheduled interviews", icon: <Clock size={16} /> },
-  { key: "offer_received",       label: "Offers",               description: "When a school extends or updates an offer",                icon: <Award size={16} /> },
-  { key: "message",              label: "Messages",             description: "Direct messages from schools or Abjad",                    icon: <MessageSquare size={16} /> },
-  { key: "profile_status",       label: "Profile Status",       description: "Approval, rejection, or verification updates on your profile", icon: <User size={16} /> },
-  { key: "system",               label: "System Announcements", description: "Important platform updates and policy changes",           icon: <AlertCircle size={16} /> },
+const TYPE_ICONS: Record<NotificationTypeKey, React.ReactNode> = {
+  job_match:            <Briefcase size={16} />,
+  application_status:   <FileText size={16} />,
+  interview_invitation: <Calendar size={16} />,
+  interview_reminder:   <Clock size={16} />,
+  offer_received:       <Award size={16} />,
+  message:              <MessageSquare size={16} />,
+  profile_status:       <User size={16} />,
+  system:               <AlertCircle size={16} />,
+};
+
+const TYPE_ORDER: NotificationTypeKey[] = [
+  "job_match", "application_status", "interview_invitation", "interview_reminder",
+  "offer_received", "message", "profile_status", "system",
 ];
 
 export default function NotificationPreferencesPage() {
+  const { t } = useTranslation();
+  const tt = t.teacher.notificationPrefs;
+
   const [prefs, setPrefs]     = useState<NotificationPreferences | null>(null);
   const [draft, setDraft]     = useState<NotificationPreferences | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,19 +55,19 @@ export default function NotificationPreferencesPage() {
       setPrefs(data);
       setDraft(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load preferences");
+      setError(err instanceof Error ? err.message : tt.loadFailed);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailed]);
 
   useEffect(() => { load(); }, [load]);
 
   // Auto-dismiss the "Saved" indicator after a few seconds
   useEffect(() => {
     if (!savedAt) return;
-    const t = setTimeout(() => setSavedAt(null), 2500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setSavedAt(null), 2500);
+    return () => clearTimeout(timer);
   }, [savedAt]);
 
   const isDirty = useMemo(() => {
@@ -87,7 +96,7 @@ export default function NotificationPreferencesPage() {
       setDraft(updated);
       setSavedAt(Date.now());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save preferences");
+      setError(err instanceof Error ? err.message : tt.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -105,12 +114,10 @@ export default function NotificationPreferencesPage() {
           href="/notifications"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 transition-colors mb-3"
         >
-          <ArrowLeft size={12} /> Back to Notifications
+          <ArrowLeft size={12} className="rtl:rotate-180" /> {tt.backToNotifications}
         </Link>
-        <h1 className="text-2xl font-bold text-slate-900">Notification Preferences</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Choose which notifications you receive and how you receive them.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-900">{tt.title}</h1>
+        <p className="text-sm text-slate-500 mt-1">{tt.subtitle}</p>
       </div>
 
       {loading || !draft ? (
@@ -121,28 +128,28 @@ export default function NotificationPreferencesPage() {
         <div className="space-y-6">
           {/* Channels */}
           <section className="bg-white rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1">Delivery channels</h2>
-            <p className="text-xs text-slate-500 mb-5">How should we deliver enabled notifications to you?</p>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1">{tt.channelsTitle}</h2>
+            <p className="text-xs text-slate-500 mb-5">{tt.channelsSubtitle}</p>
 
             <div className="space-y-3">
               <ToggleRow
                 icon={<Mail size={16} className="text-blue-500" />}
-                title="Email"
-                description="Send a copy of important notifications to your email."
+                title={tt.emailTitle}
+                description={tt.emailDescription}
                 checked={draft.emailNotificationsEnabled}
                 onChange={(v) => setChannel("emailNotificationsEnabled", v)}
               />
               <ToggleRow
                 icon={<BellRing size={16} className="text-violet-500" />}
-                title="Browser Push"
-                description="Show notifications in this browser even when the tab is closed (requires permission)."
+                title={tt.pushTitle}
+                description={tt.pushDescription}
                 checked={draft.pushNotificationsEnabled}
                 onChange={(v) => setChannel("pushNotificationsEnabled", v)}
               />
               <ToggleRow
                 icon={<Volume2 size={16} className="text-emerald-500" />}
-                title="Sound"
-                description="Play a soft chime when new notifications arrive."
+                title={tt.soundTitle}
+                description={tt.soundDescription}
                 checked={draft.soundEnabled}
                 onChange={(v) => setChannel("soundEnabled", v)}
               />
@@ -151,18 +158,18 @@ export default function NotificationPreferencesPage() {
 
           {/* Per-type */}
           <section className="bg-white rounded-2xl border border-slate-200 p-5">
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1">Notification types</h2>
-            <p className="text-xs text-slate-500 mb-5">Turn off categories you don't want to see at all.</p>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1">{tt.typesTitle}</h2>
+            <p className="text-xs text-slate-500 mb-5">{tt.typesSubtitle}</p>
 
             <div className="divide-y divide-slate-100">
-              {TYPE_META.map((t) => (
+              {TYPE_ORDER.map((key) => (
                 <ToggleRow
-                  key={t.key}
-                  icon={<span className="text-slate-400">{t.icon}</span>}
-                  title={t.label}
-                  description={t.description}
-                  checked={draft.notificationPreferences[t.key]}
-                  onChange={(v) => setType(t.key, v)}
+                  key={key}
+                  icon={<span className="text-slate-400">{TYPE_ICONS[key]}</span>}
+                  title={tt.typeLabels[key].label}
+                  description={tt.typeLabels[key].description}
+                  checked={draft.notificationPreferences[key]}
+                  onChange={(v) => setType(key, v)}
                   borderless
                 />
               ))}
@@ -178,12 +185,12 @@ export default function NotificationPreferencesPage() {
                 </span>
               ) : savedAt ? (
                 <span className="text-emerald-600 flex items-center gap-1.5">
-                  <CheckCircle2 size={13} /> Saved
+                  <CheckCircle2 size={13} /> {tt.saved}
                 </span>
               ) : isDirty ? (
-                <span>You have unsaved changes.</span>
+                <span>{tt.unsavedChanges}</span>
               ) : (
-                <span>All changes saved.</span>
+                <span>{tt.allSaved}</span>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -193,7 +200,7 @@ export default function NotificationPreferencesPage() {
                 disabled={!isDirty || saving}
                 className="px-3 py-2 text-xs font-semibold text-slate-600 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Reset
+                {tt.reset}
               </button>
               <button
                 type="button"
@@ -203,7 +210,7 @@ export default function NotificationPreferencesPage() {
                 style={{ background: "var(--brand-gradient)" }}
               >
                 {saving ? <Loader2 size={12} className="animate-spin" /> : null}
-                Save changes
+                {tt.saveChanges}
               </button>
             </div>
           </div>
@@ -251,7 +258,7 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
     >
       <span
         className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-          checked ? "translate-x-6" : "translate-x-1"
+          checked ? "translate-x-6 rtl:-translate-x-6" : "translate-x-1 rtl:-translate-x-1"
         }`}
       />
     </button>

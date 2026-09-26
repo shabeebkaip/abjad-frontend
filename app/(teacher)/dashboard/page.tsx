@@ -14,6 +14,7 @@ import {
   MapPin,
   Building2,
   ChevronRight,
+  ChevronLeft,
   Star,
   Bell,
   ArrowUpRight,
@@ -27,20 +28,26 @@ import {
 import { getDashboard } from "@/lib/api/teacher";
 import type { DashboardData, Job, Interview, Notification, ActivityEntry } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatCurrency, formatNumber, formatDate, formatTime, type Locale } from "@/lib/i18n/format";
 import { TrialBanner } from "@/components/billing/TrialBanner";
 import { PasswordPromptBanner } from "@/components/auth/PasswordPromptBanner";
-import { SARSymbol } from "@/components/ui/sar-symbol";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type DashboardTT = ReturnType<typeof useTranslation>["t"]["teacher"]["dashboard"];
+type NotifTT = ReturnType<typeof useTranslation>["t"]["teacher"]["notifications"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function MatchBadge({ score }: { score: number }) {
+function MatchBadge({ score, label }: { score: number; label: string }) {
   const color =
     score >= 90 ? "bg-green-100 text-green-700" :
     score >= 75 ? "bg-blue-100 text-blue-700" :
     "bg-gray-100 text-gray-600";
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${color}`}>
-      {score}% match
+      {label}
     </span>
   );
 }
@@ -48,20 +55,22 @@ function MatchBadge({ score }: { score: number }) {
 // SRD 5.1.1 — "Why this match" criteria breakdown. Surfaces any criterion
 // scoring 70+ as a small chip ("Subject", "City", "Experience" etc.) so the
 // teacher can see WHY a job was recommended.
-const CRITERION_LABELS: Record<string, string> = {
-  subjects:       "Subject",
-  gradeLevels:    "Grade",
-  experience:     "Experience",
-  location:       "City",
-  language:       "Language",
-  qualifications: "Qualifications",
-};
-
-function WhyThisMatch({ breakdown }: { breakdown?: {
-  subjects: number; gradeLevels: number; experience: number;
-  location: number; language: number; qualifications: number;
-} }) {
+function WhyThisMatch({ breakdown, tt }: {
+  breakdown?: {
+    subjects: number; gradeLevels: number; experience: number;
+    location: number; language: number; qualifications: number;
+  };
+  tt: DashboardTT;
+}) {
   if (!breakdown) return null;
+  const criterionLabels: Record<string, string> = {
+    subjects:       tt.criterionSubject,
+    gradeLevels:    tt.criterionGrade,
+    experience:     tt.criterionExperience,
+    location:       tt.criterionCity,
+    language:       tt.criterionLanguage,
+    qualifications: tt.criterionQualifications,
+  };
   const strong = Object.entries(breakdown)
     .filter(([, v]) => v >= 70)
     .sort(([, a], [, b]) => b - a)
@@ -71,14 +80,14 @@ function WhyThisMatch({ breakdown }: { breakdown?: {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 mt-2">
-      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Why:</span>
+      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{tt.why}</span>
       {strong.map((k) => (
         <span
           key={k}
           className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700"
         >
           <CheckCircle2 size={9} />
-          {CRITERION_LABELS[k] ?? k}
+          {criterionLabels[k] ?? k}
         </span>
       ))}
     </div>
@@ -96,25 +105,17 @@ const ACTIVITY_ICON: Record<ActivityEntry["type"], { Icon: React.ElementType; cl
   profile_update:        { Icon: User,         cls: "text-slate-500   bg-slate-100" },
 };
 
-function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const min  = Math.floor(diff / 60_000);
-  if (min < 1)        return "Just now";
-  if (min < 60)       return `${min}m ago`;
-  const hr  = Math.floor(min / 60);
-  if (hr  < 24)       return `${hr}h ago`;
-  const day = Math.floor(hr / 24);
-  if (day < 7)        return `${day}d ago`;
-  return new Date(iso).toLocaleDateString("en-SA", { dateStyle: "medium" });
-}
-
-function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
+function ActivityFeed({ entries, tt, relativeTime }: {
+  entries: ActivityEntry[];
+  tt: DashboardTT;
+  relativeTime: (iso: string) => string;
+}) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100">
       <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
         <h2 className="font-semibold text-gray-900 flex items-center gap-2">
           <Clock size={16} className="text-slate-500" />
-          Recent Activity
+          {tt.recentActivity}
         </h2>
       </div>
       <div className="p-4">
@@ -123,8 +124,8 @@ function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
             <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-2">
               <Clock size={16} className="text-slate-300" />
             </div>
-            <p className="text-sm text-gray-500">No activity yet</p>
-            <p className="text-xs text-gray-400 mt-0.5">Your recent applications and updates will appear here.</p>
+            <p className="text-sm text-gray-500">{tt.noActivityTitle}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{tt.noActivityBody}</p>
           </div>
         ) : (
           <ul className="space-y-1">
@@ -156,52 +157,31 @@ function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
   );
 }
 
-function formatSalary(job: Job): React.ReactNode {
-  if (job.salary.display === "negotiable") return "Negotiable";
-  if (job.salary.display === "hide") return "Undisclosed";
+function formatSalary(job: Job, tt: DashboardTT, lang: Locale): React.ReactNode {
+  if (job.salary.display === "negotiable") return tt.salaryNegotiable;
+  if (job.salary.display === "hide") return tt.salaryUndisclosed;
   if (job.salary.min && job.salary.max) {
-    return <><SARSymbol />{job.salary.min.toLocaleString()}–{job.salary.max.toLocaleString()}</>;
+    return `SAR ${formatNumber(job.salary.min, lang)}–${formatNumber(job.salary.max, lang)}`;
   }
-  return "Salary on request";
+  return tt.salaryOnRequest;
 }
 
 function daysAgo(dateStr: string): number {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
 }
 
-function postedLabel(dateStr: string): string {
+function postedLabel(dateStr: string, tt: DashboardTT): string {
   const d = daysAgo(dateStr);
-  if (d === 0) return "Posted today";
-  if (d === 1) return "1 day ago";
-  return `${d} days ago`;
+  if (d === 0) return tt.postedToday;
+  if (d === 1) return tt.postedOneDayAgo;
+  return tt.postedDaysAgo.replace("{n}", String(d));
 }
 
-function formatInterviewDate(isoStr: string): string {
-  const d = new Date(isoStr);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
-}
-
-function formatInterviewTime(isoStr: string): string {
-  return new Date(isoStr).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-}
-
-function schoolName(schoolId: Interview["schoolId"]): string {
+// School display name shared by the offer + interview rows below. Falls back
+// to a translated placeholder when the API hasn't populated the school ref.
+function schoolName(schoolId: Interview["schoolId"], fallback: string): string {
   if (typeof schoolId === "object" && schoolId.name) return schoolId.name;
-  return "School";
-}
-
-function appStatusLabel(status: string): { label: string; color: string } {
-  const map: Record<string, { label: string; color: string }> = {
-    submitted:          { label: "Submitted",    color: "bg-gray-100 text-gray-600" },
-    reviewing:          { label: "Under Review", color: "bg-blue-100 text-blue-700" },
-    shortlisted:        { label: "Shortlisted",  color: "bg-green-100 text-green-700" },
-    interview_scheduled:{ label: "Interview",    color: "bg-purple-100 text-purple-700" },
-    offer_extended:     { label: "Offer",        color: "bg-teal-100 text-teal-700" },
-    hired:              { label: "Hired",        color: "bg-emerald-100 text-emerald-700" },
-    rejected:           { label: "Rejected",     color: "bg-red-100 text-red-600" },
-    withdrawn:          { label: "Withdrawn",    color: "bg-gray-100 text-gray-500" },
-  };
-  return map[status] ?? { label: status, color: "bg-gray-100 text-gray-600" };
+  return fallback;
 }
 
 function notifIcon(type: Notification["type"]) {
@@ -222,28 +202,12 @@ function notifIconColor(type: Notification["type"]): string {
   return map[type] ?? "bg-gray-100 text-gray-600";
 }
 
-function timeAgo(isoStr: string): string {
-  const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 3600) return `${Math.floor(secs / 60)} min ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)} hours ago`;
-  if (secs < 172800) return "Yesterday";
-  return `${Math.floor(secs / 86400)} days ago`;
-}
-
-const PROFILE_SECTION_KEYS = [
-  { label: "Personal Info",     key: "personal" },
-  { label: "Professional Info", key: "professional" },
-  { label: "Education",         key: "education" },
-  { label: "Certifications",    key: "certifications" },
-  { label: "Resume / CV",       key: "resume" },
-  { label: "Languages",         key: "languages" },
-  { label: "Location Prefs",    key: "location" },
-] as const;
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.dashboard;
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -270,38 +234,68 @@ export default function DashboardPage() {
   const isVerified = profileStatus === "approved";
   const isPendingVerification = profileStatus === "pending";
 
+  // Shared relative-time formatter for the activity feed + notifications list.
+  // Reuses the existing notifications-namespace strings (minAgo/hoursAgo/
+  // yesterday) plus this namespace's postedDaysAgo, then falls back to a full
+  // localized date beyond a week — no new i18n keys needed.
+  const relativeTime = (iso: string): string => {
+    const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    const notifTT: NotifTT = t.teacher.notifications;
+    if (secs < 3600) return notifTT.minAgo.replace("{n}", String(Math.floor(secs / 60)));
+    if (secs < 86400) return notifTT.hoursAgo.replace("{n}", String(Math.floor(secs / 3600)));
+    if (secs < 172800) return notifTT.yesterday;
+    const days = Math.floor(secs / 86400);
+    if (days < 7) return tt.postedDaysAgo.replace("{n}", String(days));
+    return formatDate(iso, lang, { dateStyle: "medium" });
+  };
+
+  const schoolFallback = t.teacher.interviews.schoolFallback;
+
   const stats = [
     {
-      label: "Applications",
+      label: tt.statApplications,
       value: appStats?.total ?? 0,
       icon: FileText,
       color: "bg-blue-50 text-blue-600",
-      change: `${appStats?.submitted ?? 0} submitted`,
+      change: tt.statSubmittedChange.replace("{n}", String(appStats?.submitted ?? 0)),
     },
     {
-      label: "Interviews",
+      label: tt.statInterviews,
       value: data?.upcomingInterviews.length ?? 0,
       icon: Calendar,
       color: "bg-purple-50 text-purple-600",
-      change: "upcoming",
+      change: tt.statUpcomingChange,
     },
     {
-      label: "Offers",
+      label: tt.statOffers,
       value: data?.activeOffers.length ?? 0,
       icon: Award,
       color: "bg-green-50 text-green-600",
-      change: data?.activeOffers.length ? "Awaiting reply" : "None active",
+      change: data?.activeOffers.length ? tt.statAwaitingReply : tt.statNoneActive,
     },
     {
-      label: "Active",
+      label: tt.statActive,
       value: data?.applications.activeCount ?? 0,
       icon: Briefcase,
       color: "bg-orange-50 text-orange-600",
-      change: "in progress",
+      change: tt.statInProgressChange,
     },
   ];
 
   const firstName = user?.firstName ?? user?.email?.split("@")[0] ?? "there";
+
+  // Profile-strength checklist: keep the matching key in English (matches the
+  // backend's dynamic `suggestions` copy, which isn't localized) while showing
+  // the localized label to the user.
+  const PROFILE_SECTIONS: { display: string; matchKey: string }[] = [
+    { display: tt.sectionPersonal,      matchKey: "personal info" },
+    { display: tt.sectionProfessional,  matchKey: "professional info" },
+    { display: tt.sectionEducation,     matchKey: "education" },
+    { display: tt.sectionCertifications,matchKey: "certifications" },
+    { display: tt.sectionResume,        matchKey: "resume" },
+    { display: tt.sectionLanguages,     matchKey: "languages" },
+    { display: tt.sectionLocation,      matchKey: "location" },
+  ];
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
@@ -311,8 +305,8 @@ export default function DashboardPage() {
       {/* Welcome */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Welcome back, {firstName} 👋</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Here&apos;s what&apos;s happening with your job search</p>
+          <h1 className="text-xl font-bold text-gray-900">{tt.welcomeBack.replace("{name}", firstName)} 👋</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{tt.subtitle}</p>
         </div>
         <Link
           href="/jobs"
@@ -320,7 +314,7 @@ export default function DashboardPage() {
           style={{ background: "var(--brand-gradient)" }}
         >
           <Briefcase size={15} />
-          Browse Jobs
+          {tt.browseJobs}
         </Link>
       </div>
 
@@ -334,11 +328,20 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 mb-1.5">
               <AlertCircle size={16} className="text-amber-500" />
               <p className="text-sm font-semibold text-gray-900">
-                Complete your profile to get more opportunities
+                {tt.completeProfileTitle}
               </p>
             </div>
             <p className="text-xs text-gray-500 mb-2">
-              Schools with 100% profiles get <span className="font-medium text-brand-primary-dark">3x more views</span>. You&apos;re {profileCompleteness}% there.
+              {(() => {
+                const [pre, rest] = tt.completeProfileBody.split("{bold}");
+                return (
+                  <>
+                    {pre}
+                    <span className="font-medium text-brand-primary-dark">{tt.moreViews}</span>
+                    {rest.replace("{percent}", String(profileCompleteness))}
+                  </>
+                );
+              })()}
             </p>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
@@ -360,7 +363,7 @@ export default function DashboardPage() {
             href="/profile"
             className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            Complete Profile
+            {tt.completeProfileCta}
           </Link>
         </div>
       )}
@@ -373,9 +376,18 @@ export default function DashboardPage() {
               <Award size={16} className="text-teal-600" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">Get your profile verified</p>
+              <p className="text-sm font-semibold text-gray-900">{tt.getVerifiedTitle}</p>
               <p className="text-xs text-gray-500 mt-0.5">
-                A <span className="text-teal-600 font-medium">Verified by Abjad</span> badge makes schools trust you more — it doesn&apos;t affect your ability to apply.
+                {(() => {
+                  const [pre, rest] = tt.getVerifiedBody.split("{badge}");
+                  return (
+                    <>
+                      {pre}
+                      <span className="text-teal-600 font-medium">{tt.verifiedBadge}</span>
+                      {rest}
+                    </>
+                  );
+                })()}
               </p>
             </div>
           </div>
@@ -383,7 +395,7 @@ export default function DashboardPage() {
             href="/profile"
             className="shrink-0 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            Submit for Verification
+            {tt.submitForVerification}
           </Link>
         </div>
       )}
@@ -394,9 +406,9 @@ export default function DashboardPage() {
             <Loader2 size={16} className="text-amber-500 animate-spin" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">Verification in progress</p>
+            <p className="text-sm font-semibold text-gray-900">{tt.verificationInProgressTitle}</p>
             <p className="text-xs text-gray-500 mt-0.5">
-              Our team is reviewing your profile. You can continue applying for jobs while we verify your identity.
+              {tt.verificationInProgressBody}
             </p>
           </div>
         </div>
@@ -426,12 +438,12 @@ export default function DashboardPage() {
               <div>
                 <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                   <Star size={16} className="text-amber-400 fill-amber-400" />
-                  Recommended for You
+                  {tt.recommendedForYou}
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">Based on your profile • Updated today</p>
+                <p className="text-xs text-gray-400 mt-0.5">{tt.recommendedSubtitle}</p>
               </div>
               <Link href="/jobs" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
-                View all <ChevronRight size={13} />
+                {tt.viewAllLink} {isRTL ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
               </Link>
             </div>
             <div className="divide-y divide-gray-50">
@@ -440,16 +452,16 @@ export default function DashboardPage() {
                   <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
                     <Star size={20} className="text-amber-400 fill-amber-400" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-700 mb-1">No recommendations yet</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-1">{tt.noRecommendationsTitle}</p>
                   <p className="text-xs text-gray-400 mb-4">
-                    Add your subjects, grade levels, and preferred cities so we can match you to the right roles.
+                    {tt.noRecommendationsBody}
                   </p>
                   <Link
                     href="/profile"
                     className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg text-white shadow-sm hover:opacity-90 transition-opacity"
                     style={{ background: "var(--brand-gradient)" }}
                   >
-                    <User size={12} /> Complete Profile
+                    <User size={12} /> {tt.completeProfileButton}
                   </Link>
                 </div>
               ) : (
@@ -461,21 +473,26 @@ export default function DashboardPage() {
                           <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-primary-dark transition-colors">
                             {job.title}
                           </span>
-                          {job.matchScore != null && <MatchBadge score={job.matchScore} />}
+                          {job.matchScore != null && (
+                            <MatchBadge
+                              score={job.matchScore}
+                              label={t.teacher.jobs.matchPercent.replace("{n}", String(job.matchScore))}
+                            />
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
-                            <MapPin size={11} /> {job.city}
+                            <MapPin size={11} /> {t.teacher.jobs.cityLabels[job.city] ?? job.city}
                           </span>
                           <span className="flex items-center gap-1">
-                            <BookOpen size={11} /> {job.subjects?.join(", ")}
+                            <BookOpen size={11} /> {job.subjects?.map((s) => t.teacher.jobs.subjectLabels[s] ?? s).join(", ")}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 mt-2">
-                          <span className="text-xs font-medium text-gray-700">{formatSalary(job)}</span>
-                          <span className="text-xs text-gray-400">{postedLabel(job.createdAt)}</span>
+                          <span className="text-xs font-medium text-gray-700">{formatSalary(job, tt, lang)}</span>
+                          <span className="text-xs text-gray-400">{postedLabel(job.createdAt, tt)}</span>
                         </div>
-                        <WhyThisMatch breakdown={job.matchBreakdown} />
+                        <WhyThisMatch breakdown={job.matchBreakdown} tt={tt} />
                       </div>
                       <Link
                         href="/jobs"
@@ -496,7 +513,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
                 <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                   <Award size={16} className="text-teal-500" />
-                  Active Offers
+                  {tt.activeOffers}
                 </h2>
               </div>
               <div className="divide-y divide-gray-50">
@@ -505,7 +522,9 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900">{offer.position ?? offer.jobId.title}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{schoolName(offer.schoolId)} · <SARSymbol />{offer.salary?.toLocaleString()}/mo</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {schoolName(offer.schoolId, schoolFallback)} · {offer.salary != null ? formatCurrency(offer.salary, lang) : ""}{t.teacher.profile.perMonth}
+                        </p>
                       </div>
                       <span className="text-xs bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-0.5 rounded-full font-medium capitalize">
                         {offer.status}
@@ -518,7 +537,7 @@ export default function DashboardPage() {
           )}
 
           {/* SRD 2.10.3 — Activity Feed */}
-          <ActivityFeed entries={data?.activity ?? []} />
+          <ActivityFeed entries={data?.activity ?? []} tt={tt} relativeTime={relativeTime} />
         </div>
 
         {/* Right column */}
@@ -528,10 +547,10 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Calendar size={16} className="text-purple-500" />
-                Upcoming Interviews
+                {tt.upcomingInterviews}
               </h2>
               <Link href="/interviews" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
-                All <ChevronRight size={13} />
+                {tt.allLink} {isRTL ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
               </Link>
             </div>
             <div className="p-4 space-y-3">
@@ -544,26 +563,30 @@ export default function DashboardPage() {
                         ? "bg-green-100 text-green-700"
                         : "bg-amber-100 text-amber-700"
                     }`}>
-                      {interview.status === "accepted" ? "Confirmed" : "Pending"}
+                      {interview.status === "accepted" ? tt.interviewConfirmed : tt.interviewPending}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 flex items-center gap-1 mb-2">
-                    <Building2 size={10} /> {schoolName(interview.schoolId)}
+                    <Building2 size={10} /> {schoolName(interview.schoolId, schoolFallback)}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
                     <Clock size={11} className="text-brand-primary shrink-0" />
-                    <span>{formatInterviewDate(interview.scheduledAt)} · {formatInterviewTime(interview.scheduledAt)}</span>
-                    <span className="ml-auto text-brand-primary font-medium capitalize">{interview.type.replace("_", " ")}</span>
+                    <span>
+                      {formatDate(interview.scheduledAt, lang, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                      {" · "}
+                      {formatTime(interview.scheduledAt, lang)}
+                    </span>
+                    <span className="ms-auto text-brand-primary font-medium capitalize">{interview.type.replace("_", " ")}</span>
                   </div>
                   <div className="flex gap-2 mt-2.5">
                     <Link href="/interviews" className="flex-1 text-xs py-1.5 rounded-lg bg-brand-primary-light text-brand-primary-dark font-medium hover:bg-brand-primary/20 transition-colors text-center">
-                      View Details
+                      {tt.viewDetails}
                     </Link>
                   </div>
                 </div>
               ))}
               {(data?.upcomingInterviews ?? []).length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-4">No upcoming interviews</p>
+                <p className="text-sm text-gray-400 text-center py-4">{tt.noUpcomingInterviews}</p>
               )}
             </div>
           </div>
@@ -573,7 +596,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Bell size={16} className="text-red-500" />
-                Notifications
+                {tt.notifications}
                 {(data?.notifications.unreadCount ?? 0) > 0 && (
                   <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">
                     {data!.notifications.unreadCount}
@@ -581,7 +604,7 @@ export default function DashboardPage() {
                 )}
               </h2>
               <Link href="/notifications" className="text-xs text-brand-primary font-medium hover:underline flex items-center gap-1">
-                All <ChevronRight size={13} />
+                {tt.allLink} {isRTL ? <ChevronLeft size={13} /> : <ChevronRight size={13} />}
               </Link>
             </div>
             <div className="divide-y divide-gray-50">
@@ -597,27 +620,27 @@ export default function DashboardPage() {
                       <p className={`text-xs leading-snug ${!n.isRead ? "font-medium text-gray-900" : "text-gray-600"}`}>
                         {n.body}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.createdAt)}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{relativeTime(n.createdAt)}</p>
                     </div>
                     {!n.isRead && <div className="shrink-0 w-1.5 h-1.5 bg-brand-primary rounded-full mt-1.5" />}
                   </div>
                 );
               })}
               {(data?.notifications.recent ?? []).length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-6">No notifications</p>
+                <p className="text-sm text-gray-400 text-center py-6">{tt.noNotifications}</p>
               )}
             </div>
           </div>
 
           {/* Quick Actions */}
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <h2 className="font-semibold text-gray-900 text-sm mb-3">Quick Actions</h2>
+            <h2 className="font-semibold text-gray-900 text-sm mb-3">{tt.quickActions}</h2>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Update Resume", icon: Upload, href: "/profile", color: "bg-blue-50 text-blue-600" },
-                { label: "Browse Jobs",  icon: Search, href: "/jobs",    color: "bg-brand-primary-light text-brand-primary-dark" },
-                { label: "View Applications", icon: TrendingUp, href: "/applications", color: "bg-green-50 text-green-600" },
-                { label: "Edit Profile", icon: User,  href: "/profile",  color: "bg-purple-50 text-purple-600" },
+                { label: tt.qaUpdateResume, icon: Upload, href: "/profile", color: "bg-blue-50 text-blue-600" },
+                { label: tt.qaBrowseJobs,  icon: Search, href: "/jobs",    color: "bg-brand-primary-light text-brand-primary-dark" },
+                { label: tt.qaViewApplications, icon: TrendingUp, href: "/applications", color: "bg-green-50 text-green-600" },
+                { label: tt.qaEditProfile, icon: User,  href: "/profile",  color: "bg-purple-50 text-purple-600" },
               ].map(({ label, icon: Icon, href, color }) => (
                 <Link
                   key={label}
@@ -638,7 +661,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
                 <ArrowUpRight size={15} className="text-brand-primary" />
-                Profile Strength
+                {tt.profileStrength}
               </h2>
               <span className="text-sm font-bold text-brand-primary">{profileCompleteness}%</span>
             </div>
@@ -654,13 +677,13 @@ export default function DashboardPage() {
                   <div key={s} className="flex items-center gap-2 text-xs">
                     <div className="w-3 h-3 rounded-full border-2 border-gray-300 shrink-0" />
                     <span className="text-gray-400">{s}</span>
-                    <Link href="/profile" className="ml-auto text-brand-primary hover:underline">Add</Link>
+                    <Link href="/profile" className="ms-auto text-brand-primary hover:underline">{tt.addAction}</Link>
                   </div>
                 ))}
-                {PROFILE_SECTION_KEYS.filter((sec) => !suggestions.some((s) => s.toLowerCase().includes(sec.label.toLowerCase()))).map((sec) => (
-                  <div key={sec.label} className="flex items-center gap-2 text-xs">
+                {PROFILE_SECTIONS.filter((sec) => !suggestions.some((s) => s.toLowerCase().includes(sec.matchKey))).map((sec) => (
+                  <div key={sec.matchKey} className="flex items-center gap-2 text-xs">
                     <CheckCircle2 size={13} className="text-green-500 shrink-0" />
-                    <span className="text-gray-600">{sec.label}</span>
+                    <span className="text-gray-600">{sec.display}</span>
                   </div>
                 ))}
               </div>

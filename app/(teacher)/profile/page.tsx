@@ -15,6 +15,7 @@ import {
   Plus,
   Trash2,
   Save,
+  ChevronLeft,
   ChevronRight,
   AlertCircle,
   Eye,
@@ -40,7 +41,8 @@ import {
 } from "@/lib/api/teacher";
 import type { TeacherProfile } from "@/lib/api/teacher";
 import { useAuth } from "@/lib/auth/useAuth";
-import { SARSymbol } from "@/components/ui/sar-symbol";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatCurrency, formatDate } from "@/lib/i18n/format";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -57,9 +59,6 @@ const cities = [
   "Riyadh", "Jeddah", "Khobar / Dammam", "Mecca", "Medina", "Abha", "Tabuk", "Other",
 ];
 const proficiencyLevels = ["native", "fluent", "intermediate", "basic"] as const;
-const proficiencyLabels: Record<string, string> = {
-  native: "Native", fluent: "Fluent", intermediate: "Intermediate", basic: "Basic",
-};
 const experienceOptions = ["0–1 years", "1–3 years", "3–5 years", "5–10 years", "10+ years"];
 
 // ─── API ↔ UI enum maps ────────────────────────────────────────────────────────
@@ -200,6 +199,8 @@ const selectCls =
   "w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors bg-white appearance-none cursor-pointer";
 
 function SectionHeader({ title, subtitle, done }: { title: string; subtitle?: string; done?: boolean }) {
+  const { t } = useTranslation();
+  const tt = t.teacher.profile;
   return (
     <div className="flex items-start justify-between mb-6">
       <div>
@@ -208,7 +209,7 @@ function SectionHeader({ title, subtitle, done }: { title: string; subtitle?: st
           {done ? (
             <CheckCircle2 size={16} className="text-green-500" />
           ) : (
-            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Incomplete</span>
+            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{tt.incomplete}</span>
           )}
         </h2>
         {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
@@ -218,6 +219,8 @@ function SectionHeader({ title, subtitle, done }: { title: string; subtitle?: st
 }
 
 function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void }) {
+  const { t } = useTranslation();
+  const tt = t.teacher.profile;
   return (
     <div className="mt-6 pt-5 border-t border-gray-100 flex justify-end">
       <button
@@ -227,7 +230,7 @@ function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void 
         style={{ background: "var(--brand-gradient)" }}
       >
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-        {saving ? "Saving…" : "Save Changes"}
+        {saving ? tt.savingLabel : tt.saveChanges}
       </button>
     </div>
   );
@@ -255,6 +258,8 @@ type LangDraft = { language: string; proficiency: string };
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.teacher.profile;
   const { user } = useAuth();
   const [profile, setProfile] = useState<TeacherProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -606,21 +611,21 @@ export default function ProfilePage() {
   const profileStatus = profile?.profileStatus ?? "draft";
 
   const sectionList = [
-    { id: "personal",       label: "Personal Info",         icon: User,         done: sectionDone(profile, "personal") },
-    { id: "professional",   label: "Professional Info",     icon: Briefcase,    done: sectionDone(profile, "professional") },
-    { id: "education",      label: "Education",             icon: GraduationCap,done: sectionDone(profile, "education") },
-    { id: "certifications", label: "Certifications",        icon: Award,        done: sectionDone(profile, "certifications") },
-    { id: "resume",         label: "Resume / CV",           icon: FileText,     done: sectionDone(profile, "resume") },
-    { id: "languages",      label: "Languages",             icon: Globe,        done: sectionDone(profile, "languages") },
-    { id: "location",       label: "Location & Compensation",icon: MapPin,      done: sectionDone(profile, "location") },
+    { id: "personal",       label: tt.personalInfo,         icon: User,         done: sectionDone(profile, "personal") },
+    { id: "professional",   label: tt.professionalInfo,     icon: Briefcase,    done: sectionDone(profile, "professional") },
+    { id: "education",      label: tt.education,            icon: GraduationCap,done: sectionDone(profile, "education") },
+    { id: "certifications", label: tt.certifications,       icon: Award,        done: sectionDone(profile, "certifications") },
+    { id: "resume",         label: tt.resumeCv,              icon: FileText,     done: sectionDone(profile, "resume") },
+    { id: "languages",      label: tt.languages,             icon: Globe,        done: sectionDone(profile, "languages") },
+    { id: "location",       label: tt.locationCompensation, icon: MapPin,      done: sectionDone(profile, "location") },
   ];
 
   const statusBadge = () => {
     switch (profileStatus) {
-      case "approved":  return <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium"><CheckCircle2 size={11} /> Verified by Abjad</span>;
-      case "pending":   return <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium"><Loader2 size={11} className="animate-spin" /> Verification in progress</span>;
-      case "rejected":  return <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium"><X size={11} /> Profile Rejected</span>;
-      default:          return <span className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium"><AlertCircle size={11} /> Draft</span>;
+      case "approved":  return <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium"><CheckCircle2 size={11} /> {tt.verifiedByAbjad}</span>;
+      case "pending":   return <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium"><Loader2 size={11} className="animate-spin" /> {tt.verificationInProgress}</span>;
+      case "rejected":  return <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium"><X size={11} /> {tt.profileRejected}</span>;
+      default:          return <span className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium"><AlertCircle size={11} /> {tt.draft}</span>;
     }
   };
 
@@ -638,18 +643,18 @@ export default function ProfilePage() {
     <div className="p-4 lg:p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage your information visible to schools</p>
+          <h1 className="text-xl font-bold text-gray-900">{tt.title}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{tt.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowPreview(true)}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-primary border border-brand-primary/40 rounded-lg hover:bg-brand-primary-light transition-colors"
           >
-            <Eye size={15} /> Preview
+            <Eye size={15} /> {tt.preview}
           </button>
           <div className="text-sm font-semibold text-brand-primary bg-brand-primary-light px-3 py-1.5 rounded-lg">
-            {completeness}% Complete
+            {tt.percentComplete.replace("{n}", String(completeness))}
           </div>
           {profileStatus === "draft" && completeness >= 70 && (
             <button
@@ -659,7 +664,7 @@ export default function ProfilePage() {
               style={{ background: "var(--brand-gradient)" }}
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : null}
-              Submit for Review
+              {tt.submitForReview}
             </button>
           )}
         </div>
@@ -674,7 +679,7 @@ export default function ProfilePage() {
               {profile?.personal?.photoUrl ? (
                 <img
                   src={profile.personal.photoUrl}
-                  alt="Profile"
+                  alt={displayName(profile, user?.firstName, user?.lastName)}
                   className="w-20 h-20 rounded-full object-cover mx-auto"
                 />
               ) : (
@@ -684,7 +689,7 @@ export default function ProfilePage() {
               )}
               <button
                 onClick={() => photoInputRef.current?.click()}
-                className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
+                className="absolute bottom-0 end-0 w-7 h-7 bg-white rounded-full border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
               >
                 <Camera size={13} className="text-gray-600" />
               </button>
@@ -698,13 +703,13 @@ export default function ProfilePage() {
             </div>
             <h3 className="font-semibold text-gray-900">{displayName(profile, user?.firstName, user?.lastName)}</h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              {professional.subjects.slice(0, 2).join(" & ") || "Teacher"}
+              {professional.subjects.slice(0, 2).map((s) => tt.subjectLabels[s] ?? s).join(" & ") || tt.teacherFallback}
             </p>
             <div className="mt-3">{statusBadge()}</div>
             {/* Completeness bar */}
             <div className="mt-4">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>Profile strength</span>
+                <span>{tt.profileStrength}</span>
                 <span className="font-medium text-brand-primary">{completeness}%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5">
@@ -722,7 +727,7 @@ export default function ProfilePage() {
               <button
                 key={id}
                 onClick={() => setActiveSection(id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left mb-0.5
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-start mb-0.5
                   ${activeSection === id
                     ? "bg-brand-primary-light text-brand-primary-dark"
                     : "text-gray-600 hover:bg-gray-50"
@@ -746,16 +751,16 @@ export default function ProfilePage() {
             {/* ── Personal Info ─────────────────────────────────────── */}
             {activeSection === "personal" && (
               <div>
-                <SectionHeader title="Personal Information" done={sectionDone(profile, "personal")} />
+                <SectionHeader title={tt.personalInfo} done={sectionDone(profile, "personal")} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Full Name (English)" required>
+                  <FormField label={tt.fullNameEn} required>
                     <input
                       value={personal.fullNameEn}
                       onChange={(e) => setPersonal((p) => ({ ...p, fullNameEn: e.target.value }))}
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="Full Name (Arabic)" required>
+                  <FormField label={tt.fullNameAr} required>
                     <input
                       value={personal.fullNameAr}
                       onChange={(e) => setPersonal((p) => ({ ...p, fullNameAr: e.target.value }))}
@@ -763,24 +768,24 @@ export default function ProfilePage() {
                       dir="rtl"
                     />
                   </FormField>
-                  <FormField label="ID Type" required>
+                  <FormField label={tt.idType} required>
                     <select
                       value={personal.idType}
                       onChange={(e) => setPersonal((p) => ({ ...p, idType: e.target.value }))}
                       className={selectCls}
                     >
-                      <option>National ID</option>
-                      <option>Iqama</option>
+                      <option>{tt.nationalId}</option>
+                      <option>{tt.iqama}</option>
                     </select>
                   </FormField>
-                  <FormField label="ID Number" required>
+                  <FormField label={tt.idNumber} required>
                     <input
                       value={personal.nationalId}
                       onChange={(e) => setPersonal((p) => ({ ...p, nationalId: e.target.value }))}
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="Date of Birth" required>
+                  <FormField label={tt.dateOfBirth} required>
                     <input
                       type="date"
                       value={personal.dateOfBirth}
@@ -788,24 +793,24 @@ export default function ProfilePage() {
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="Gender" required>
+                  <FormField label={tt.gender} required>
                     <select
                       value={personal.gender}
                       onChange={(e) => setPersonal((p) => ({ ...p, gender: e.target.value as "male" | "female" }))}
                       className={selectCls}
                     >
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
+                      <option value="male">{tt.male}</option>
+                      <option value="female">{tt.female}</option>
                     </select>
                   </FormField>
-                  <FormField label="Nationality" required>
+                  <FormField label={tt.nationality} required>
                     <input
                       value={personal.nationality}
                       onChange={(e) => setPersonal((p) => ({ ...p, nationality: e.target.value }))}
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="Contact Email" required>
+                  <FormField label={tt.contactEmail} required>
                     <input
                       type="email"
                       value={user?.email ?? ""}
@@ -813,13 +818,13 @@ export default function ProfilePage() {
                       className={`${inputCls} bg-gray-50 text-gray-500 cursor-default`}
                     />
                   </FormField>
-                  <FormField label="WhatsApp Number">
+                  <FormField label={tt.whatsappNumber}>
                     <div className="flex">
-                      <span className="flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-sm text-gray-600 shrink-0">+966</span>
+                      <span className="flex items-center px-3 bg-gray-50 border border-e-0 border-gray-200 rounded-s-lg text-sm text-gray-600 shrink-0">+966</span>
                       <input
                         value={personal.whatsapp}
                         onChange={(e) => setPersonal((p) => ({ ...p, whatsapp: e.target.value }))}
-                        className={`${inputCls} rounded-l-none`}
+                        className={`${inputCls} rounded-s-none`}
                       />
                     </div>
                   </FormField>
@@ -831,9 +836,9 @@ export default function ProfilePage() {
             {/* ── Professional Info ──────────────────────────────────── */}
             {activeSection === "professional" && (
               <div>
-                <SectionHeader title="Professional Information" done={sectionDone(profile, "professional")} />
+                <SectionHeader title={tt.professionalInfo} done={sectionDone(profile, "professional")} />
                 <div className="space-y-5">
-                  <FormField label="Subjects Taught" required>
+                  <FormField label={tt.subjectsTaught} required>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {subjects.map((s) => (
                         <button
@@ -845,13 +850,13 @@ export default function ProfilePage() {
                               : "bg-white text-gray-600 border-gray-200 hover:border-brand-primary/50"
                             }`}
                         >
-                          {s}
+                          {tt.subjectLabels[s] ?? s}
                         </button>
                       ))}
                     </div>
                   </FormField>
 
-                  <FormField label="Grade Levels" required>
+                  <FormField label={tt.gradeLevelsLabel} required>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {gradeLevels.map((g) => (
                         <button
@@ -863,24 +868,24 @@ export default function ProfilePage() {
                               : "bg-white text-gray-600 border-gray-200 hover:border-brand-primary/50"
                             }`}
                         >
-                          {g}
+                          {tt.gradeLevelLabels[g] ?? g}
                         </button>
                       ))}
                     </div>
                   </FormField>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField label="Years of Experience" required>
+                    <FormField label={tt.yearsOfExperience} required>
                       <select
                         value={professional.experienceRange}
                         onChange={(e) => setProfessional((p) => ({ ...p, experienceRange: e.target.value }))}
                         className={selectCls}
                       >
-                        <option value="">Select…</option>
-                        {experienceOptions.map((o) => <option key={o}>{o}</option>)}
+                        <option value="">{t.teacher.common.selectPlaceholder}</option>
+                        {experienceOptions.map((o) => <option key={o} value={o}>{tt.experienceLabels[o] ?? o}</option>)}
                       </select>
                     </FormField>
-                    <FormField label="Employment Status" required>
+                    <FormField label={tt.employmentStatus} required>
                       <select
                         value={professional.employmentStatus}
                         onChange={(e) => setProfessional((p) => ({
@@ -891,16 +896,16 @@ export default function ProfilePage() {
                         }))}
                         className={selectCls}
                       >
-                        <option value="">Select…</option>
-                        <option>Currently employed</option>
-                        <option>Available immediately</option>
-                        <option>Freelance / Self-employed</option>
+                        <option value="">{t.teacher.common.selectPlaceholder}</option>
+                        <option value="Currently employed">{tt.employmentStatusLabels["Currently employed"]}</option>
+                        <option value="Available immediately">{tt.employmentStatusLabels["Available immediately"]}</option>
+                        <option value="Freelance / Self-employed">{tt.employmentStatusLabels["Freelance / Self-employed"]}</option>
                       </select>
                     </FormField>
                   </div>
                   {professional.employmentStatus === "Currently employed" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField label="Notice Period (days)">
+                      <FormField label={tt.noticePeriodDays}>
                         <input
                           type="number"
                           min={0}
@@ -909,7 +914,7 @@ export default function ProfilePage() {
                           inputMode="numeric"
                           value={professional.noticePeriodDays}
                           onChange={(e) => setProfessional((p) => ({ ...p, noticePeriodDays: e.target.value }))}
-                          placeholder="e.g. 30"
+                          placeholder={tt.noticePeriodPlaceholder}
                           className={selectCls}
                         />
                       </FormField>
@@ -923,32 +928,32 @@ export default function ProfilePage() {
             {/* ── Education ─────────────────────────────────────────── */}
             {activeSection === "education" && (
               <div>
-                <SectionHeader title="Educational Credentials" done={sectionDone(profile, "education")} />
+                <SectionHeader title={tt.educationalCredentials} done={sectionDone(profile, "education")} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Degree Type" required>
+                  <FormField label={tt.degreeType} required>
                     <select
                       value={education.degreeType}
                       onChange={(e) => setEducation((ed) => ({ ...ed, degreeType: e.target.value }))}
                       className={selectCls}
                     >
-                      {["Bachelor's", "Master's", "PhD", "Diploma", "Other"].map((d) => <option key={d}>{d}</option>)}
+                      {["Bachelor's", "Master's", "PhD", "Diploma", "Other"].map((d) => <option key={d} value={d}>{tt.degreeLabels[d] ?? d}</option>)}
                     </select>
                   </FormField>
-                  <FormField label="Major / Specialization" required>
+                  <FormField label={tt.major} required>
                     <input
                       value={education.major}
                       onChange={(e) => setEducation((ed) => ({ ...ed, major: e.target.value }))}
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="University Name" required>
+                  <FormField label={tt.universityName} required>
                     <input
                       value={education.university}
                       onChange={(e) => setEducation((ed) => ({ ...ed, university: e.target.value }))}
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="Graduation Year" required>
+                  <FormField label={tt.graduationYear} required>
                     <input
                       type="number"
                       value={education.graduationYear}
@@ -956,27 +961,27 @@ export default function ProfilePage() {
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="Country of Graduation" required>
+                  <FormField label={tt.countryOfGraduation} required>
                     <input
                       value={education.country}
                       onChange={(e) => setEducation((ed) => ({ ...ed, country: e.target.value }))}
                       className={inputCls}
                     />
                   </FormField>
-                  <FormField label="Degree Certificate (PDF, max 10MB)">
+                  <FormField label={tt.degreeCertificate}>
                     <div
                       className="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center hover:border-brand-primary/40 transition-colors cursor-pointer"
                       onClick={() => eduCertInputRef.current?.click()}
                     >
                       <p className="text-xs text-gray-500">
-                        <span className="text-brand-primary font-medium">Click to upload</span> or drag & drop
+                        <span className="text-brand-primary font-medium">{tt.clickToUpload}</span> {tt.orDragDrop}
                       </p>
                       {profile?.education?.certificateUrl ? (
                         <p className="text-xs text-green-600 mt-0.5 flex items-center justify-center gap-1">
-                          <CheckCircle2 size={11} /> Certificate uploaded
+                          <CheckCircle2 size={11} /> {tt.certificateUploaded}
                         </p>
                       ) : (
-                        <p className="text-xs text-gray-400 mt-0.5">No file uploaded yet</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{tt.noFileUploaded}</p>
                       )}
                     </div>
                     <input
@@ -995,7 +1000,7 @@ export default function ProfilePage() {
             {/* ── Certifications ────────────────────────────────────── */}
             {activeSection === "certifications" && (
               <div>
-                <SectionHeader title="Certifications" subtitle="Upload teaching licenses and professional certificates" done={sectionDone(profile, "certifications")} />
+                <SectionHeader title={tt.certifications} subtitle={tt.certificationsSubtitle} done={sectionDone(profile, "certifications")} />
                 <div className="space-y-3 mb-5">
                   {certs.map((cert, idx) => (
                     <CertCard
@@ -1010,7 +1015,7 @@ export default function ProfilePage() {
                   onClick={() => setCerts((prev) => [...prev, { name: "", issuer: "", issueDate: "", hasExpiry: false, expiryDate: "" }])}
                   className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-brand-primary/30 rounded-xl text-sm text-brand-primary hover:border-brand-primary/60 hover:bg-brand-primary-light transition-colors w-full justify-center"
                 >
-                  <Plus size={15} /> Add Certification
+                  <Plus size={15} /> {tt.addCertification}
                 </button>
                 <SaveButton saving={saving} onClick={saveCertifications} />
               </div>
@@ -1019,7 +1024,7 @@ export default function ProfilePage() {
             {/* ── Resume ────────────────────────────────────────────── */}
             {activeSection === "resume" && (
               <div>
-                <SectionHeader title="Resume / CV" subtitle="Upload your latest CV for schools to download" done={sectionDone(profile, "resume")} />
+                <SectionHeader title={tt.resumeCv} subtitle={tt.resumeSubtitle} done={sectionDone(profile, "resume")} />
                 <div
                   className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center hover:border-brand-primary/40 transition-colors cursor-pointer mb-4"
                   onClick={() => resumeInputRef.current?.click()}
@@ -1027,13 +1032,13 @@ export default function ProfilePage() {
                   <div className="w-14 h-14 bg-brand-primary-light rounded-2xl flex items-center justify-center mx-auto mb-3">
                     <FileText size={24} className="text-brand-primary" />
                   </div>
-                  <p className="text-sm font-medium text-gray-700">Drop your CV here</p>
-                  <p className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX — max 10MB</p>
+                  <p className="text-sm font-medium text-gray-700">{tt.dropCvHere}</p>
+                  <p className="text-xs text-gray-400 mt-1">{tt.cvFileTypes}</p>
                   <button
                     type="button"
                     className="mt-4 px-5 py-2 text-sm font-medium text-brand-primary border border-brand-primary/40 rounded-lg hover:bg-brand-primary-light transition-colors"
                   >
-                    Browse Files
+                    {tt.browseFiles}
                   </button>
                   <input
                     ref={resumeInputRef}
@@ -1054,13 +1059,13 @@ export default function ProfilePage() {
                           {profile.resume.originalName ?? "resume.pdf"}
                         </p>
                         <p className="text-xs text-gray-400">
-                          Uploaded {profile.resume.uploadedAt ? new Date(profile.resume.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}
+                          {tt.uploaded.replace("{date}", profile.resume.uploadedAt ? formatDate(profile.resume.uploadedAt, lang, { month: "short", day: "numeric", year: "numeric" }) : "")}
                         </p>
                       </>
                     ) : (
                       <>
-                        <p className="text-sm font-medium text-gray-800">No CV uploaded yet</p>
-                        <p className="text-xs text-gray-400">Upload your CV to let schools review your full profile</p>
+                        <p className="text-sm font-medium text-gray-800">{tt.noCvUploaded}</p>
+                        <p className="text-xs text-gray-400">{tt.noCvBody}</p>
                       </>
                     )}
                   </div>
@@ -1071,7 +1076,7 @@ export default function ProfilePage() {
                       rel="noopener noreferrer"
                       className="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-white transition-colors"
                     >
-                      <Download size={13} /> Download
+                      <Download size={13} /> {tt.download}
                     </a>
                   )}
                 </div>
@@ -1081,7 +1086,7 @@ export default function ProfilePage() {
             {/* ── Languages ─────────────────────────────────────────── */}
             {activeSection === "languages" && (
               <div>
-                <SectionHeader title="Languages" done={sectionDone(profile, "languages")} />
+                <SectionHeader title={tt.languages} done={sectionDone(profile, "languages")} />
                 <div className="space-y-4">
                   {languages.map((lang, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
@@ -1090,7 +1095,7 @@ export default function ProfilePage() {
                           value={lang.language}
                           onChange={(e) => setLanguages((prev) => prev.map((l, i) => i === idx ? { ...l, language: e.target.value } : l))}
                           className={inputCls}
-                          placeholder="Language name"
+                          placeholder={tt.languageNamePlaceholder}
                         />
                       </div>
                       <select
@@ -1098,7 +1103,7 @@ export default function ProfilePage() {
                         onChange={(e) => setLanguages((prev) => prev.map((l, i) => i === idx ? { ...l, proficiency: e.target.value } : l))}
                         className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 bg-white"
                       >
-                        {proficiencyLevels.map((l) => <option key={l} value={l}>{proficiencyLabels[l]}</option>)}
+                        {proficiencyLevels.map((l) => <option key={l} value={l}>{tt.proficiencyLabels[l]}</option>)}
                       </select>
                       <button
                         onClick={() => setLanguages((prev) => prev.filter((_, i) => i !== idx))}
@@ -1112,7 +1117,7 @@ export default function ProfilePage() {
                     onClick={() => setLanguages((prev) => [...prev, { language: "", proficiency: "fluent" }])}
                     className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-brand-primary/30 rounded-xl text-sm text-brand-primary hover:border-brand-primary/60 hover:bg-brand-primary-light transition-colors w-full justify-center"
                   >
-                    <Plus size={15} /> Add Language
+                    <Plus size={15} /> {tt.addLanguage}
                   </button>
                 </div>
                 <SaveButton saving={saving} onClick={saveLanguages} />
@@ -1122,9 +1127,9 @@ export default function ProfilePage() {
             {/* ── Location & Compensation ────────────────────────────── */}
             {activeSection === "location" && (
               <div>
-                <SectionHeader title="Location & Compensation Preferences" subtitle="Help schools find you based on where you want to work" done={sectionDone(profile, "location")} />
+                <SectionHeader title={tt.locationCompensation} subtitle={tt.locationSubtitle} done={sectionDone(profile, "location")} />
                 <div className="space-y-5">
-                  <FormField label="Preferred Cities" required>
+                  <FormField label={tt.preferredCities} required>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {cities.map((c) => (
                         <button
@@ -1136,37 +1141,37 @@ export default function ProfilePage() {
                               : "bg-white text-gray-600 border-gray-200 hover:border-brand-primary/50"
                             }`}
                         >
-                          {c}
+                          {tt.cityLabels[c] ?? c}
                         </button>
                       ))}
                     </div>
                   </FormField>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField label="Contract Type Preference">
+                    <FormField label={tt.contractTypePreference}>
                       <select
                         value={location.contractTypes[0] ?? "Full time"}
                         onChange={(e) => setLocation((l) => ({ ...l, contractTypes: [e.target.value] }))}
                         className={selectCls}
                       >
-                        <option>Full time</option>
-                        <option>Part-time</option>
-                        <option>Temporary / Substitute</option>
-                        <option>Any</option>
+                        <option value="Full time">{tt.fullTime}</option>
+                        <option value="Part-time">{tt.partTime}</option>
+                        <option value="Temporary / Substitute">{tt.temporarySubstitute}</option>
+                        <option value="Any">{tt.any}</option>
                       </select>
                     </FormField>
-                    <FormField label="Expected Monthly Salary (SAR)">
+                    <FormField label={tt.expectedMonthlySalary}>
                       <div className="flex gap-2">
                         <input
                           type="number"
-                          placeholder="Min"
+                          placeholder={tt.minPlaceholder}
                           value={location.minSalary}
                           onChange={(e) => setLocation((l) => ({ ...l, minSalary: e.target.value }))}
                           className={inputCls}
                         />
                         <input
                           type="number"
-                          placeholder="Max"
+                          placeholder={tt.maxPlaceholder}
                           value={location.maxSalary}
                           onChange={(e) => setLocation((l) => ({ ...l, maxSalary: e.target.value }))}
                           className={inputCls}
@@ -1178,7 +1183,7 @@ export default function ProfilePage() {
                   <div className="bg-brand-primary-light border border-brand-primary/20 rounded-xl p-3 flex items-start gap-2.5">
                     <DollarSign size={15} className="text-brand-primary mt-0.5 shrink-0" />
                     <p className="text-xs text-brand-primary-dark">
-                      Salary is negotiated directly between you and the school. Abjad does not interfere in salary terms.
+                      {tt.salaryNote}
                     </p>
                   </div>
                 </div>
@@ -1198,7 +1203,7 @@ export default function ProfilePage() {
               className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-white border border-gray-200 transition-colors disabled:opacity-40"
               disabled={activeSection === sectionList[0].id}
             >
-              ← Previous
+              {isRTL ? <ChevronRight size={14} /> : <ChevronLeft size={14} />} {tt.previous}
             </button>
             <button
               onClick={() => {
@@ -1208,7 +1213,7 @@ export default function ProfilePage() {
               className="flex items-center gap-1.5 text-sm text-brand-primary hover:text-brand-primary-dark px-3 py-2 rounded-lg hover:bg-brand-primary-light border border-brand-primary/30 transition-colors disabled:opacity-40"
               disabled={activeSection === sectionList[sectionList.length - 1].id}
             >
-              Next <ChevronRight size={14} />
+              {tt.next} {isRTL ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>
           </div>
         </div>
@@ -1239,6 +1244,8 @@ function CertCard({
   onChange: (updated: CertDraft) => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
+  const tt = t.teacher.profile;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const inputCls =
@@ -1250,7 +1257,7 @@ function CertCard({
         <div className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Certification Name <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{tt.certificationName} <span className="text-red-500">*</span></label>
               <input
                 value={cert.name}
                 onChange={(e) => onChange({ ...cert, name: e.target.value })}
@@ -1258,7 +1265,7 @@ function CertCard({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Issuing Organization <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{tt.issuingOrganization} <span className="text-red-500">*</span></label>
               <input
                 value={cert.issuer}
                 onChange={(e) => onChange({ ...cert, issuer: e.target.value })}
@@ -1266,7 +1273,7 @@ function CertCard({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Issue Date <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{tt.issueDate} <span className="text-red-500">*</span></label>
               <input
                 type="month"
                 value={cert.issueDate}
@@ -1275,7 +1282,7 @@ function CertCard({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Expiry Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{tt.expiryDate}</label>
               <input
                 type="month"
                 value={cert.expiryDate}
@@ -1285,14 +1292,14 @@ function CertCard({
             </div>
           </div>
           <div className="mt-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Certificate File (PDF, max 5MB)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{tt.certificateFile}</label>
 
             {/* Already-uploaded file row */}
             {(cert.fileUrl || cert.pendingFile) && (
               <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-200 rounded-lg mb-2">
                 <FileText size={15} className="text-green-600 shrink-0" />
                 <span className="text-xs text-green-700 font-medium flex-1 truncate">
-                  {cert.pendingFile ? cert.pendingFile.name : "Certificate uploaded"}
+                  {cert.pendingFile ? cert.pendingFile.name : tt.certificateUploaded}
                 </span>
                 {cert.fileUrl && !cert.pendingFile && (
                   <a
@@ -1302,7 +1309,7 @@ function CertCard({
                     onClick={(e) => e.stopPropagation()}
                     className="text-xs text-brand-primary hover:underline shrink-0 flex items-center gap-1"
                   >
-                    <Download size={11} /> View
+                    <Download size={11} /> {tt.view}
                   </a>
                 )}
                 <button
@@ -1310,7 +1317,7 @@ function CertCard({
                   onClick={() => fileInputRef.current?.click()}
                   className="text-xs text-gray-500 hover:text-gray-700 shrink-0"
                 >
-                  Replace
+                  {tt.replace}
                 </button>
               </div>
             )}
@@ -1322,8 +1329,8 @@ function CertCard({
                 onClick={() => fileInputRef.current?.click()}
               >
                 <p className="text-xs text-gray-500">
-                  <span className="text-brand-primary font-medium">Upload file</span>
-                  <span className="text-gray-400 ml-1">or drag & drop</span>
+                  <span className="text-brand-primary font-medium">{tt.uploadFile}</span>
+                  <span className="text-gray-400 ms-1">{tt.orDragDrop}</span>
                 </p>
               </div>
             )}
@@ -1366,8 +1373,12 @@ function ProfilePreviewModal({
   subjects: string[];
   onClose: () => void;
 }) {
-  const degreeLabel = degreeApiToUi[profile.education?.degreeType ?? ""] ?? profile.education?.degreeType ?? "—";
-  const expLabel    = EXP_API_TO_UI[profile.professional?.experienceRange ?? ""] ?? profile.professional?.experienceRange ?? "—";
+  const { t, lang } = useTranslation();
+  const tt = t.teacher.profile;
+  const degreeLabelRaw = degreeApiToUi[profile.education?.degreeType ?? ""] ?? profile.education?.degreeType ?? "—";
+  const degreeLabel = tt.degreeLabels[degreeLabelRaw] ?? degreeLabelRaw;
+  const expLabelRaw = EXP_API_TO_UI[profile.professional?.experienceRange ?? ""] ?? profile.professional?.experienceRange ?? "—";
+  const expLabel = tt.experienceLabels[expLabelRaw] ?? expLabelRaw;
 
   const statusColors: Record<string, string> = {
     approved: "bg-green-100 text-green-700",
@@ -1376,7 +1387,7 @@ function ProfilePreviewModal({
     draft:    "bg-slate-100 text-slate-600",
   };
   const statusLabel: Record<string, string> = {
-    approved: "Approved", pending: "Under Review", rejected: "Rejected", draft: "Draft",
+    approved: tt.statusApproved, pending: tt.statusUnderReview, rejected: tt.statusRejected, draft: tt.statusDraft,
   };
 
   return (
@@ -1385,8 +1396,8 @@ function ProfilePreviewModal({
         {/* Modal header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Profile Preview</p>
-            <p className="text-xs text-gray-400 mt-0.5">This is how your profile appears to schools</p>
+            <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">{tt.profilePreviewLabel}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{tt.profilePreviewSub}</p>
           </div>
           <button
             onClick={onClose}
@@ -1416,7 +1427,7 @@ function ProfilePreviewModal({
                   {statusLabel[profile.profileStatus] ?? profile.profileStatus}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-0.5">{subjects.slice(0, 3).join(" · ") || "—"}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{subjects.map((s) => tt.subjectLabels[s] ?? s).slice(0, 3).join(" · ") || "—"}</p>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {profile.personal?.nationality && (
                   <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -1425,18 +1436,18 @@ function ProfilePreviewModal({
                 )}
                 {profile.professional?.experienceRange && (
                   <span className="text-xs text-gray-500 flex items-center gap-1">
-                    <Briefcase size={11} /> {expLabel} experience
+                    <Briefcase size={11} /> {expLabel} {tt.experienceSuffix}
                   </span>
                 )}
                 {(profile.locationPreferences?.preferredCities?.length ?? 0) > 0 && (
                   <span className="text-xs text-gray-500 flex items-center gap-1">
-                    <MapPin size={11} /> {profile.locationPreferences.preferredCities!.map((c) => CITY_API_TO_UI[c] ?? c).join(", ")}
+                    <MapPin size={11} /> {profile.locationPreferences.preferredCities!.map((c) => tt.cityLabels[CITY_API_TO_UI[c] ?? c] ?? c).join(", ")}
                   </span>
                 )}
               </div>
             </div>
-            <div className="shrink-0 text-right">
-              <p className="text-xs text-gray-400">Match score</p>
+            <div className="shrink-0 text-end">
+              <p className="text-xs text-gray-400">{tt.matchScore}</p>
               <p className="text-2xl font-bold" style={{ color: "var(--brand-primary)" }}>
                 {profile.completionPercentage}%
               </p>
@@ -1446,16 +1457,16 @@ function ProfilePreviewModal({
           {/* Subjects & Grades */}
           {(subjects.length > 0 || (profile.professional?.gradeLevels?.length ?? 0) > 0) && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Teaching</h3>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{tt.teaching}</h3>
               <div className="flex flex-wrap gap-2">
                 {subjects.map((s) => (
-                  <span key={s} className="px-2.5 py-1 text-xs rounded-full font-medium" style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary-dark)" }}>{s}</span>
+                  <span key={s} className="px-2.5 py-1 text-xs rounded-full font-medium" style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary-dark)" }}>{tt.subjectLabels[s] ?? s}</span>
                 ))}
               </div>
               {profile.professional?.gradeLevels && profile.professional.gradeLevels.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {[...new Set(profile.professional.gradeLevels.map((g) => GRADE_API_TO_UI_GROUP[g]).filter(Boolean))].map((g) => (
-                    <span key={g} className="px-2.5 py-1 text-xs rounded-full bg-slate-100 text-slate-600 font-medium">{g}</span>
+                    <span key={g} className="px-2.5 py-1 text-xs rounded-full bg-slate-100 text-slate-600 font-medium">{tt.gradeLevelLabels[g] ?? g}</span>
                   ))}
                 </div>
               )}
@@ -1465,7 +1476,7 @@ function ProfilePreviewModal({
           {/* Education */}
           {profile.education?.degreeType && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Education</h3>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{tt.education}</h3>
               <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                 <GraduationCap size={16} className="text-gray-400 mt-0.5 shrink-0" />
                 <div>
@@ -1479,7 +1490,7 @@ function ProfilePreviewModal({
           {/* Certifications */}
           {profile.certifications.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Certifications</h3>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{tt.certifications}</h3>
               <div className="space-y-2">
                 {profile.certifications.map((c) => (
                   <div key={c._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
@@ -1490,7 +1501,7 @@ function ProfilePreviewModal({
                     </div>
                     {c.fileUrl && (
                       <a href={c.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-primary hover:underline shrink-0 flex items-center gap-1">
-                        <Download size={11} /> View
+                        <Download size={11} /> {tt.view}
                       </a>
                     )}
                   </div>
@@ -1502,11 +1513,11 @@ function ProfilePreviewModal({
           {/* Languages */}
           {profile.languages.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Languages</h3>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{tt.languages}</h3>
               <div className="flex flex-wrap gap-2">
                 {profile.languages.map((l, i) => (
                   <span key={i} className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-full font-medium">
-                    {l.language} · <span className="capitalize">{proficiencyLabels[l.proficiency] ?? l.proficiency}</span>
+                    {l.language} · <span>{tt.proficiencyLabels[l.proficiency] ?? l.proficiency}</span>
                   </span>
                 ))}
               </div>
@@ -1516,9 +1527,9 @@ function ProfilePreviewModal({
           {/* Salary */}
           {(profile.salaryExpectations?.minMonthlySAR || profile.salaryExpectations?.maxMonthlySAR) && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Salary Expectation</h3>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{tt.salaryExpectation}</h3>
               <p className="text-sm text-gray-700 font-medium">
-                <SARSymbol />{profile.salaryExpectations.minMonthlySAR?.toLocaleString()} – {profile.salaryExpectations.maxMonthlySAR?.toLocaleString()} / month
+                {profile.salaryExpectations.minMonthlySAR != null && formatCurrency(profile.salaryExpectations.minMonthlySAR, lang)} – {profile.salaryExpectations.maxMonthlySAR != null && formatCurrency(profile.salaryExpectations.maxMonthlySAR, lang)} {tt.perMonth}
               </p>
             </div>
           )}
@@ -1530,7 +1541,7 @@ function ProfilePreviewModal({
             className="px-5 py-2.5 text-sm font-medium text-white rounded-lg"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Close Preview
+            {tt.closePreview}
           </button>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, ArrowRight, Sparkles, Loader2, AlertCircle } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getMySubscription, reconcilePayment, type MySubscription } from "@/lib/api/billing";
 
 interface Props {
@@ -20,8 +20,8 @@ interface Props {
 // Falls back to "we're processing" copy if 15s passes without activation.
 
 function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t } = useTranslation();
+  const tt = t.billingShared.success;
   const sp = useSearchParams();
   const paymentId = sp.get("paymentId") ?? sp.get("id");
   const invoiceId = sp.get("invoiceId");
@@ -33,7 +33,7 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
   const [sub, setSub] = useState<MySubscription | null>(null);
   const [pending, setPending] = useState(!isDeclined);
   const [tooLong, setTooLong] = useState(false);
-  const [error, setError]     = useState<string | null>(isDeclined ? (moyasarMessage ?? "Payment was declined") : null);
+  const [error, setError]     = useState<string | null>(isDeclined ? (moyasarMessage ?? tt.paymentDeclinedFallback) : null);
 
   // Poll every 1.5s for up to ~20s while waiting for the webhook to fire.
   // After the first tick, also call POST /payments/:id/reconcile so the
@@ -78,7 +78,7 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
         timer = setTimeout(tick, 1500);
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Could not check status");
+          setError(e instanceof Error ? e.message : tt.checkStatusFailedFallback);
           setPending(false);
         }
       }
@@ -88,7 +88,7 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [paymentId]);
+  }, [paymentId, invoiceId, isDeclined, tt.checkStatusFailedFallback]);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">
@@ -99,12 +99,10 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
               <Loader2 className="text-amber-600 animate-spin" size={28} />
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-1">
-              {locale === "ar" ? "جارٍ التحقّق من الدفع…" : "Verifying your payment…"}
+              {tt.verifyingTitle}
             </h1>
             <p className="text-sm text-gray-500">
-              {locale === "ar"
-                ? "نتأكّد من اكتمال المعاملة مع البنك. لا تغلق هذه الصفحة."
-                : "We're confirming the transaction with the bank. Please don't close this page."}
+              {tt.verifyingBody}
             </p>
           </>
         )}
@@ -115,20 +113,14 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
               <CheckCircle2 className="text-emerald-600" size={32} />
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-1">
-              {locale === "ar" ? "تم تفعيل اشتراكك!" : "Subscription activated!"}
+              {tt.activatedTitle}
             </h1>
             <p className="text-sm text-gray-500 mb-5">
-              {audience === "school"
-                ? (locale === "ar"
-                    ? "يمكنك الآن نشر الوظائف ومشاهدة جميع المرشحين بدون قيود."
-                    : "You can now post jobs and view candidates without limits.")
-                : (locale === "ar"
-                    ? "ظهور أولوي وشارة معلم مميز فعّالة الآن."
-                    : "Premium ranking and verified badge are now active.")}
+              {audience === "school" ? tt.activatedBodySchool : tt.activatedBodyTeacher}
             </p>
             <p className="text-[11px] text-gray-400 mb-6">
-              {locale === "ar" ? "الباقة" : "Plan"}: <span className="font-mono">{sub.planCode}</span>
-              {invoiceId && <> · {locale === "ar" ? "الفاتورة" : "Invoice"}: <span className="font-mono text-[10px]">{invoiceId.slice(-8)}</span></>}
+              {tt.planLabel}: <span className="font-mono">{sub.planCode}</span>
+              {invoiceId && <> · {tt.invoiceLabel}: <span className="font-mono text-[10px]">{invoiceId.slice(-8)}</span></>}
             </p>
             <div className="flex flex-col gap-2">
               <Link
@@ -136,11 +128,11 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all"
                 style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
               >
-                {locale === "ar" ? "إلى لوحة التحكم" : "Go to dashboard"}
+                {tt.goToDashboard}
                 <ArrowRight size={14} />
               </Link>
               <Link href={billingHref} className="text-xs text-gray-500 hover:text-gray-700 underline">
-                {locale === "ar" ? "إدارة الاشتراك" : "Manage subscription"}
+                {tt.manageSubscription}
               </Link>
             </div>
           </>
@@ -152,18 +144,16 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
               <Sparkles className="text-amber-600" size={28} />
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-1">
-              {locale === "ar" ? "الدفع قيد المعالجة" : "Payment is processing"}
+              {tt.processingTitle}
             </h1>
             <p className="text-sm text-gray-500 mb-5">
-              {locale === "ar"
-                ? "البنك يستغرق وقتاً أطول من المعتاد. ستظهر باقتك تلقائياً بعد التأكيد — يمكنك التحقّق من صفحة الفوترة لاحقاً."
-                : "The bank is taking a bit longer than usual. Your plan will activate automatically once confirmed — check your billing page later."}
+              {tt.processingBody}
             </p>
             <Link
               href={billingHref}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
             >
-              {locale === "ar" ? "إلى صفحة الفوترة" : "Go to billing"}
+              {tt.goToBilling}
             </Link>
           </>
         )}
@@ -174,16 +164,10 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
               <AlertCircle className="text-red-600" size={28} />
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-1">
-              {isDeclined
-                ? (locale === "ar" ? "رُفضت عملية الدفع" : "Payment declined")
-                : (locale === "ar" ? "تعذّر التحقّق" : "Couldn't verify")}
+              {isDeclined ? tt.declinedTitle : tt.couldntVerifyTitle}
             </h1>
             <p className="text-sm text-gray-500 mb-5">
-              {isDeclined
-                ? (locale === "ar"
-                    ? "لم تتم معالجة الدفعة. يُرجى التحقّق من بيانات البطاقة والمحاولة مرة أخرى."
-                    : "Your payment was not processed. Please check your card details and try again.")
-                : error}
+              {isDeclined ? tt.declinedBody : error}
             </p>
             <div className="flex flex-col gap-2">
               {isDeclined ? (
@@ -192,12 +176,12 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
                   className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all"
                   style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
                 >
-                  {locale === "ar" ? "حاول مرة أخرى" : "Try again"}
+                  {tt.tryAgain}
                   <ArrowRight size={14} />
                 </Link>
               ) : null}
               <Link href={billingHref} className="text-sm text-gray-500 hover:text-gray-700 underline">
-                {locale === "ar" ? "إلى صفحة الفوترة" : "Go to billing"}
+                {tt.goToBilling}
               </Link>
             </div>
           </>
@@ -205,7 +189,7 @@ function BillingSuccessInner({ audience, dashboardHref, billingHref }: Props) {
 
         {paymentId && (
           <p className="text-[10px] text-gray-300 mt-6 font-mono">
-            {locale === "ar" ? "معرّف المرجع" : "Reference"}: {paymentId.slice(-12)}
+            {tt.referenceLabel}: {paymentId.slice(-12)}
           </p>
         )}
       </div>
