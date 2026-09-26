@@ -58,6 +58,44 @@ export interface CommonTranslations {
       bullets: string[];
     };
   };
+  about: {
+    hero: {
+      badgeLocation: string; kicker: string;
+      headlineLine1: string; headlineLine2: string; headlineAccent: string;
+      sub: string; ctaJoin: string; ctaContact: string;
+      stats: { val: string; label: string }[];
+      tagline: string;
+      bottomStats: { val: string; label: string }[];
+    };
+    mission: {
+      kicker: string; kickerSub: string;
+      quote: string; quoteAttribution: string;
+      microStats: { val: string; label: string }[];
+      narrative: string;
+      pillars: { title: string; desc: string }[];
+      cta: string;
+    };
+    vision: {
+      kicker: string; headlinePre: string; headlineAccent: string; quote: string;
+      whyKicker: string; whyKickerSub: string;
+      whyItems: { title: string; desc: string }[];
+      callout: string;
+    };
+    values: {
+      kicker: string; kickerSub: string; headlinePre: string; headlineAccent: string; sub: string;
+      items: { title: string; desc: string }[];
+    };
+    team: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      members: { name: string; title: string; bio: string; tag: string }[];
+      cta: string;
+    };
+    cta: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      ctaTeacher: string; ctaSchool: string;
+      taglines: string[];
+    };
+  };
   login: {
     welcome: string; subtitle: string; email: string; emailPlaceholder: string;
     password: string; passwordPlaceholder: string; remember: string; forgot: string;

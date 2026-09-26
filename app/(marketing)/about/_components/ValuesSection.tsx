@@ -1,37 +1,19 @@
-import { ShieldCheck, Zap, Star, Users } from "lucide-react";
+"use client";
 
-const values = [
-  {
-    icon: ShieldCheck,
-    accent: "#10b981",
-    bg: "rgba(16,185,129,0.08)",
-    title: "Authenticity & Accuracy",
-    desc: "Every educator profile is verified manually, ensuring schools receive trustworthy, compliant, and qualified candidates.",
-  },
-  {
-    icon: Zap,
-    accent: "#f59e0b",
-    bg: "rgba(245,158,11,0.08)",
-    title: "Speed & Simplicity",
-    desc: "Abjad eliminates delays and paperwork, enabling schools to hire educators or substitute teachers within minutes, not weeks.",
-  },
-  {
-    icon: Star,
-    accent: "#a78bfa",
-    bg: "rgba(167,139,250,0.08)",
-    title: "Quality & Development",
-    desc: "We champion growth by matching schools with educators committed to continuous professional development and teaching excellence.",
-  },
-  {
-    icon: Users,
-    accent: "var(--brand-accent)",
-    bg: "rgba(0,172,211,0.08)",
-    title: "Collaboration & Connection",
-    desc: "Abjad unites educators and institutions across Saudi Arabia in one powerful platform, making it easier to discover opportunities and build learning environments.",
-  },
+import { ShieldCheck, Zap, Star, Users } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
+const VALUE_ICONS = [
+  { icon: ShieldCheck, accent: "#10b981", bg: "rgba(16,185,129,0.08)" },
+  { icon: Zap, accent: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
+  { icon: Star, accent: "#a78bfa", bg: "rgba(167,139,250,0.08)" },
+  { icon: Users, accent: "var(--brand-accent)", bg: "rgba(0,172,211,0.08)" },
 ];
 
 export default function ValuesSection() {
+  const { t } = useTranslation();
+  const values = t.about.values.items.map((v, i) => ({ ...v, ...VALUE_ICONS[i] }));
+
   return (
     <section className="overflow-hidden">
 
@@ -48,9 +30,9 @@ export default function ValuesSection() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-primary)" }}
           >
-            Our Values
+            {t.about.values.kicker}
           </span>
-          <span className="text-xs text-gray-400">What drives Abjad</span>
+          <span className="text-xs text-gray-400">{t.about.values.kickerSub}</span>
         </div>
       </div>
 
@@ -63,32 +45,30 @@ export default function ValuesSection() {
               className="font-extrabold text-gray-950 leading-[1.05]"
               style={{ fontSize: "clamp(2rem, 4.5vw, 3.2rem)", letterSpacing: "-0.04em" }}
             >
-              Solving Real Challenges for Schools{" "}
-              <span style={{ color: "var(--brand-accent)" }}>&amp; Educators</span>
+              {t.about.values.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.about.values.headlineAccent}</span>
             </h2>
           </div>
           <div className="lg:col-span-2 flex items-end">
             <p className="text-gray-500 text-base leading-relaxed">
-              Every value at Abjad is rooted in a commitment to excellence for schools, educators,
-              and students across Saudi Arabia. These aren&apos;t just words, they drive every
-              decision we make.
+              {t.about.values.sub}
             </p>
           </div>
         </div>
 
-        {/* 2 × 2 value cards with left colored border */}
+        {/* 2 × 2 value cards with colored border */}
         <div className="grid md:grid-cols-2 gap-5">
           {values.map((v, i) => (
             <div
               key={i}
               className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
             >
-              {/* Left accent border */}
+              {/* Accent border */}
               <div
-                className="absolute left-0 top-0 bottom-0 w-0.75 rounded-l-2xl"
+                className="absolute start-0 top-0 bottom-0 w-0.75 rounded-s-2xl"
                 style={{ backgroundColor: v.accent }}
               />
-              <div className="pl-8 pr-8 pt-8 pb-8 text-center">
+              <div className="p-8 text-center">
                 {/* Icon */}
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 mx-auto"

@@ -1,31 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Target, ShieldCheck, Globe } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const pillars = [
-  {
-    icon: Target,
-    iconColor: "var(--brand-accent)",
-    iconBg: "rgba(0,172,211,0.1)",
-    title: "Right Teacher, Right School",
-    desc: "Precision matching, every educator placed is the exact fit for the school's curriculum, culture, and needs.",
-  },
-  {
-    icon: ShieldCheck,
-    iconColor: "#10b981",
-    iconBg: "rgba(16,185,129,0.1)",
-    title: "Professional & Verified",
-    desc: "Every profile is manually vetted with credential checks, reference reviews, and trial assignments before placement.",
-  },
-  {
-    icon: Globe,
-    iconColor: "#a78bfa",
-    iconBg: "rgba(167,139,250,0.1)",
-    title: "Nationwide Reach",
-    desc: "From Riyadh to Dammam, we cover every region of Saudi Arabia with qualified educators ready to start.",
-  },
+const PILLAR_ICONS = [
+  { icon: Target, iconColor: "var(--brand-accent)", iconBg: "rgba(0,172,211,0.1)" },
+  { icon: ShieldCheck, iconColor: "#10b981", iconBg: "rgba(16,185,129,0.1)" },
+  { icon: Globe, iconColor: "#a78bfa", iconBg: "rgba(167,139,250,0.1)" },
 ];
 
 export default function MissionSection() {
+  const { t, isRTL } = useTranslation();
+  const pillars = t.about.mission.pillars.map((p, i) => ({ ...p, ...PILLAR_ICONS[i] }));
+
   return (
     <section className="relative bg-white overflow-hidden">
 
@@ -39,20 +27,20 @@ export default function MissionSection() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-accent)" }}
           >
-            Our Mission
+            {t.about.mission.kicker}
           </span>
-          <span className="text-xs text-gray-400">What drives every placement</span>
+          <span className="text-xs text-gray-400">{t.about.mission.kickerSub}</span>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-24">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
 
-          {/* ── Left — pullquote + stats ── */}
+          {/* ── Start — pullquote + stats ── */}
           <div className="relative">
             {/* Ghost quote mark */}
             <span
-              className="absolute -top-6 -left-4 font-black leading-none select-none pointer-events-none text-gray-100"
+              className="absolute -top-6 -start-4 font-black leading-none select-none pointer-events-none text-gray-100"
               style={{ fontSize: "14rem", lineHeight: 1 }}
             >
               &ldquo;
@@ -60,21 +48,17 @@ export default function MissionSection() {
             <div className="relative z-10">
               <blockquote
                 className="font-extrabold text-gray-950 leading-[1.1] mb-5"
-                style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.7rem)", letterSpacing: "-0.04em" }}
+                style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.7rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
               >
-                Ensure schools always have the right teachers, on time and ready to inspire.
+                {t.about.mission.quote}
               </blockquote>
               <p className="text-gray-400 text-sm mb-12">
-                — The founding principle behind every placement Abjad facilitates
+                {t.about.mission.quoteAttribution}
               </p>
 
               {/* Micro-stats row */}
               <div className="flex gap-8 pt-8 border-t border-gray-100">
-                {[
-                  { val: "Hundreds", label: "Educators placed" },
-                  { val: "KSA-wide", label: "Schools served" },
-                  { val: "24–48 hrs", label: "Avg response" },
-                ].map((s) => (
+                {t.about.mission.microStats.map((s) => (
                   <div key={s.val}>
                     <div className="font-extrabold text-gray-900 text-base leading-none mb-1">{s.val}</div>
                     <div className="text-xs text-gray-400">{s.label}</div>
@@ -84,13 +68,10 @@ export default function MissionSection() {
             </div>
           </div>
 
-          {/* ── Right — narrative + pillars ── */}
+          {/* ── End — narrative + pillars ── */}
           <div>
             <p className="text-gray-600 text-base leading-relaxed mb-8">
-              Abjad connects schools with skilled and adaptable educators who seamlessly integrate
-              into diverse learning environments — from international curricula to Ministry-aligned
-              high school departments. By facilitating reliable placements, we ensure schools receive
-              professional teaching support while educators make a positive impact on students.
+              {t.about.mission.narrative}
             </p>
 
             <div className="flex flex-col gap-3 mb-10">
@@ -118,7 +99,7 @@ export default function MissionSection() {
               className="inline-flex items-center gap-2 self-start font-bold text-sm px-7 py-3.5 rounded-full text-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
               style={{ backgroundColor: "var(--brand-primary)" }}
             >
-              Start Now <ArrowRight size={15} />
+              {t.about.mission.cta} <ArrowRight size={15} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
             </Link>
           </div>
         </div>

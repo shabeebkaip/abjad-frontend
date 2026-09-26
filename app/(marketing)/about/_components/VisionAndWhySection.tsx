@@ -1,27 +1,18 @@
-import { Zap, Target, GraduationCap } from "lucide-react";
+"use client";
 
-const whyItems = [
-  {
-    icon: Zap,
-    color: "#f59e0b",
-    title: "Streamline Hiring",
-    desc: "Reduce time-to-hire with smart matching and verified educator profiles ready for immediate placement across Saudi Arabia.",
-  },
-  {
-    icon: Target,
-    color: "var(--brand-accent)",
-    title: "Ensure Accurate Placement",
-    desc: "Precision matching ensures every educator placed is the right fit for the school's curriculum, culture, and community.",
-  },
-  {
-    icon: GraduationCap,
-    color: "#34d399",
-    title: "Support Professional Development",
-    desc: "Abjad champions continuous growth, connecting educators with institutions that invest in excellence and long-term careers.",
-  },
+import { Zap, Target, GraduationCap } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
+const WHY_ICONS = [
+  { icon: Zap, color: "#f59e0b" },
+  { icon: Target, color: "var(--brand-accent)" },
+  { icon: GraduationCap, color: "#34d399" },
 ];
 
 export default function VisionAndWhySection() {
+  const { t, isRTL } = useTranslation();
+  const whyItems = t.about.vision.whyItems.map((item, i) => ({ ...item, ...WHY_ICONS[i] }));
+
   return (
     <section
       className="relative overflow-hidden"
@@ -34,7 +25,8 @@ export default function VisionAndWhySection() {
       />
       {/* Large watermark */}
       <div
-        className="absolute right-0 top-0 bottom-0 flex items-center pointer-events-none select-none overflow-hidden"
+        aria-hidden="true"
+        className="absolute end-0 top-0 bottom-0 flex items-center pointer-events-none select-none overflow-hidden"
         style={{ fontSize: "22rem", fontWeight: 900, lineHeight: 1, color: "rgba(255,255,255,0.02)" }}
       >
         VISION
@@ -48,15 +40,15 @@ export default function VisionAndWhySection() {
       {/* ── Vision Statement ── */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 py-24 text-center border-b border-white/10">
         <span className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-white/8 text-white/50 mb-8">
-          Our Vision
+          {t.about.vision.kicker}
         </span>
 
         <h2
           className="font-extrabold text-white leading-[1.08] mb-10"
-          style={{ fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.04em" }}
+          style={{ fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
         >
-          Empowering Educators &amp; Elevating Education{" "}
-          <span style={{ color: "var(--brand-accent)" }}>Across Saudi Arabia</span>
+          {t.about.vision.headlinePre}{" "}
+          <span style={{ color: "var(--brand-accent)" }}>{t.about.vision.headlineAccent}</span>
         </h2>
 
         <div
@@ -64,8 +56,7 @@ export default function VisionAndWhySection() {
           style={{ borderColor: "rgba(255,255,255,0.12)" }}
         >
           <p className="text-white/70 text-xl font-medium leading-relaxed italic">
-            &ldquo;To become a trusted partner to private and international schools,
-            ensuring every classroom remains active and engaging.&rdquo;
+            &ldquo;{t.about.vision.quote}&rdquo;
           </p>
         </div>
       </div>
@@ -74,9 +65,9 @@ export default function VisionAndWhySection() {
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10 pt-14 pb-10">
         <div className="flex items-center justify-between mb-8">
           <span className="text-xs font-black tracking-widest uppercase text-white/30">
-            Why Abjad Leads
+            {t.about.vision.whyKicker}
           </span>
-          <span className="text-xs text-white/20">A Nationwide Community</span>
+          <span className="text-xs text-white/20">{t.about.vision.whyKickerSub}</span>
         </div>
 
         <div className="flex flex-col divide-y divide-white/8">
@@ -109,8 +100,7 @@ export default function VisionAndWhySection() {
         {/* Bottom educator callout */}
         <div className="mt-2 mb-14 p-5 rounded-2xl border border-white/8 bg-white/4">
           <p className="text-white/50 text-sm leading-relaxed text-center max-w-2xl mx-auto">
-            For educators, Abjad makes it easy to discover roles that match your skills, values, and growth
-            ambitions — from private schools to national educational institutions across the Kingdom of Saudi Arabia.
+            {t.about.vision.callout}
           </p>
         </div>
       </div>

@@ -231,6 +231,146 @@ export const common: CommonTranslations = {
       bullets: ["Flexible roles available now", "International school openings", "Fast one-click applications"],
     },
   },
+  about: {
+    hero: {
+      badgeLocation: "Riyadh · Jeddah · Dammam",
+      kicker: "About Abjad",
+      headlineLine1: "Empowering",
+      headlineLine2: "Education",
+      headlineAccent: "Excellence",
+      sub: "Abjad connects teachers, substitute teachers, and schools across Saudi Arabia, building a future where education staffing is faster, smarter, and more reliable.",
+      ctaJoin: "Join Today",
+      ctaContact: "Get in Touch",
+      stats: [
+        { val: "5,000+", label: "Verified Educators in Network" },
+        { val: "500+", label: "Schools Across Saudi Arabia" },
+        { val: "24–48h", label: "Average Placement Response" },
+      ],
+      tagline: "From international schools to high schools — Abjad bridges the gap between qualified educators and institutions that value excellence across Saudi Arabia.",
+      bottomStats: [
+        { val: "KSA", label: "Nationwide coverage" },
+        { val: "100%", label: "Verified educator profiles" },
+        { val: "70%", label: "Faster than traditional hiring" },
+      ],
+    },
+    mission: {
+      kicker: "Our Mission",
+      kickerSub: "What drives every placement",
+      quote: "Ensure schools always have the right teachers, on time and ready to inspire.",
+      quoteAttribution: "— The founding principle behind every placement Abjad facilitates",
+      microStats: [
+        { val: "Hundreds", label: "Educators placed" },
+        { val: "KSA-wide", label: "Schools served" },
+        { val: "24–48 hrs", label: "Avg response" },
+      ],
+      narrative: "Abjad connects schools with skilled and adaptable educators who seamlessly integrate into diverse learning environments — from international curricula to Ministry-aligned high school departments. By facilitating reliable placements, we ensure schools receive professional teaching support while educators make a positive impact on students.",
+      pillars: [
+        {
+          title: "Right Teacher, Right School",
+          desc: "Precision matching, every educator placed is the exact fit for the school's curriculum, culture, and needs.",
+        },
+        {
+          title: "Professional & Verified",
+          desc: "Every profile is manually vetted with credential checks, reference reviews, and trial assignments before placement.",
+        },
+        {
+          title: "Nationwide Reach",
+          desc: "From Riyadh to Dammam, we cover every region of Saudi Arabia with qualified educators ready to start.",
+        },
+      ],
+      cta: "Start Now",
+    },
+    vision: {
+      kicker: "Our Vision",
+      headlinePre: "Empowering Educators & Elevating Education",
+      headlineAccent: "Across Saudi Arabia",
+      quote: "To become a trusted partner to private and international schools, ensuring every classroom remains active and engaging.",
+      whyKicker: "Why Abjad Leads",
+      whyKickerSub: "A Nationwide Community",
+      whyItems: [
+        {
+          title: "Streamline Hiring",
+          desc: "Reduce time-to-hire with smart matching and verified educator profiles ready for immediate placement across Saudi Arabia.",
+        },
+        {
+          title: "Ensure Accurate Placement",
+          desc: "Precision matching ensures every educator placed is the right fit for the school's curriculum, culture, and community.",
+        },
+        {
+          title: "Support Professional Development",
+          desc: "Abjad champions continuous growth, connecting educators with institutions that invest in excellence and long-term careers.",
+        },
+      ],
+      callout: "For educators, Abjad makes it easy to discover roles that match your skills, values, and growth ambitions — from private schools to national educational institutions across the Kingdom of Saudi Arabia.",
+    },
+    values: {
+      kicker: "Our Values",
+      kickerSub: "What drives Abjad",
+      headlinePre: "Solving Real Challenges for Schools",
+      headlineAccent: "& Educators",
+      sub: "Every value at Abjad is rooted in a commitment to excellence for schools, educators, and students across Saudi Arabia. These aren't just words, they drive every decision we make.",
+      items: [
+        {
+          title: "Authenticity & Accuracy",
+          desc: "Every educator profile is verified manually, ensuring schools receive trustworthy, compliant, and qualified candidates.",
+        },
+        {
+          title: "Speed & Simplicity",
+          desc: "Abjad eliminates delays and paperwork, enabling schools to hire educators or substitute teachers within minutes, not weeks.",
+        },
+        {
+          title: "Quality & Development",
+          desc: "We champion growth by matching schools with educators committed to continuous professional development and teaching excellence.",
+        },
+        {
+          title: "Collaboration & Connection",
+          desc: "Abjad unites educators and institutions across Saudi Arabia in one powerful platform, making it easier to discover opportunities and build learning environments.",
+        },
+      ],
+    },
+    team: {
+      kicker: "Our Team",
+      headlinePre: "Meet the Experts",
+      headlineAccent: "Behind Abjad",
+      sub: "Seasoned educators, coaches, and HR specialists dedicated to transforming school hiring across Saudi Arabia.",
+      members: [
+        {
+          name: "Dr. Sumaya Alyusuf",
+          title: "Educational Consultant",
+          tag: "30+ Years Experience",
+          bio: "With over three decades of leadership in school transformation and international education, Dr. Sumaya Alyusuf has guided institutions toward academic excellence. Her initiatives have elevated performance standards and improved teaching outcomes across Saudi Arabia's schools, shaping future-ready learning environments.",
+        },
+        {
+          name: "Muna Alyusuf",
+          title: "Executive Coach",
+          tag: "Leadership & Development",
+          bio: "Muna Alyusuf specializes in teacher development, organizational training, and leadership growth. Through Abjad, she empowers substitute teachers and institutions to reach higher teaching quality and leadership success, fostering measurable improvement across all educational levels.",
+        },
+        {
+          name: "Bushra Alyusuf",
+          title: "Education Consultant",
+          tag: "Ministry of Education",
+          bio: "Collaborating closely with the Saudi Ministry of Education, Bushra Alyusuf ensures schools and substitute teachers meet performance and regulatory standards. Her dedication drives educational institutions to achieve better outcomes and sustained excellence across the Kingdom.",
+        },
+        {
+          name: "Maha Alyusuf",
+          title: "HR & Staffing Specialist",
+          tag: "Recruitment & KPIs",
+          bio: "Maha Alyusuf leads teacher recruitment, training, and performance management with proven success in workforce optimization. Her focus on KPIs, recruitment frameworks, and operational excellence ensures that every school and teacher within Abjad experiences measurable, ongoing success.",
+        },
+      ],
+      cta: "Work With Us",
+    },
+    cta: {
+      kicker: "Join Abjad Today",
+      headlinePre: "Ready to Transform Education Hiring",
+      headlineAccent: "in Saudi Arabia?",
+      sub: "Whether you're a teacher finding your next role or a school building a stronger team — Abjad connects you in minutes.",
+      ctaTeacher: "I'm a Teacher",
+      ctaSchool: "I'm a School",
+      taglines: ["Teachers grow their careers.", "Schools hire with confidence.", "Students benefit from excellence."],
+    },
+  },
   login: {
     welcome: "Welcome back",
     subtitle: "Enter your email to receive a verification code",

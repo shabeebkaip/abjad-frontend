@@ -1,7 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, GraduationCap, School } from "lucide-react";
+import { GraduationCap, School } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
+const TAGLINE_DOTS = ["var(--brand-accent)", "#a78bfa", "#34d399"];
 
 export default function AboutCta() {
+  const { t, isRTL } = useTranslation();
+  const taglines = t.about.cta.taglines.map((text, i) => ({ text, dot: TAGLINE_DOTS[i] }));
+
   return (
     <section
       className="relative overflow-hidden"
@@ -13,8 +21,8 @@ export default function AboutCta() {
         style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "30px 30px" }}
       />
       {/* Decorative blurs */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-white/4 pointer-events-none" />
-      <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-white/3 pointer-events-none" />
+      <div className="absolute -top-32 -end-32 w-96 h-96 rounded-full bg-white/4 pointer-events-none" />
+      <div className="absolute -bottom-24 -start-16 w-72 h-72 rounded-full bg-white/3 pointer-events-none" />
       {/* Accent glow */}
       <div
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-160 h-60 pointer-events-none"
@@ -24,20 +32,19 @@ export default function AboutCta() {
       <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 py-28 text-center">
 
         <span className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-white/10 text-white/55 mb-8">
-          Join Abjad Today
+          {t.about.cta.kicker}
         </span>
 
         <h2
           className="font-extrabold text-white leading-[1.06] mb-5"
-          style={{ fontSize: "clamp(2.2rem, 5.5vw, 3.8rem)", letterSpacing: "-0.04em" }}
+          style={{ fontSize: "clamp(2.2rem, 5.5vw, 3.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
         >
-          Ready to Transform Education Hiring{" "}
-          <span style={{ color: "var(--brand-accent)" }}>in Saudi Arabia?</span>
+          {t.about.cta.headlinePre}{" "}
+          <span style={{ color: "var(--brand-accent)" }}>{t.about.cta.headlineAccent}</span>
         </h2>
 
         <p className="text-white/60 text-lg leading-relaxed max-w-xl mx-auto mb-14">
-          Whether you&apos;re a teacher finding your next role or a school building a stronger
-          team — Abjad connects you in minutes.
+          {t.about.cta.sub}
         </p>
 
         {/* Dual CTA */}
@@ -48,24 +55,20 @@ export default function AboutCta() {
             style={{ color: "var(--brand-primary-dark)" }}
           >
             <GraduationCap size={16} />
-            I&apos;m a Teacher
+            {t.about.cta.ctaTeacher}
           </Link>
           <Link
             href="/register?role=school"
             className="inline-flex items-center gap-2.5 border border-white/30 bg-white/10 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/20 transition-all"
           >
             <School size={16} />
-            I&apos;m a School
+            {t.about.cta.ctaSchool}
           </Link>
         </div>
 
         {/* Tagline trio */}
         <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
-          {[
-            { dot: "var(--brand-accent)", text: "Teachers grow their careers." },
-            { dot: "#a78bfa",             text: "Schools hire with confidence." },
-            { dot: "#34d399",             text: "Students benefit from excellence." },
-          ].map((p) => (
+          {taglines.map((p) => (
             <span
               key={p.text}
               className="flex items-center gap-2 text-sm font-medium"
