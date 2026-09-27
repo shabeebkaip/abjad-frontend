@@ -333,6 +333,14 @@ export interface CommonTranslations {
     copyright: string; builtInSaudi: string;
     privacy: string; terms: string; cookies: string;
   };
+  authLayout: {
+    headlineLine1: string; headlineAccent: string; headlineLine2: string;
+    subCopy: string;
+    statTeachersPlaced: string; statPartnerSchools: string; statAvgTimeToOffer: string;
+    testimonialQuote: string; testimonialName: string; testimonialRole: string;
+    trustedBy: string; secureAndPrivate: string; verifiedSchoolsOnly: string; builtForKSA: string;
+    copyright: string;
+  };
   pricingPage: {
     loginToContinue: string; manageSubscription: string; viewTeacherPremium: string; viewSchoolPlans: string;
     notAvailableForAdmins: string; adminsManageWarning: string; schoolPlansWarning: string;
