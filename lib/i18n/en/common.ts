@@ -301,6 +301,7 @@ export const common: CommonTranslations = {
           desc: "Abjad champions continuous growth, connecting educators with institutions that invest in excellence and long-term careers.",
         },
       ],
+      watermark: "VISION",
       callout: "For educators, Abjad makes it easy to discover roles that match your skills, values, and growth ambitions — from private schools to national educational institutions across the Kingdom of Saudi Arabia.",
     },
     values: {
@@ -872,6 +873,7 @@ export const common: CommonTranslations = {
         },
       ],
       cta: "Join as an Educator",
+      watermark: "EDUCATORS",
     },
     growth: {
       kicker: "School Growth",
@@ -1384,5 +1386,13 @@ export const common: CommonTranslations = {
     finalCtaSubtitle: "Start your 5-day free trial — or book a quick demo with our team.",
     vatLabel: "VAT",
     crLabel: "CR",
+  },
+  seo: {
+    homeTitle: "Abjad – Connect Teachers & Schools in Saudi Arabia",
+    aboutTitle: "About Abjad — Empowering Education Excellence Across Saudi Arabia",
+    teachersTitle: "Teaching Jobs in Saudi Arabia — Find Schools with Abjad",
+    schoolsTitle: "Hire Teachers in Saudi Arabia — Abjad for Schools",
+    contactTitle: "Contact Abjad — Hire Substitute Teachers for Riyadh, Jeddah & Dammam Schools",
+    pricingTitle: "Pricing — Abjad for Schools & Teachers",
   },
 };

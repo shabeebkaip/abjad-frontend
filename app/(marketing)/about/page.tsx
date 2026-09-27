@@ -5,6 +5,7 @@ import VisionAndWhySection from "./_components/VisionAndWhySection";
 import ValuesSection from "./_components/ValuesSection";
 import TeamSection from "./_components/TeamSection";
 import AboutCta from "./_components/AboutCta";
+import LocalizedTitle from "../_components/LocalizedTitle";
 
 export const metadata = {
   title: "About Abjad — Empowering Education Excellence Across Saudi Arabia",
@@ -15,6 +16,7 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <>
+      <LocalizedTitle page="about" />
       <AboutHero />
       <MissionSection />
       <VisionAndWhySection />

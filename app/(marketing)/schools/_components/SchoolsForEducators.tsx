@@ -31,7 +31,7 @@ export default function SchoolsForEducators() {
         className="absolute start-0 top-1/2 -translate-y-1/2 font-black select-none pointer-events-none leading-none"
         style={{ fontSize: "18rem", lineHeight: 1, color: "rgba(255,255,255,0.02)" }}
       >
-        EDUCATORS
+        {t.schoolsPage.forEducators.watermark}
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">

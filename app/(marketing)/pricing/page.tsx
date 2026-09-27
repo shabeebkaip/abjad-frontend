@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth/useAuth";
 import { getPricingPagePayload, type PricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
 import { resolveCheckoutTarget, type CheckoutTarget } from "@/lib/auth/checkout-target";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import LocalizedTitle from "../_components/LocalizedTitle";
 
 type T = ReturnType<typeof useTranslation>["t"];
 
@@ -106,6 +107,7 @@ export default function PricingPage() {
 
   return (
     <div className={isRTL ? "rtl" : "ltr"} dir={isRTL ? "rtl" : "ltr"}>
+      <LocalizedTitle page="pricing" />
       <FaqSchema items={payload.faq} />
       <Hero hero={payload.hero} reassurance={payload.hero.reassurance} />
       <TrustStrip strip={payload.trustStrip} t={t} />

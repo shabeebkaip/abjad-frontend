@@ -29,7 +29,7 @@ export default function VisionAndWhySection() {
         className="absolute end-0 top-0 bottom-0 flex items-center pointer-events-none select-none overflow-hidden"
         style={{ fontSize: "22rem", fontWeight: 900, lineHeight: 1, color: "rgba(255,255,255,0.02)" }}
       >
-        VISION
+        {t.about.vision.watermark}
       </div>
       {/* Vertical accent line */}
       <div

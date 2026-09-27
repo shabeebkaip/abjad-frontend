@@ -79,7 +79,7 @@ export interface CommonTranslations {
       kicker: string; headlinePre: string; headlineAccent: string; quote: string;
       whyKicker: string; whyKickerSub: string;
       whyItems: { title: string; desc: string }[];
-      callout: string;
+      callout: string; watermark: string;
     };
     values: {
       kicker: string; kickerSub: string; headlinePre: string; headlineAccent: string; sub: string;
@@ -206,7 +206,7 @@ export interface CommonTranslations {
     forEducators: {
       kicker: string; headlinePre: string; headlineAccent: string; sub: string;
       benefits: { title: string; desc: string }[];
-      cta: string;
+      cta: string; watermark: string;
     };
     growth: {
       kicker: string; kickerSub: string;
@@ -354,6 +354,10 @@ export interface CommonTranslations {
     comparisonTitle: string; comparisonSubtitle: string; featureColumnLabel: string;
     faqTitle: string; finalCtaTitle: string; finalCtaSubtitle: string;
     vatLabel: string; crLabel: string;
+  };
+  seo: {
+    homeTitle: string; aboutTitle: string; teachersTitle: string;
+    schoolsTitle: string; contactTitle: string; pricingTitle: string;
   };
 }
 

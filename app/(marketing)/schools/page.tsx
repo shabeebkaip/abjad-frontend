@@ -9,6 +9,7 @@ import SchoolsDiscover from "./_components/SchoolsDiscover";
 import SchoolsVsJobBoards from "./_components/SchoolsVsJobBoards";
 import SchoolsFaq from "./_components/SchoolsFaq";
 import SchoolsCta from "./_components/SchoolsCta";
+import LocalizedTitle from "../_components/LocalizedTitle";
 
 export const metadata: Metadata = {
   title: "Hire Teachers in Saudi Arabia — Abjad for Schools",
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
 export default function SchoolsPage() {
   return (
     <>
+      <LocalizedTitle page="schools" />
       <SchoolsHero />
       <SchoolsHiringChallenge />
       <SchoolsSimpleHiring />

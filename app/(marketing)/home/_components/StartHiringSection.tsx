@@ -12,7 +12,7 @@ const ICONS = [
 ];
 
 export default function StartHiringSection() {
-  const { t, isRTL } = useTranslation();
+  const { t, lang, isRTL } = useTranslation();
   const tiles = t.startHiring.tiles.map((tile, i) => ({ ...tile, ...ICONS[i] }));
 
   return (
@@ -46,7 +46,7 @@ export default function StartHiringSection() {
                 style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
               >
                 {t.startHiring.headlinePre}{" "}
-                <span style={{ color: "var(--brand-accent)" }}>Abjad</span> {t.startHiring.headlinePost}
+                <span style={{ color: "var(--brand-accent)" }}>{lang === "ar" ? "أبجد" : "Abjad"}</span> {t.startHiring.headlinePost}
               </h2>
               <p className="text-white/60 text-sm leading-relaxed max-w-lg mb-8">
                 {t.startHiring.sub}

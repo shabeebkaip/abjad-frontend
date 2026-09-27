@@ -301,6 +301,7 @@ export const common: CommonTranslations = {
           desc: "يدعم أبجد النمو المستمر، ويربط المعلمين بالمؤسسات التي تستثمر في التميز والمسارات المهنية طويلة الأمد.",
         },
       ],
+      watermark: "رؤية",
       callout: "بالنسبة للمعلمين، يسهّل أبجد اكتشاف أدوار تتناسب مع مهاراتك وقيمك وتطلعاتك المهنية — من المدارس الخاصة إلى المؤسسات التعليمية الوطنية في جميع مناطق المملكة العربية السعودية.",
     },
     values: {
@@ -387,7 +388,7 @@ export const common: CommonTranslations = {
       searchButton: "بحث",
       opportunities: [
         {
-          school: "American International School",
+          school: "المدرسة الأمريكية الدولية",
           role: "معلم لغة إنجليزية وأدب",
           location: "الرياض",
           type: "دوام كامل",
@@ -396,7 +397,7 @@ export const common: CommonTranslations = {
           tags: ["الصف 9–12", "IB"],
         },
         {
-          school: "British International School",
+          school: "المدرسة البريطانية الدولية",
           role: "معلم رياضيات",
           location: "جدة",
           type: "دوام كامل",
@@ -405,7 +406,7 @@ export const common: CommonTranslations = {
           tags: ["IGCSE", "A-Level"],
         },
         {
-          school: "ISG Dammam",
+          school: "مدرسة ISG الدمام",
           role: "معلم علوم وأحياء",
           location: "الدمام",
           type: "إحلال",
@@ -872,6 +873,7 @@ export const common: CommonTranslations = {
         },
       ],
       cta: "انضم كمربٍّ",
+      watermark: "المربّون",
     },
     growth: {
       kicker: "نمو المدرسة",
@@ -1384,5 +1386,13 @@ export const common: CommonTranslations = {
     finalCtaSubtitle: "ابدأ تجربة مجانية لمدة 5 أيام أو احجز عرضاً توضيحياً مع فريق المبيعات.",
     vatLabel: "الرقم الضريبي",
     crLabel: "السجل التجاري",
+  },
+  seo: {
+    homeTitle: "أبجد – ربط المعلمين بالمدارس في المملكة العربية السعودية",
+    aboutTitle: "عن أبجد — تعزيز التميّز التعليمي في جميع مناطق المملكة العربية السعودية",
+    teachersTitle: "وظائف تدريس في المملكة العربية السعودية — اعثر على مدرستك مع أبجد",
+    schoolsTitle: "وظّف معلمين في المملكة العربية السعودية — أبجد للمدارس",
+    contactTitle: "تواصل مع أبجد — وظّف معلمي إحلال لمدارس الرياض وجدة والدمام",
+    pricingTitle: "الأسعار — أبجد للمدارس والمعلمين",
   },
 };

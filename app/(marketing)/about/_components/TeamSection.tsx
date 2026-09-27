@@ -5,15 +5,20 @@ import { ArrowRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const MEMBER_STYLES = [
-  { initials: "SA", color: "var(--brand-primary)", accent: "rgba(13,37,66,0.08)", border: "rgba(13,37,66,0.18)", bandColor: "#0D2542" },
-  { initials: "MA", color: "#6366f1", accent: "#eef2ff", border: "rgba(99,102,241,0.22)", bandColor: "#6366f1" },
-  { initials: "BA", color: "#10b981", accent: "#ecfdf5", border: "rgba(16,185,129,0.22)", bandColor: "#10b981" },
-  { initials: "MH", color: "#f59e0b", accent: "#fef3c7", border: "rgba(245,158,11,0.22)", bandColor: "#f59e0b" },
+  { color: "var(--brand-primary)", accent: "rgba(13,37,66,0.08)", border: "rgba(13,37,66,0.18)", bandColor: "#0D2542" },
+  { color: "#6366f1", accent: "#eef2ff", border: "rgba(99,102,241,0.22)", bandColor: "#6366f1" },
+  { color: "#10b981", accent: "#ecfdf5", border: "rgba(16,185,129,0.22)", bandColor: "#10b981" },
+  { color: "#f59e0b", accent: "#fef3c7", border: "rgba(245,158,11,0.22)", bandColor: "#f59e0b" },
 ];
+
+// ponytail: initials derived from the localized name so Arabic names get Arabic initials
+function getInitials(name: string): string {
+  return name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("");
+}
 
 export default function TeamSection() {
   const { t, isRTL } = useTranslation();
-  const team = t.about.team.members.map((m, i) => ({ ...m, ...MEMBER_STYLES[i] }));
+  const team = t.about.team.members.map((m, i) => ({ ...m, ...MEMBER_STYLES[i], initials: getInitials(m.name) }));
 
   return (
     <section className="relative bg-white overflow-hidden">

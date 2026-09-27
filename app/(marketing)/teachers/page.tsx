@@ -7,6 +7,7 @@ import TeachersWhyChooseAbjad from "./_components/TeachersWhyChooseAbjad";
 import TeachersNetwork from "./_components/TeachersNetwork";
 import TeachersFaq from "./_components/TeachersFaq";
 import TeachersCta from "./_components/TeachersCta";
+import LocalizedTitle from "../_components/LocalizedTitle";
 
 export const metadata: Metadata = {
   title: "Teaching Jobs in Saudi Arabia — Find Schools with Abjad",
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 export default function TeachersPage() {
   return (
     <>
+      <LocalizedTitle page="teachers" />
       <TeachersHero />
       <TeachersHowItWorks />
       <TeachersOpportunities />

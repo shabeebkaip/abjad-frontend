@@ -5,14 +5,19 @@ import { ArrowRight, MapPin, CheckCircle2, Clock, Building2, ArrowUpRight } from
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const CARD_STYLES = [
-  { initials: "AIS", bgColor: "var(--brand-accent)", tagBg: "rgba(16,185,129,0.15)", tagColor: "#34d399" },
-  { initials: "BIJ", bgColor: "#7c3aed", tagBg: "rgba(245,158,11,0.15)", tagColor: "#f59e0b" },
-  { initials: "ISG", bgColor: "#0891b2", tagBg: "rgba(239,68,68,0.15)", tagColor: "#f87171" },
+  { bgColor: "var(--brand-accent)", tagBg: "rgba(16,185,129,0.15)", tagColor: "#34d399" },
+  { bgColor: "#7c3aed", tagBg: "rgba(245,158,11,0.15)", tagColor: "#f59e0b" },
+  { bgColor: "#0891b2", tagBg: "rgba(239,68,68,0.15)", tagColor: "#f87171" },
 ];
+
+// ponytail: initials derived from the localized school name so Arabic names get Arabic initials
+function getInitials(name: string): string {
+  return name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("");
+}
 
 export default function TeachersHero() {
   const { t, isRTL } = useTranslation();
-  const opportunities = t.teachersPage.hero.opportunities.map((o, i) => ({ ...o, ...CARD_STYLES[i] }));
+  const opportunities = t.teachersPage.hero.opportunities.map((o, i) => ({ ...o, ...CARD_STYLES[i], initials: getInitials(o.school) }));
   const flip = { transform: isRTL ? "scaleX(-1)" : undefined };
 
   return (

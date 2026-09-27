@@ -6,6 +6,7 @@ import HowItWorksProcess from "./_components/HowItWorksProcess";
 import ContactForm from "./_components/ContactForm";
 import ServingSchools from "./_components/ServingSchools";
 import ContactFaq from "./_components/ContactFaq";
+import LocalizedTitle from "../_components/LocalizedTitle";
 
 export const metadata: Metadata = {
   title: "Contact Abjad — Hire Substitute Teachers for Riyadh, Jeddah & Dammam Schools",
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="bg-background">
+      <LocalizedTitle page="contact" />
       <ContactHero />
       <WhyReachUs />
       <WhoShouldContact />
