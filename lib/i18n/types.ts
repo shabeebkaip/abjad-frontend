@@ -1477,6 +1477,85 @@ export interface SchoolApplicationsTranslations {
   extendOfferConfirmButton: string;
 }
 
+/** app/school/offers/page.tsx — SRD 3.8 offer tracking, negotiation, hire confirmation. Status labels reuse dashboard.offerStatusLabels. */
+export interface SchoolOffersTranslations {
+  pageTitle: string;
+  pageSubtitle: string;
+  statTotalSent: string;
+  statActive: string;
+  statAccepted: string;
+  statHired: string;
+  tabLabels: Record<string, string>; // all/sent/viewed/accepted/negotiating/declined/expired
+  emptyTitle: string;
+  emptyBodyAll: string;
+  emptyBodyFilteredTemplate: string; // "No {status} offers."
+  loadFailedFallback: string;
+  revokeConfirm: string;
+  negotiationMessagesSuffixSingular: string; // "{n} negotiation message"
+  negotiationMessagesSuffixPlural: string; // "{n} negotiation messages"
+  counterPrefixTemplate: string; // "Counter: {amount}"
+  contractDurationFallback: string;
+  startsPrefixTemplate: string; // "Starts {date}"
+  deadlineExpired: string;
+  deadlineToday: string;
+  deadlineDaysLeftTemplate: string; // "{n}d left"
+  revokeOfferButton: string;
+  acceptCounterButton: string;
+  sendCounterButton: string;
+  revokeButton: string;
+  confirmHireButton: string;
+  counterModalTitle: string;
+  currentOfferLabel: string;
+  perMonthLabel: string;
+  counterSalaryLabel: string;
+  messageLabel: string;
+  messagePlaceholder: string;
+  counterSalaryInvalidError: string;
+  counterFailedFallback: string;
+  sendCounterConfirmButton: string;
+  hireConfirmedTitle: string;
+  hireConfirmedBodyTemplate: string; // "{name} has been officially hired. Welcome to the team!"
+  doneButton: string;
+}
+
+/** app/school/interviews/page.tsx — SRD 3.7 interview coordination, feedback capture. Status labels reuse dashboard.interviewStatusLabels. */
+export interface SchoolInterviewsTranslations {
+  pageTitle: string;
+  pageSubtitle: string;
+  statTotal: string;
+  tabLabels: Record<string, string>; // all/upcoming/pending_response/completed/cancelled
+  emptyTitle: string;
+  emptyBodyAll: string;
+  emptyBodyFilteredTemplate: string; // "No {status} interviews."
+  loadFailedFallback: string;
+  cancelConfirmTemplate: string; // "Cancel interview with {name}?"
+  typeLabels: Record<string, string>; // video/phone/in_person/abjad_coordinated
+  durationSuffix: string; // "min"
+  joinMeetingLink: string;
+  markCompleteButton: string;
+  cancelButton: string;
+  todayAtTemplate: string; // "Today at {time}"
+  tomorrowAtTemplate: string; // "Tomorrow at {time}"
+  daysAgoAtTemplate: string; // "{days}d ago — {date} at {time}"
+  dateAtTemplate: string; // "{date} at {time}"
+  feedbackModalTitle: string;
+  overallRatingLabel: string;
+  strengthsLabel: string;
+  strengthsPlaceholder: string;
+  weaknessesLabel: string;
+  weaknessesPlaceholder: string;
+  recommendationLabel: string;
+  recommendationOptions: Record<string, string>; // hire/maybe/reject
+  notesLabel: string;
+  notesPlaceholder: string;
+  evaluatorLabel: string;
+  evaluatorPlaceholder: string;
+  ratingRequiredError: string;
+  recommendationRequiredError: string;
+  feedbackFailedFallback: string;
+  submitFeedbackButton: string;
+}
+
 export interface SchoolTranslations {
   common: SchoolCommonTranslations;
   layout: SchoolLayoutTranslations;
@@ -1486,6 +1565,8 @@ export interface SchoolTranslations {
   jobs: SchoolJobsTranslations;
   candidates: SchoolCandidatesTranslations;
   applications: SchoolApplicationsTranslations;
+  offers: SchoolOffersTranslations;
+  interviews: SchoolInterviewsTranslations;
 }
 
 export interface Translations extends CommonTranslations {

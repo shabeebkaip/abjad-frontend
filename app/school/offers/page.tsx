@@ -15,12 +15,17 @@ import {
 } from "@/lib/api/school";
 import type { SchoolOffer } from "@/lib/api/school";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatNumber, formatDate as formatDateI18n } from "@/lib/i18n/format";
+import type { SchoolOffersTranslations, SchoolDashboardTranslations, SchoolCommonTranslations } from "@/lib/i18n/types";
+
+type Lang = "en" | "ar";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function teacherName(teacherId: SchoolOffer["teacherId"]): string {
+function teacherName(teacherId: SchoolOffer["teacherId"], fallback: string): string {
   if (typeof teacherId === "object" && teacherId.name) return teacherId.name;
-  return "Candidate";
+  return fallback;
 }
 
 function teacherEmail(teacherId: SchoolOffer["teacherId"]): string | null {
@@ -28,37 +33,39 @@ function teacherEmail(teacherId: SchoolOffer["teacherId"]): string | null {
   return null;
 }
 
-function jobTitleStr(jobId: SchoolOffer["jobId"]): string {
+function jobTitleStr(jobId: SchoolOffer["jobId"], fallback: string): string {
   if (typeof jobId === "object") return jobId.title;
-  return "Position";
-}
-
-function formatDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-  });
+  return fallback;
 }
 
 function deadlineDaysLeft(isoStr: string): number {
   return Math.ceil((new Date(isoStr).getTime() - Date.now()) / 86_400_000);
 }
 
-function timeAgo(isoStr: string): string {
+function timeAgo(isoStr: string, td: SchoolDashboardTranslations): string {
   const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 60)    return "just now";
-  if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-  return `${Math.floor(secs / 86400)}d ago`;
+  if (secs < 60)    return td.justNow;
+  if (secs < 3600)  return td.minAgo.replace("{n}", String(Math.floor(secs / 60)));
+  if (secs < 86400) return td.hoursAgo.replace("{n}", String(Math.floor(secs / 3600)));
+  return td.daysAgo.replace("{n}", String(Math.floor(secs / 86400)));
+}
+
+/** Splits a "{prefix}{amount}{suffix}" template around the {amount} token so
+ * the numeral can be rendered with the <SARSymbol/> component + formatNumber
+ * instead of being baked into the translated string. */
+function splitAroundAmount(template: string): [string, string] {
+  const [prefix, suffix = ""] = template.split("{amount}");
+  return [prefix, suffix];
 }
 
 // ─── Stats Row ────────────────────────────────────────────────────────────────
 
-function StatsRow({ offers }: { offers: SchoolOffer[] }) {
+function StatsRow({ offers, tt }: { offers: SchoolOffer[]; tt: SchoolOffersTranslations }) {
   const stats = [
-    { label: "Total Sent", count: offers.length,                                         color: "text-gray-900" },
-    { label: "Active",     count: offers.filter((o) => o.status === "sent" || o.status === "viewed" || o.status === "negotiating").length, color: "text-blue-700" },
-    { label: "Accepted",   count: offers.filter((o) => o.status === "accepted").length,  color: "text-green-700" },
-    { label: "Hired",      count: offers.filter((o) => o.status === "accepted").length,  color: "text-emerald-700" },
+    { label: tt.statTotalSent, count: offers.length,                                         color: "text-gray-900" },
+    { label: tt.statActive,    count: offers.filter((o) => o.status === "sent" || o.status === "viewed" || o.status === "negotiating").length, color: "text-blue-700" },
+    { label: tt.statAccepted, count: offers.filter((o) => o.status === "accepted").length,  color: "text-green-700" },
+    { label: tt.statHired,    count: offers.filter((o) => o.status === "accepted").length,  color: "text-emerald-700" },
   ];
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -74,16 +81,17 @@ function StatsRow({ offers }: { offers: SchoolOffer[] }) {
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: SchoolOffer["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    sent:        { label: "Sent",        cls: "bg-blue-100 text-blue-700 border-blue-200"       },
-    viewed:      { label: "Viewed",      cls: "bg-indigo-100 text-indigo-700 border-indigo-200" },
-    accepted:    { label: "Accepted",    cls: "bg-green-100 text-green-700 border-green-200"    },
-    declined:    { label: "Declined",    cls: "bg-red-100 text-red-600 border-red-200"          },
-    negotiating: { label: "Negotiating", cls: "bg-amber-100 text-amber-700 border-amber-200"    },
-    expired:     { label: "Expired",     cls: "bg-gray-100 text-gray-500 border-gray-200"       },
+function StatusBadge({ status, td }: { status: SchoolOffer["status"]; td: SchoolDashboardTranslations }) {
+  const clsMap: Record<string, string> = {
+    sent:        "bg-blue-100 text-blue-700 border-blue-200",
+    viewed:      "bg-indigo-100 text-indigo-700 border-indigo-200",
+    accepted:    "bg-green-100 text-green-700 border-green-200",
+    declined:    "bg-red-100 text-red-600 border-red-200",
+    negotiating: "bg-amber-100 text-amber-700 border-amber-200",
+    expired:     "bg-gray-100 text-gray-500 border-gray-200",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600 border-gray-200" };
+  const label = td.offerStatusLabels[status] ?? status;
+  const cls = clsMap[status] ?? "bg-gray-100 text-gray-600 border-gray-200";
   return (
     <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${cls}`}>{label}</span>
   );
@@ -93,11 +101,15 @@ function StatusBadge({ status }: { status: SchoolOffer["status"] }) {
 
 interface CounterModalProps {
   offer: SchoolOffer;
+  fallback: string;
   onClose: () => void;
   onCountered: (updated: SchoolOffer) => void;
+  tt: SchoolOffersTranslations;
+  tc: SchoolCommonTranslations;
+  lang: Lang;
 }
 
-function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
+function CounterModal({ offer, fallback, onClose, onCountered, tt, tc, lang }: CounterModalProps) {
   const [counterSalary, setCounterSalary] = useState(String(offer.salary));
   const [message, setMessage]             = useState("");
   const [saving, setSaving]               = useState(false);
@@ -105,7 +117,7 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
 
   const handleSubmit = async () => {
     if (!counterSalary || isNaN(Number(counterSalary))) {
-      setError("Please enter a valid counter salary.");
+      setError(tt.counterSalaryInvalidError);
       return;
     }
     setSaving(true);
@@ -119,7 +131,7 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
       onCountered(updated);
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to send counter offer.");
+      setError((e as Error)?.message ?? tt.counterFailedFallback);
     } finally {
       setSaving(false);
     }
@@ -138,8 +150,8 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
               <ArrowRightLeft size={17} className="text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">Send Counter Offer</h3>
-              <p className="text-xs text-gray-500">{teacherName(offer.teacherId)}</p>
+              <h3 className="text-base font-bold text-gray-900">{tt.counterModalTitle}</h3>
+              <p className="text-xs text-gray-500">{teacherName(offer.teacherId, fallback)}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
@@ -155,12 +167,15 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
 
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-600">
-            Current offer: <span className="font-semibold text-gray-900"><SARSymbol />{offer.salary.toLocaleString()}/month</span>
+            {tt.currentOfferLabel}{" "}
+            <span className="font-semibold text-gray-900">
+              <SARSymbol />{formatNumber(offer.salary, lang)}{tt.perMonthLabel}
+            </span>
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Counter Salary (SAR/month) <span className="text-red-500">*</span>
+              {tt.counterSalaryLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -174,12 +189,12 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Message</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.messageLabel}</label>
             <textarea
               rows={3}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Explain your counter offer…"
+              placeholder={tt.messagePlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -192,7 +207,7 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
             disabled={saving}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tc.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -201,7 +216,7 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
             style={{ background: "var(--brand-gradient)" }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : (
-              <><ArrowRightLeft size={14} /> Send Counter</>
+              <><ArrowRightLeft size={14} /> {tt.sendCounterConfirmButton}</>
             )}
           </button>
         </div>
@@ -212,7 +227,7 @@ function CounterModal({ offer, onClose, onCountered }: CounterModalProps) {
 
 // ─── Hire Celebration State ───────────────────────────────────────────────────
 
-function HireCelebration({ name, onDismiss }: { name: string; onDismiss: () => void }) {
+function HireCelebration({ name, tt, onDismiss }: { name: string; tt: SchoolOffersTranslations; onDismiss: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onDismiss} />
@@ -223,16 +238,21 @@ function HireCelebration({ name, onDismiss }: { name: string; onDismiss: () => v
         >
           <PartyPopper size={36} className="text-white" />
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Hire Confirmed!</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">{tt.hireConfirmedTitle}</h3>
         <p className="text-sm text-gray-500 mb-6">
-          <span className="font-semibold text-gray-800">{name}</span> has been officially hired. Welcome to the team!
+          {tt.hireConfirmedBodyTemplate.split("{name}").map((part, i) => (
+            <span key={i}>
+              {i === 1 ? <span className="font-semibold text-gray-800">{name}</span> : null}
+              {part}
+            </span>
+          ))}
         </p>
         <button
           onClick={onDismiss}
           className="w-full py-2.5 text-sm font-semibold text-white rounded-xl hover:shadow-md transition-all"
           style={{ background: "var(--brand-gradient)" }}
         >
-          Done
+          {tt.doneButton}
         </button>
       </div>
     </div>
@@ -248,6 +268,10 @@ interface OfferCardProps {
   onAcceptCounter: (offer: SchoolOffer) => Promise<void>;
   onSendCounter: (offer: SchoolOffer) => void;
   onConfirmHire: (offer: SchoolOffer) => Promise<void>;
+  tt: SchoolOffersTranslations;
+  tc: SchoolCommonTranslations;
+  td: SchoolDashboardTranslations;
+  lang: Lang;
 }
 
 function OfferCard({
@@ -257,16 +281,22 @@ function OfferCard({
   onAcceptCounter,
   onSendCounter,
   onConfirmHire,
+  tt,
+  tc,
+  td,
+  lang,
 }: OfferCardProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const isLoading  = actionLoading === o._id;
-  const tName      = teacherName(o.teacherId);
+  const tName      = teacherName(o.teacherId, tc.candidateFallback);
   const tEmail     = teacherEmail(o.teacherId);
-  const jTitle     = jobTitleStr(o.jobId);
+  const jTitle     = jobTitleStr(o.jobId, tc.positionFallback);
   const daysLeft   = deadlineDaysLeft(o.deadline);
   const isExpired  = daysLeft < 0;
   const isUrgent   = !isExpired && daysLeft <= 3;
   const hasHistory = (o.negotiationHistory?.length ?? 0) > 0;
+  const historyCount = o.negotiationHistory?.length ?? 0;
+  const [counterPrefix, counterSuffix] = splitAroundAmount(tt.counterPrefixTemplate);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all relative">
@@ -281,7 +311,7 @@ function OfferCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
             <h3 className="text-sm font-bold text-gray-900">{o.position}</h3>
-            <StatusBadge status={o.status} />
+            <StatusBadge status={o.status} td={td} />
           </div>
           <p className="text-xs text-gray-500">{tName}{tEmail ? ` · ${tEmail}` : ""}</p>
           <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
@@ -294,7 +324,7 @@ function OfferCard({
       <div className="flex flex-wrap gap-2 mb-3">
         <span className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
           <DollarSign size={11} />
-          <SARSymbol />{o.salary.toLocaleString()}/month
+          <SARSymbol />{formatNumber(o.salary, lang)}{tt.perMonthLabel}
         </span>
         {o.contractDuration && (
           <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
@@ -305,7 +335,7 @@ function OfferCard({
         {o.startDate && (
           <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
             <Calendar size={11} className="text-gray-400" />
-            Starts {formatDate(o.startDate)}
+            {tt.startsPrefixTemplate.replace("{date}", formatDateI18n(o.startDate, lang, { month: "short", day: "numeric", year: "numeric" }))}
           </span>
         )}
         {/* Deadline chip */}
@@ -320,10 +350,10 @@ function OfferCard({
         >
           <Clock size={11} />
           {isExpired
-            ? "Expired"
+            ? tt.deadlineExpired
             : daysLeft === 0
-            ? "Expires today"
-            : `${daysLeft}d left`}
+            ? tt.deadlineToday
+            : tt.deadlineDaysLeftTemplate.replace("{n}", String(daysLeft))}
         </span>
       </div>
 
@@ -335,7 +365,7 @@ function OfferCard({
             className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
           >
             <MessageSquare size={12} />
-            {o.negotiationHistory!.length} negotiation message{o.negotiationHistory!.length !== 1 ? "s" : ""}
+            {(historyCount === 1 ? tt.negotiationMessagesSuffixSingular : tt.negotiationMessagesSuffixPlural).replace("{n}", String(historyCount))}
             {historyOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
           {historyOpen && (
@@ -345,10 +375,10 @@ function OfferCard({
                   <div className="flex items-center justify-between mb-1">
                     {entry.counterSalary && (
                       <span className="font-semibold text-gray-800">
-                        Counter: <SARSymbol />{entry.counterSalary.toLocaleString()}
+                        {counterPrefix}<SARSymbol />{formatNumber(entry.counterSalary, lang)}{counterSuffix}
                       </span>
                     )}
-                    <span className="text-gray-400">{timeAgo(entry.createdAt)}</span>
+                    <span className="text-gray-400">{timeAgo(entry.createdAt, td)}</span>
                   </div>
                   {entry.message && <p className="text-gray-500 italic">{entry.message}</p>}
                 </div>
@@ -367,7 +397,7 @@ function OfferCard({
             disabled={isLoading}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-60"
           >
-            <XCircle size={12} /> Revoke Offer
+            <XCircle size={12} /> {tt.revokeOfferButton}
           </button>
         )}
 
@@ -380,21 +410,21 @@ function OfferCard({
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:shadow-sm transition-all disabled:opacity-60"
               style={{ background: "var(--brand-gradient)" }}
             >
-              <CheckCircle2 size={12} /> Accept Counter
+              <CheckCircle2 size={12} /> {tt.acceptCounterButton}
             </button>
             <button
               onClick={() => onSendCounter(o)}
               disabled={isLoading}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors disabled:opacity-60"
             >
-              <ArrowRightLeft size={12} /> Send Counter
+              <ArrowRightLeft size={12} /> {tt.sendCounterButton}
             </button>
             <button
               onClick={() => onRevoke(o._id)}
               disabled={isLoading}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-60"
             >
-              <XCircle size={12} /> Revoke
+              <XCircle size={12} /> {tt.revokeButton}
             </button>
           </>
         )}
@@ -407,7 +437,7 @@ function OfferCard({
             className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white rounded-lg hover:shadow-md transition-all disabled:opacity-60"
             style={{ background: "var(--brand-gradient)" }}
           >
-            <PartyPopper size={12} /> Confirm Hire
+            <PartyPopper size={12} /> {tt.confirmHireButton}
           </button>
         )}
       </div>
@@ -419,17 +449,14 @@ function OfferCard({
 
 type TabFilter = "all" | "sent" | "viewed" | "accepted" | "negotiating" | "declined" | "expired";
 
-const TABS: { value: TabFilter; label: string }[] = [
-  { value: "all",         label: "All"         },
-  { value: "sent",        label: "Sent"        },
-  { value: "viewed",      label: "Viewed"      },
-  { value: "accepted",    label: "Accepted"    },
-  { value: "negotiating", label: "Negotiating" },
-  { value: "declined",    label: "Declined"    },
-  { value: "expired",     label: "Expired"     },
-];
+const TAB_VALUES: TabFilter[] = ["all", "sent", "viewed", "accepted", "negotiating", "declined", "expired"];
 
 export default function OffersPage() {
+  const { t, lang } = useTranslation();
+  const tt = t.school.offers;
+  const tc = t.school.common;
+  const td = t.school.dashboard;
+
   const [offers, setOffers]             = useState<SchoolOffer[]>([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
@@ -445,11 +472,11 @@ export default function OffersPage() {
       const res = await listSchoolOffers({ limit: 50 });
       setOffers(res.offers ?? []);
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to load offers.");
+      setError((e as Error)?.message ?? tt.loadFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailedFallback]);
 
   useEffect(() => { loadOffers(); }, [loadOffers]);
 
@@ -461,7 +488,7 @@ export default function OffersPage() {
     t === "all" ? offers.length : offers.filter((o) => o.status === t).length;
 
   const handleRevoke = async (id: string) => {
-    if (!confirm("Revoke this offer? The candidate will be notified.")) return;
+    if (!confirm(tt.revokeConfirm)) return;
     setActionLoading(id);
     try {
       const updated = await revokeOffer(id);
@@ -494,7 +521,7 @@ export default function OffersPage() {
     try {
       const updated = await confirmHire(offer._id);
       setOffers((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
-      setHiredName(teacherName(offer.teacherId));
+      setHiredName(teacherName(offer.teacherId, tc.candidateFallback));
     } catch {
       // silently fail
     } finally {
@@ -508,17 +535,17 @@ export default function OffersPage() {
       <div>
         <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
           <Send size={20} style={{ color: "var(--brand-primary)" }} />
-          Offers & Hiring
+          {tt.pageTitle}
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">Track all offers extended to candidates</p>
+        <p className="text-sm text-gray-500 mt-0.5">{tt.pageSubtitle}</p>
       </div>
 
       {/* Stats */}
-      {!loading && !error && <StatsRow offers={offers} />}
+      {!loading && !error && <StatsRow offers={offers} tt={tt} />}
 
       {/* Tabs */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit flex-wrap">
-        {TABS.map(({ value, label }) => {
+        {TAB_VALUES.map((value) => {
           const active = tab === value;
           const count  = countTab(value);
           return (
@@ -530,7 +557,7 @@ export default function OffersPage() {
               }`}
               style={active ? { color: "var(--brand-primary)" } : {}}
             >
-              {label}
+              {tt.tabLabels[value]}
               {count > 0 && (
                 <span
                   className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-5 text-center ${
@@ -538,7 +565,7 @@ export default function OffersPage() {
                   }`}
                   style={active ? { background: "var(--brand-gradient)" } : {}}
                 >
-                  {count}
+                  {formatNumber(count, lang)}
                 </span>
               )}
             </button>
@@ -560,7 +587,7 @@ export default function OffersPage() {
             className="px-4 py-2 text-sm font-medium text-white rounded-xl"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Retry
+            {tc.retry}
           </button>
         </div>
       ) : filtered.length === 0 ? (
@@ -568,11 +595,11 @@ export default function OffersPage() {
           <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
             <Send size={28} className="text-gray-400" />
           </div>
-          <h3 className="text-base font-bold text-gray-900 mb-1">No offers found</h3>
+          <h3 className="text-base font-bold text-gray-900 mb-1">{tt.emptyTitle}</h3>
           <p className="text-sm text-gray-400 max-w-xs">
             {tab === "all"
-              ? "Extend offers to candidates from the Applications page."
-              : `No ${tab} offers.`}
+              ? tt.emptyBodyAll
+              : tt.emptyBodyFilteredTemplate.replace("{status}", tt.tabLabels[tab])}
           </p>
         </div>
       ) : (
@@ -586,6 +613,10 @@ export default function OffersPage() {
               onAcceptCounter={handleAcceptCounter}
               onSendCounter={setCounterTarget}
               onConfirmHire={handleConfirmHire}
+              tt={tt}
+              tc={tc}
+              td={td}
+              lang={lang}
             />
           ))}
         </div>
@@ -595,8 +626,12 @@ export default function OffersPage() {
       {counterTarget && (
         <CounterModal
           offer={counterTarget}
+          fallback={tc.candidateFallback}
           onClose={() => setCounterTarget(null)}
           onCountered={handleCountered}
+          tt={tt}
+          tc={tc}
+          lang={lang}
         />
       )}
 
@@ -604,6 +639,7 @@ export default function OffersPage() {
       {hiredName && (
         <HireCelebration
           name={hiredName}
+          tt={tt}
           onDismiss={() => setHiredName(null)}
         />
       )}

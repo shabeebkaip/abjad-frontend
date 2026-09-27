@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-  FileText, ChevronRight, Loader2, AlertCircle,
+  FileText, ChevronRight, ChevronLeft, Loader2, AlertCircle,
   Circle, Video, Phone, MapPin, Calendar,
   Clock, X, CheckCircle2, UserX, Send,
   ArrowUpDown, Briefcase, Users,
@@ -17,6 +17,8 @@ import {
   extendOffer,
 } from "@/lib/api/school";
 import type { SchoolJob, SchoolApplication } from "@/lib/api/school";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatNumber } from "@/lib/i18n/format";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -32,40 +34,38 @@ type AppStatus =
 
 type SortMode = "newest" | "match_score" | "unread_first";
 
-const STATUS_TABS: { value: AppStatus; label: string; short: string }[] = [
-  { value: "all",                label: "All",               short: "All"         },
-  { value: "submitted",          label: "Submitted",         short: "Submitted"   },
-  { value: "reviewing",          label: "Reviewing",         short: "Reviewing"   },
-  { value: "shortlisted",        label: "Shortlisted",       short: "Shortlisted" },
-  { value: "interview_scheduled",label: "Interview Scheduled",short: "Interview"  },
-  { value: "offer_extended",     label: "Offer Extended",    short: "Offer"       },
-  { value: "hired",              label: "Hired",             short: "Hired"       },
-  { value: "rejected",           label: "Rejected",          short: "Rejected"    },
+// Labels come from t.school.applications.statusTabLabels / statusTabShortLabels at render time.
+const STATUS_TAB_VALUES: AppStatus[] = [
+  "all", "submitted", "reviewing", "shortlisted", "interview_scheduled", "offer_extended", "hired", "rejected",
 ];
 
-const PIPELINE_STEPS: { status: SchoolApplication["status"]; label: string; color: string }[] = [
-  { status: "submitted",           label: "Submitted",  color: "#6b7280" },
-  { status: "reviewing",           label: "Reviewing",  color: "#3b82f6" },
-  { status: "shortlisted",         label: "Shortlisted",color: "#8b5cf6" },
-  { status: "interview_scheduled", label: "Interview",  color: "#f59e0b" },
-  { status: "offer_extended",      label: "Offer",      color: "#14b8a6" },
-  { status: "hired",               label: "Hired",      color: "#10b981" },
+const PIPELINE_STEPS: { status: SchoolApplication["status"]; color: string }[] = [
+  { status: "submitted",           color: "#6b7280" },
+  { status: "reviewing",           color: "#3b82f6" },
+  { status: "shortlisted",         color: "#8b5cf6" },
+  { status: "interview_scheduled", color: "#f59e0b" },
+  { status: "offer_extended",      color: "#14b8a6" },
+  { status: "hired",               color: "#10b981" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function timeAgo(isoStr: string): string {
+// Time-ago strings reuse the already-authored dashboard namespace (same
+// relative-time vocabulary as the dashboard's recent-activity feed).
+type DashTT = ReturnType<typeof useTranslation>["t"]["school"]["dashboard"];
+
+function timeAgo(isoStr: string, dash: DashTT, lang: "en" | "ar"): string {
   const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 60)     return "just now";
-  if (secs < 3600)   return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400)  return `${Math.floor(secs / 3600)}h ago`;
-  if (secs < 172800) return "Yesterday";
-  return `${Math.floor(secs / 86400)}d ago`;
+  if (secs < 60)     return dash.justNow;
+  if (secs < 3600)   return dash.minAgo.replace("{n}", formatNumber(Math.floor(secs / 60), lang));
+  if (secs < 86400)  return dash.hoursAgo.replace("{n}", formatNumber(Math.floor(secs / 3600), lang));
+  if (secs < 172800) return dash.yesterday;
+  return dash.daysAgo.replace("{n}", formatNumber(Math.floor(secs / 86400), lang));
 }
 
-function candidateName(teacherId: SchoolApplication["teacherId"]): string {
+function candidateName(teacherId: SchoolApplication["teacherId"], fallback: string): string {
   if (typeof teacherId === "object" && teacherId.name) return teacherId.name;
-  return "Candidate";
+  return fallback;
 }
 
 function candidateId(teacherId: SchoolApplication["teacherId"]): string {
@@ -73,9 +73,9 @@ function candidateId(teacherId: SchoolApplication["teacherId"]): string {
   return teacherId;
 }
 
-function jobInfo(jobId: SchoolApplication["jobId"]): { title: string; city?: string } {
+function jobInfo(jobId: SchoolApplication["jobId"], fallback: string): { title: string; city?: string } {
   if (typeof jobId === "object") return { title: jobId.title, city: jobId.city };
-  return { title: "Position" };
+  return { title: fallback };
 }
 
 function jobId(jobId: SchoolApplication["jobId"]): string {
@@ -86,30 +86,34 @@ function jobId(jobId: SchoolApplication["jobId"]): string {
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: SchoolApplication["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    submitted:           { label: "Submitted",    cls: "bg-gray-100 text-gray-600"       },
-    reviewing:           { label: "Reviewing",    cls: "bg-blue-100 text-blue-700"       },
-    shortlisted:         { label: "Shortlisted",  cls: "bg-violet-100 text-violet-700"   },
-    interview_scheduled: { label: "Interview",    cls: "bg-amber-100 text-amber-700"     },
-    offer_extended:      { label: "Offer Sent",   cls: "bg-teal-100 text-teal-700"       },
-    hired:               { label: "Hired",        cls: "bg-emerald-100 text-emerald-700" },
-    rejected:            { label: "Rejected",     cls: "bg-red-100 text-red-600"         },
-    withdrawn:           { label: "Withdrawn",    cls: "bg-gray-100 text-gray-400"       },
+  const { t } = useTranslation();
+  const labels = t.school.dashboard.applicationStatusLabels;
+  const clsMap: Record<string, string> = {
+    submitted:           "bg-gray-100 text-gray-600",
+    reviewing:           "bg-blue-100 text-blue-700",
+    shortlisted:         "bg-violet-100 text-violet-700",
+    interview_scheduled: "bg-amber-100 text-amber-700",
+    offer_extended:      "bg-teal-100 text-teal-700",
+    hired:               "bg-emerald-100 text-emerald-700",
+    rejected:            "bg-red-100 text-red-600",
+    withdrawn:           "bg-gray-100 text-gray-400",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600" };
+  const label = labels[status] ?? status;
+  const cls   = clsMap[status] ?? "bg-gray-100 text-gray-600";
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
   );
 }
 
 function MatchBadge({ score }: { score: number }) {
+  const { lang } = useTranslation();
   const cls =
     score >= 80 ? "bg-green-100 text-green-700 border-green-200"
     : score >= 60 ? "bg-amber-100 text-amber-700 border-amber-200"
     : "bg-slate-100 text-slate-600 border-slate-200";
   return (
     <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${cls}`}>
-      {score}%
+      {formatNumber(score, lang)}%
     </span>
   );
 }
@@ -117,15 +121,19 @@ function MatchBadge({ score }: { score: number }) {
 // ─── Pipeline Stats Bar ───────────────────────────────────────────────────────
 
 function PipelineStatsBar({ applications }: { applications: SchoolApplication[] }) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.applications;
   const total = applications.filter((a) => a.status !== "rejected" && a.status !== "withdrawn").length || 1;
   return (
     <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-gray-800">Pipeline Overview</p>
-        <span className="text-xs text-gray-400">{applications.length} total applications</span>
+        <p className="text-sm font-semibold text-gray-800">{tt.pipelineOverviewTitle}</p>
+        <span className="text-xs text-gray-400">
+          {tt.totalApplicationsSuffixTemplate.replace("{n}", formatNumber(applications.length, lang))}
+        </span>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-        {PIPELINE_STEPS.map(({ status, label, color }) => {
+        {PIPELINE_STEPS.map(({ status, color }) => {
           const count = applications.filter((a) => a.status === status).length;
           const pct   = Math.round((count / total) * 100);
           return (
@@ -136,8 +144,8 @@ function PipelineStatsBar({ applications }: { applications: SchoolApplication[] 
                   style={{ width: `${Math.max(pct, count > 0 ? 5 : 0)}%`, backgroundColor: color }}
                 />
               </div>
-              <p className="text-sm font-bold text-gray-900">{count}</p>
-              <p className="text-xs text-gray-400 truncate">{label}</p>
+              <p className="text-sm font-bold text-gray-900">{formatNumber(count, lang)}</p>
+              <p className="text-xs text-gray-400 truncate">{tt.statusTabShortLabels[status]}</p>
             </div>
           );
         })}
@@ -156,19 +164,21 @@ interface RejectModalProps {
 }
 
 function RejectModal({ applicationId, candidateName: name, onClose, onConfirm }: RejectModalProps) {
+  const { t } = useTranslation();
+  const tt = t.school.applications;
   const [reason, setReason]   = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
   const handleConfirm = async () => {
-    if (!reason.trim()) { setError("Please provide a rejection reason."); return; }
+    if (!reason.trim()) { setError(tt.rejectReasonRequiredError); return; }
     setLoading(true);
     setError(null);
     try {
       await onConfirm(applicationId, reason.trim());
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to reject application.");
+      setError((e as Error)?.message ?? tt.rejectFailedFallback);
     } finally {
       setLoading(false);
     }
@@ -183,8 +193,8 @@ function RejectModal({ applicationId, candidateName: name, onClose, onConfirm }:
             <UserX size={18} className="text-red-600" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900">Reject Application</h3>
-            <p className="text-xs text-gray-500">for {name}</p>
+            <h3 className="text-base font-bold text-gray-900">{tt.rejectModalTitle}</h3>
+            <p className="text-xs text-gray-500">{tt.rejectModalForNameTemplate.replace("{name}", name)}</p>
           </div>
         </div>
 
@@ -196,18 +206,18 @@ function RejectModal({ applicationId, candidateName: name, onClose, onConfirm }:
 
         <div className="mb-5">
           <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-            Rejection Reason <span className="text-red-500">*</span>
+            {tt.rejectReasonLabel} <span className="text-red-500">*</span>
           </label>
           <textarea
             rows={4}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. The candidate's qualifications don't meet our current requirements…"
+            placeholder={tt.rejectReasonPlaceholder}
             className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
             style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             autoFocus
           />
-          <p className="text-xs text-gray-400 mt-1">This reason may be shared with the candidate.</p>
+          <p className="text-xs text-gray-400 mt-1">{tt.rejectReasonHint}</p>
         </div>
 
         <div className="flex gap-3">
@@ -216,14 +226,14 @@ function RejectModal({ applicationId, candidateName: name, onClose, onConfirm }:
             disabled={loading}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {t.school.common.cancel}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading || !reason.trim()}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white rounded-xl bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-60"
           >
-            {loading ? <Loader2 size={15} className="animate-spin" /> : "Confirm Rejection"}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : tt.confirmRejectionButton}
           </button>
         </div>
       </div>
@@ -240,6 +250,8 @@ interface ScheduleModalProps {
 }
 
 function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleModalProps) {
+  const { t } = useTranslation();
+  const tt = t.school.applications;
   const [type, setType]           = useState<"video" | "in_person" | "phone">("video");
   const [scheduledAt, setScheduledAt] = useState("");
   const [duration, setDuration]   = useState("60");
@@ -248,13 +260,13 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState<string | null>(null);
 
-  const jInfo  = jobInfo(application.jobId);
-  const tName  = candidateName(application.teacherId);
+  const jInfo  = jobInfo(application.jobId, t.school.common.positionFallback);
+  const tName  = candidateName(application.teacherId, t.school.common.candidateFallback);
   const tId    = candidateId(application.teacherId);
   const jId    = jobId(application.jobId);
 
   const handleSubmit = async () => {
-    if (!scheduledAt) { setError("Please select a date and time."); return; }
+    if (!scheduledAt) { setError(tt.scheduleDateRequiredError); return; }
     setLoading(true);
     setError(null);
     try {
@@ -271,7 +283,7 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
       onScheduled(application._id);
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to schedule interview.");
+      setError((e as Error)?.message ?? tt.scheduleFailedFallback);
     } finally {
       setLoading(false);
     }
@@ -289,7 +301,7 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
               <Calendar size={18} className="text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">Schedule Interview</h3>
+              <h3 className="text-base font-bold text-gray-900">{tt.scheduleModalTitle}</h3>
               <p className="text-xs text-gray-500">{tName} · {jInfo.title}</p>
             </div>
           </div>
@@ -307,12 +319,12 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
         <div className="space-y-4">
           {/* Interview type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-2">Interview Type</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">{tt.interviewTypeLabel}</label>
             <div className="grid grid-cols-3 gap-2">
               {([
-                { value: "video",     label: "Video",     icon: Video  },
-                { value: "in_person", label: "In-Person", icon: MapPin },
-                { value: "phone",     label: "Phone",     icon: Phone  },
+                { value: "video",     label: tt.interviewTypeOptions.video,     icon: Video  },
+                { value: "in_person", label: tt.interviewTypeOptions.in_person, icon: MapPin },
+                { value: "phone",     label: tt.interviewTypeOptions.phone,     icon: Phone  },
               ] as const).map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
@@ -336,7 +348,7 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                Date & Time <span className="text-red-500">*</span>
+                {tt.dateTimeLabel} <span className="text-red-500">*</span>
               </label>
               <input
                 type="datetime-local"
@@ -348,7 +360,7 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1.5">Duration (min)</label>
+              <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.durationMinLabel}</label>
               <input
                 type="number"
                 min="15"
@@ -364,12 +376,12 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
           {/* Meeting link (video only) */}
           {type === "video" && (
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1.5">Meeting Link</label>
+              <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.meetingLinkLabel}</label>
               <input
                 type="url"
                 value={meetingLink}
                 onChange={(e) => setMeetingLink(e.target.value)}
-                placeholder="https://meet.google.com/..."
+                placeholder={tt.meetingLinkPlaceholder}
                 className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
                 style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               />
@@ -378,12 +390,12 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
 
           {/* Instructions */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Instructions (optional)</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.instructionsLabel}</label>
             <textarea
               rows={3}
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              placeholder="What should the candidate prepare, bring, or know beforehand?"
+              placeholder={tt.instructionsPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -396,7 +408,7 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
             disabled={loading}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {t.school.common.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -405,7 +417,7 @@ function ScheduleInterviewModal({ application, onClose, onScheduled }: ScheduleM
             style={{ background: "var(--brand-gradient)" }}
           >
             {loading ? <Loader2 size={15} className="animate-spin" /> : (
-              <><Calendar size={14} /> Schedule Interview</>
+              <><Calendar size={14} /> {tt.scheduleConfirmButton}</>
             )}
           </button>
         </div>
@@ -423,6 +435,8 @@ interface OfferModalProps {
 }
 
 function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
+  const { t } = useTranslation();
+  const tt = t.school.applications;
   const [position, setPosition]   = useState("");
   const [salary, setSalary]       = useState("");
   const [startDate, setStartDate] = useState("");
@@ -431,15 +445,15 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState<string | null>(null);
 
-  const jInfo = jobInfo(application.jobId);
-  const tName = candidateName(application.teacherId);
+  const jInfo = jobInfo(application.jobId, t.school.common.positionFallback);
+  const tName = candidateName(application.teacherId, t.school.common.candidateFallback);
   const tId   = candidateId(application.teacherId);
   const jId   = jobId(application.jobId);
 
   const handleSubmit = async () => {
-    if (!position.trim()) { setError("Position title is required."); return; }
-    if (!salary || isNaN(Number(salary))) { setError("A valid salary is required."); return; }
-    if (!deadline) { setError("Please set an offer deadline."); return; }
+    if (!position.trim()) { setError(tt.positionRequiredError); return; }
+    if (!salary || isNaN(Number(salary))) { setError(tt.salaryRequiredError); return; }
+    if (!deadline) { setError(tt.deadlineRequiredError); return; }
     setLoading(true);
     setError(null);
     try {
@@ -456,7 +470,7 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
       onExtended(application._id);
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to extend offer.");
+      setError((e as Error)?.message ?? tt.extendFailedFallback);
     } finally {
       setLoading(false);
     }
@@ -474,7 +488,7 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
               <Send size={18} className="text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">Extend an Offer</h3>
+              <h3 className="text-base font-bold text-gray-900">{tt.offerModalTitle}</h3>
               <p className="text-xs text-gray-500">{tName} · {jInfo.title}</p>
             </div>
           </div>
@@ -493,13 +507,13 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
           {/* Position */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Position Title <span className="text-red-500">*</span>
+              {tt.positionLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={position}
               onChange={(e) => setPosition(e.target.value)}
-              placeholder="e.g. Math Teacher – Grade 7-9"
+              placeholder={tt.positionPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -508,14 +522,14 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
           {/* Salary */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Monthly Salary (SAR) <span className="text-red-500">*</span>
+              {tt.monthlySalaryLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
               min="0"
               value={salary}
               onChange={(e) => setSalary(e.target.value)}
-              placeholder="e.g. 8000"
+              placeholder={tt.salaryPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -524,7 +538,7 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
           {/* Start date + Offer deadline */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1.5">Start Date</label>
+              <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.offerStartDateLabel}</label>
               <input
                 type="date"
                 value={startDate}
@@ -536,7 +550,7 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                Offer Deadline <span className="text-red-500">*</span>
+                {tt.offerDeadlineLabel} <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -551,12 +565,12 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
 
           {/* Benefits */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Benefits (optional)</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.benefitsLabel}</label>
             <textarea
               rows={3}
               value={benefits}
               onChange={(e) => setBenefits(e.target.value)}
-              placeholder="e.g. Housing allowance, transport, medical insurance, annual flights…"
+              placeholder={tt.benefitsPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -569,7 +583,7 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
             disabled={loading}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {t.school.common.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -578,7 +592,7 @@ function OfferModal({ application, onClose, onExtended }: OfferModalProps) {
             style={{ background: "var(--brand-gradient)" }}
           >
             {loading ? <Loader2 size={15} className="animate-spin" /> : (
-              <><Send size={14} /> Extend Offer</>
+              <><Send size={14} /> {tt.extendOfferConfirmButton}</>
             )}
           </button>
         </div>
@@ -608,9 +622,11 @@ function ApplicationCard({
   onScheduleInterview,
   onExtendOffer,
 }: AppCardProps) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.applications;
   const isLoading = actionLoading === app._id;
-  const jInfo     = jobInfo(app.jobId);
-  const tName     = candidateName(app.teacherId);
+  const jInfo     = jobInfo(app.jobId, t.school.common.positionFallback);
+  const tName     = candidateName(app.teacherId, t.school.common.candidateFallback);
 
   return (
     <div className={`bg-white rounded-2xl border transition-all hover:shadow-md relative ${
@@ -618,7 +634,7 @@ function ApplicationCard({
     }`}>
       {/* Unread indicator */}
       {!app.isRead && (
-        <span className="absolute top-4 right-4 w-2 h-2 rounded-full bg-blue-500" />
+        <span className="absolute top-4 end-4 w-2 h-2 rounded-full bg-blue-500" />
       )}
 
       {/* Loading overlay */}
@@ -685,7 +701,7 @@ function ApplicationCard({
             </span>
             <span className="flex items-center gap-1 text-xs text-gray-400">
               <Clock size={11} />
-              {timeAgo(app.createdAt)}
+              {timeAgo(app.createdAt, t.school.dashboard, lang)}
             </span>
           </div>
 
@@ -698,7 +714,7 @@ function ApplicationCard({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-all disabled:opacity-60 hover:shadow-sm"
                 style={{ background: "var(--brand-gradient)" }}
               >
-                <Circle size={11} /> Start Review
+                <Circle size={11} /> {tt.startReviewButton}
               </button>
             )}
 
@@ -709,14 +725,14 @@ function ApplicationCard({
                   disabled={isLoading}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-violet-700 bg-violet-50 border border-violet-200 rounded-lg transition-all hover:bg-violet-100 disabled:opacity-60"
                 >
-                  <CheckCircle2 size={11} /> Shortlist
+                  <CheckCircle2 size={11} /> {tt.shortlistButton}
                 </button>
                 <button
                   onClick={() => onRejectClick(app)}
                   disabled={isLoading}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg transition-all hover:bg-red-100 disabled:opacity-60"
                 >
-                  <X size={11} /> Reject
+                  <X size={11} /> {tt.rejectButton}
                 </button>
               </>
             )}
@@ -729,14 +745,14 @@ function ApplicationCard({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-all disabled:opacity-60 hover:shadow-sm"
                   style={{ background: "var(--brand-gradient)" }}
                 >
-                  <Calendar size={11} /> Schedule Interview
+                  <Calendar size={11} /> {tt.scheduleInterviewButton}
                 </button>
                 <button
                   onClick={() => onRejectClick(app)}
                   disabled={isLoading}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg transition-all hover:bg-red-100 disabled:opacity-60"
                 >
-                  <X size={11} /> Reject
+                  <X size={11} /> {tt.rejectButton}
                 </button>
               </>
             )}
@@ -749,14 +765,14 @@ function ApplicationCard({
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-all disabled:opacity-60 hover:shadow-sm"
                   style={{ background: "var(--brand-gradient)" }}
                 >
-                  <Send size={11} /> Extend Offer
+                  <Send size={11} /> {tt.extendOfferButton}
                 </button>
                 <button
                   onClick={() => onRejectClick(app)}
                   disabled={isLoading}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg transition-all hover:bg-red-100 disabled:opacity-60"
                 >
-                  <X size={11} /> Reject
+                  <X size={11} /> {tt.rejectButton}
                 </button>
               </>
             )}
@@ -766,7 +782,7 @@ function ApplicationCard({
                 disabled
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-400 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed"
               >
-                <Clock size={11} /> Awaiting Response
+                <Clock size={11} /> {tt.awaitingResponseButton}
               </button>
             )}
           </div>
@@ -779,6 +795,8 @@ function ApplicationCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ApplicationsPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.school.applications;
   const searchParams = useSearchParams();
   const initialJobId = searchParams.get("jobId") ?? null;
 
@@ -810,11 +828,11 @@ export default function ApplicationsPage() {
       setApplications(appRes.applications ?? []);
       setJobs(jobRes.jobs ?? []);
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to load applications");
+      setError((e as Error)?.message ?? tt.loadFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailedFallback]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -895,19 +913,15 @@ export default function ApplicationsPage() {
       prev.map((a) => (a._id === appId ? { ...a, status: "offer_extended" as const } : a))
     );
 
-  const SORT_LABELS: Record<SortMode, string> = {
-    newest:       "Newest First",
-    match_score:  "Match Score",
-    unread_first: "Unread First",
-  };
+  const SORT_LABELS = tt.sortLabels as Record<SortMode, string>;
 
   return (
     <div className="flex h-[calc(100vh-7.5rem)] overflow-hidden">
 
       {/* ── Left Sidebar ─────────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 border-r border-gray-100 bg-white overflow-y-auto">
+      <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 border-e border-gray-100 bg-white overflow-y-auto">
         <div className="p-4 border-b border-gray-100">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Filter by Job</h2>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{tt.filterByJobTitle}</h2>
 
           {/* All Jobs */}
           <button
@@ -921,7 +935,7 @@ export default function ApplicationsPage() {
           >
             <span className="flex items-center gap-2">
               <Users size={14} className={!selectedJobId ? "text-white/80" : "text-gray-400"} />
-              All Jobs
+              {tt.allJobsLabel}
             </span>
             <span
               className={`text-xs font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center ${
@@ -940,7 +954,7 @@ export default function ApplicationsPage() {
               <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />
             ))
           ) : jobs.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-6">No active jobs</p>
+            <p className="text-xs text-gray-400 text-center py-6">{tt.noActiveJobsLabel}</p>
           ) : (
             jobs.map((job) => {
               const count   = appCountByJob[job._id] ?? 0;
@@ -949,7 +963,7 @@ export default function ApplicationsPage() {
                 <button
                   key={job._id}
                   onClick={() => setSelectedJobId(active ? null : job._id)}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-start ${
                     active
                       ? "text-white shadow-sm"
                       : "text-gray-700 hover:bg-gray-50"
@@ -969,7 +983,7 @@ export default function ApplicationsPage() {
                         active ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {count}
+                      {formatNumber(count, lang)}
                     </span>
                   )}
                 </button>
@@ -986,8 +1000,8 @@ export default function ApplicationsPage() {
             style={{ color: "var(--brand-primary)" }}
           >
             <FileText size={12} />
-            Manage Job Postings
-            <ChevronRight size={12} />
+            {tt.manageJobPostingsLink}
+            {isRTL ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
           </Link>
         </div>
       </aside>
@@ -1008,7 +1022,7 @@ export default function ApplicationsPage() {
               className="px-4 py-2 text-sm font-medium text-white rounded-xl"
               style={{ background: "var(--brand-gradient)" }}
             >
-              Retry
+              {t.school.common.retry}
             </button>
           </div>
         ) : (
@@ -1028,7 +1042,7 @@ export default function ApplicationsPage() {
             <div className="flex items-center justify-between gap-3 px-4 lg:px-6 py-3 border-b border-gray-100 bg-white">
               {/* Status tabs — scrollable */}
               <div className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1">
-                {STATUS_TABS.map(({ value, label, short }) => {
+                {STATUS_TAB_VALUES.map((value) => {
                   const active = statusTab === value;
                   const count  = countForTab(value);
                   return (
@@ -1042,15 +1056,15 @@ export default function ApplicationsPage() {
                       }`}
                       style={active ? { background: "var(--brand-gradient)" } : {}}
                     >
-                      <span className="hidden sm:inline">{label}</span>
-                      <span className="sm:hidden">{short}</span>
+                      <span className="hidden sm:inline">{tt.statusTabLabels[value]}</span>
+                      <span className="sm:hidden">{tt.statusTabShortLabels[value]}</span>
                       {count > 0 && (
                         <span
                           className={`text-xs font-bold px-1.5 py-0.5 rounded-full min-w-4 text-center ${
                             active ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
                           }`}
                         >
-                          {count}
+                          {formatNumber(count, lang)}
                         </span>
                       )}
                     </button>
@@ -1068,7 +1082,7 @@ export default function ApplicationsPage() {
                   <span className="hidden sm:inline">{SORT_LABELS[sortMode]}</span>
                 </button>
                 {sortOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20">
+                  <div className="absolute end-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20">
                     {(Object.entries(SORT_LABELS) as [SortMode, string][]).map(([mode, label]) => (
                       <button
                         key={mode}
@@ -1096,13 +1110,13 @@ export default function ApplicationsPage() {
                   <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                     <FileText size={28} className="text-gray-400" />
                   </div>
-                  <h3 className="text-base font-bold text-gray-900 mb-1">No applications found</h3>
+                  <h3 className="text-base font-bold text-gray-900 mb-1">{tt.emptyTitle}</h3>
                   <p className="text-sm text-gray-400">
                     {statusTab !== "all"
-                      ? `No ${statusTab.replace("_", " ")} applications for the selected filter.`
+                      ? tt.emptyBodyFilteredTemplate.replace("{status}", tt.statusTabLabels[statusTab])
                       : selectedJobId
-                      ? "This job hasn't received any applications yet."
-                      : "Applications from candidates will appear here."}
+                      ? tt.emptyBodyJobSelected
+                      : tt.emptyBodyDefault}
                   </p>
                 </div>
               ) : (
@@ -1130,7 +1144,7 @@ export default function ApplicationsPage() {
       {rejectTarget && (
         <RejectModal
           applicationId={rejectTarget._id}
-          candidateName={candidateName(rejectTarget.teacherId)}
+          candidateName={candidateName(rejectTarget.teacherId, t.school.common.candidateFallback)}
           onClose={() => setRejectTarget(null)}
           onConfirm={handleRejectConfirm}
         />

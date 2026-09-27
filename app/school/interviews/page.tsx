@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Video, Phone, MapPin, Calendar, Clock,
   Loader2, AlertCircle, X, Star, CheckCircle2,
-  XCircle, Users, ChevronDown, ExternalLink,
+  XCircle, Users, ExternalLink,
 } from "lucide-react";
 import {
   listSchoolInterviews,
@@ -12,28 +12,38 @@ import {
   completeInterview,
 } from "@/lib/api/school";
 import type { SchoolInterview } from "@/lib/api/school";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatTime } from "@/lib/i18n/format";
+import type { SchoolInterviewsTranslations, SchoolDashboardTranslations, SchoolCommonTranslations } from "@/lib/i18n/types";
+
+type Lang = "en" | "ar";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatScheduledAt(isoStr: string): string {
+function formatScheduledAt(isoStr: string, lang: Lang, tt: SchoolInterviewsTranslations): string {
   const d    = new Date(isoStr);
   const now  = new Date();
   const diff = d.getTime() - now.getTime();
   const todayStr    = now.toDateString();
   const tomorrowStr = new Date(now.getTime() + 86_400_000).toDateString();
-  const timeStr = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  if (d.toDateString() === todayStr)    return `Today at ${timeStr}`;
-  if (d.toDateString() === tomorrowStr) return `Tomorrow at ${timeStr}`;
+  const timeStr = formatTime(d, lang);
+  if (d.toDateString() === todayStr)    return tt.todayAtTemplate.replace("{time}", timeStr);
+  if (d.toDateString() === tomorrowStr) return tt.tomorrowAtTemplate.replace("{time}", timeStr);
   if (diff < 0) {
     const days = Math.abs(Math.floor(diff / 86_400_000));
-    return `${days}d ago — ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} at ${timeStr}`;
+    return tt.daysAgoAtTemplate
+      .replace("{days}", String(days))
+      .replace("{date}", formatDate(d, lang, { month: "short", day: "numeric" }))
+      .replace("{time}", timeStr);
   }
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ` at ${timeStr}`;
+  return tt.dateAtTemplate
+    .replace("{date}", formatDate(d, lang, { month: "short", day: "numeric", year: "numeric" }))
+    .replace("{time}", timeStr);
 }
 
-function teacherName(teacherId: SchoolInterview["teacherId"]): string {
+function teacherName(teacherId: SchoolInterview["teacherId"], fallback: string): string {
   if (typeof teacherId === "object" && teacherId.name) return teacherId.name;
-  return "Candidate";
+  return fallback;
 }
 
 function teacherEmail(teacherId: SchoolInterview["teacherId"]): string | null {
@@ -41,29 +51,25 @@ function teacherEmail(teacherId: SchoolInterview["teacherId"]): string | null {
   return null;
 }
 
-function jobTitleStr(jobId: SchoolInterview["jobId"]): string {
+function jobTitleStr(jobId: SchoolInterview["jobId"], fallback: string): string {
   if (typeof jobId === "object") return jobId.title;
-  return "Position";
+  return fallback;
 }
 
 // ─── Stats Card ───────────────────────────────────────────────────────────────
 
-interface StatsRowProps {
-  interviews: SchoolInterview[];
-}
-
-function StatsRow({ interviews }: StatsRowProps) {
+function StatsRow({ interviews, tt, td }: { interviews: SchoolInterview[]; tt: SchoolInterviewsTranslations; td: SchoolDashboardTranslations }) {
   const stats = [
-    { label: "Total",     count: interviews.length,                                              color: "text-gray-900", bg: "bg-gray-100" },
-    { label: "Pending",   count: interviews.filter((i) => i.status === "pending").length,        color: "text-amber-700", bg: "bg-amber-100" },
-    { label: "Accepted",  count: interviews.filter((i) => i.status === "accepted").length,       color: "text-green-700", bg: "bg-green-100" },
-    { label: "Completed", count: interviews.filter((i) => i.status === "completed").length,      color: "text-slate-600", bg: "bg-slate-100" },
-    { label: "Cancelled", count: interviews.filter((i) => i.status === "cancelled").length,      color: "text-red-600",   bg: "bg-red-100"   },
+    { label: tt.statTotal,                       count: interviews.length,                                         color: "text-gray-900" },
+    { label: td.interviewStatusLabels.pending,   count: interviews.filter((i) => i.status === "pending").length,   color: "text-amber-700" },
+    { label: td.interviewStatusLabels.accepted,  count: interviews.filter((i) => i.status === "accepted").length,  color: "text-green-700" },
+    { label: td.interviewStatusLabels.completed, count: interviews.filter((i) => i.status === "completed").length, color: "text-slate-600" },
+    { label: td.interviewStatusLabels.cancelled, count: interviews.filter((i) => i.status === "cancelled").length, color: "text-red-600"   },
   ];
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-      {stats.map(({ label, count, color, bg }) => (
+      {stats.map(({ label, count, color }) => (
         <div key={label} className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
           <div className={`text-2xl font-bold ${color} mb-0.5`}>{count}</div>
           <div className="text-xs text-gray-400">{label}</div>
@@ -75,16 +81,17 @@ function StatsRow({ interviews }: StatsRowProps) {
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: SchoolInterview["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    pending:     { label: "Pending",    cls: "bg-amber-100 text-amber-700 border-amber-200"     },
-    accepted:    { label: "Accepted",   cls: "bg-green-100 text-green-700 border-green-200"     },
-    declined:    { label: "Declined",   cls: "bg-red-100 text-red-600 border-red-200"           },
-    rescheduled: { label: "Rescheduled",cls: "bg-blue-100 text-blue-700 border-blue-200"        },
-    completed:   { label: "Completed",  cls: "bg-slate-100 text-slate-600 border-slate-200"     },
-    cancelled:   { label: "Cancelled",  cls: "bg-red-100 text-red-500 border-red-200"           },
+function StatusBadge({ status, td }: { status: SchoolInterview["status"]; td: SchoolDashboardTranslations }) {
+  const clsMap: Record<string, string> = {
+    pending:     "bg-amber-100 text-amber-700 border-amber-200",
+    accepted:    "bg-green-100 text-green-700 border-green-200",
+    declined:    "bg-red-100 text-red-600 border-red-200",
+    rescheduled: "bg-blue-100 text-blue-700 border-blue-200",
+    completed:   "bg-slate-100 text-slate-600 border-slate-200",
+    cancelled:   "bg-red-100 text-red-500 border-red-200",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600 border-gray-200" };
+  const label = td.interviewStatusLabels[status] ?? status;
+  const cls = clsMap[status] ?? "bg-gray-100 text-gray-600 border-gray-200";
   return (
     <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${cls}`}>{label}</span>
   );
@@ -99,25 +106,19 @@ function TypeIcon({ type }: { type: SchoolInterview["type"] }) {
   return <Users size={15} className="text-indigo-500" />;
 }
 
-function typeLabel(type: SchoolInterview["type"]): string {
-  const m: Record<string, string> = {
-    video:              "Video",
-    phone:              "Phone",
-    in_person:          "In-Person",
-    abjad_coordinated:  "Abjad Coordinated",
-  };
-  return m[type] ?? type;
-}
-
 // ─── Feedback Modal ───────────────────────────────────────────────────────────
 
 interface FeedbackModalProps {
   interview: SchoolInterview;
+  fallback: string;
+  jobFallback: string;
   onClose: () => void;
   onCompleted: (updated: SchoolInterview) => void;
+  tt: SchoolInterviewsTranslations;
+  tc: SchoolCommonTranslations;
 }
 
-function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) {
+function FeedbackModal({ interview, fallback, jobFallback, onClose, onCompleted, tt, tc }: FeedbackModalProps) {
   const [rating, setRating]                 = useState(0);
   const [hoverRating, setHoverRating]       = useState(0);
   const [strengths, setStrengths]           = useState("");
@@ -129,8 +130,8 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
   const [error, setError]                   = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (rating === 0)          { setError("Please provide a rating."); return; }
-    if (!recommendation)       { setError("Please select a recommendation."); return; }
+    if (rating === 0)          { setError(tt.ratingRequiredError); return; }
+    if (!recommendation)       { setError(tt.recommendationRequiredError); return; }
     setSaving(true);
     setError(null);
     try {
@@ -145,19 +146,19 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
       onCompleted(updated);
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to submit feedback.");
+      setError((e as Error)?.message ?? tt.feedbackFailedFallback);
     } finally {
       setSaving(false);
     }
   };
 
-  const tName = teacherName(interview.teacherId);
-  const jTitle = jobTitleStr(interview.jobId);
+  const tName = teacherName(interview.teacherId, fallback);
+  const jTitle = jobTitleStr(interview.jobId, jobFallback);
 
-  const recOptions: { value: "hire" | "maybe" | "reject"; label: string; cls: string; activeCls: string }[] = [
-    { value: "hire",   label: "Hire",   cls: "border-gray-200 text-gray-600",      activeCls: "border-transparent text-white bg-green-500"  },
-    { value: "maybe",  label: "Maybe",  cls: "border-gray-200 text-gray-600",      activeCls: "border-transparent text-white bg-amber-500"  },
-    { value: "reject", label: "Reject", cls: "border-gray-200 text-gray-600",      activeCls: "border-transparent text-white bg-red-500"    },
+  const recOptions: { value: "hire" | "maybe" | "reject"; activeCls: string }[] = [
+    { value: "hire",   activeCls: "border-transparent text-white bg-green-500" },
+    { value: "maybe",  activeCls: "border-transparent text-white bg-amber-500" },
+    { value: "reject", activeCls: "border-transparent text-white bg-red-500"   },
   ];
 
   return (
@@ -174,7 +175,7 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
               <CheckCircle2 size={18} className="text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">Complete Interview</h3>
+              <h3 className="text-base font-bold text-gray-900">{tt.feedbackModalTitle}</h3>
               <p className="text-xs text-gray-500">{tName} · {jTitle}</p>
             </div>
           </div>
@@ -193,7 +194,7 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
           {/* Rating */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              Overall Rating <span className="text-red-500">*</span>
+              {tt.overallRatingLabel} <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -216,19 +217,19 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
                 </button>
               ))}
               {rating > 0 && (
-                <span className="text-sm text-gray-500 ml-1">{rating}/5</span>
+                <span className="text-sm text-gray-500 ms-1">{rating}/5</span>
               )}
             </div>
           </div>
 
           {/* Strengths */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Strengths</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.strengthsLabel}</label>
             <textarea
               rows={3}
               value={strengths}
               onChange={(e) => setStrengths(e.target.value)}
-              placeholder="What did the candidate do well?"
+              placeholder={tt.strengthsPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -236,12 +237,12 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
 
           {/* Weaknesses */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Areas for Improvement</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.weaknessesLabel}</label>
             <textarea
               rows={3}
               value={weaknesses}
               onChange={(e) => setWeaknesses(e.target.value)}
-              placeholder="What areas need development?"
+              placeholder={tt.weaknessesPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -250,19 +251,19 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
           {/* Recommendation */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              Recommendation <span className="text-red-500">*</span>
+              {tt.recommendationLabel} <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {recOptions.map(({ value, label, cls, activeCls }) => (
+              {recOptions.map(({ value, activeCls }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setRecommendation(value)}
                   className={`py-2.5 text-sm font-semibold rounded-xl border transition-all ${
-                    recommendation === value ? activeCls : `bg-white ${cls} hover:bg-gray-50`
+                    recommendation === value ? activeCls : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
                   }`}
                 >
-                  {label}
+                  {tt.recommendationOptions[value]}
                 </button>
               ))}
             </div>
@@ -270,12 +271,12 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Additional Notes</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.notesLabel}</label>
             <textarea
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any other observations or comments…"
+              placeholder={tt.notesPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -283,12 +284,12 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
 
           {/* Evaluator */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Your Name (Evaluator)</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.evaluatorLabel}</label>
             <input
               type="text"
               value={evaluator}
               onChange={(e) => setEvaluator(e.target.value)}
-              placeholder="e.g. Ahmed Al-Farsi"
+              placeholder={tt.evaluatorPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -301,7 +302,7 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
             disabled={saving}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tc.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -310,7 +311,7 @@ function FeedbackModal({ interview, onClose, onCompleted }: FeedbackModalProps) 
             style={{ background: "var(--brand-gradient)" }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : (
-              <><CheckCircle2 size={14} /> Submit Feedback</>
+              <><CheckCircle2 size={14} /> {tt.submitFeedbackButton}</>
             )}
           </button>
         </div>
@@ -326,13 +327,17 @@ interface InterviewCardProps {
   actionLoading: string | null;
   onCancelClick: (interview: SchoolInterview) => void;
   onCompleteClick: (interview: SchoolInterview) => void;
+  tt: SchoolInterviewsTranslations;
+  tc: SchoolCommonTranslations;
+  td: SchoolDashboardTranslations;
+  lang: Lang;
 }
 
-function InterviewCard({ interview: iv, actionLoading, onCancelClick, onCompleteClick }: InterviewCardProps) {
+function InterviewCard({ interview: iv, actionLoading, onCancelClick, onCompleteClick, tt, tc, td, lang }: InterviewCardProps) {
   const isLoading = actionLoading === iv._id;
-  const tName     = teacherName(iv.teacherId);
+  const tName     = teacherName(iv.teacherId, tc.candidateFallback);
   const tEmail    = teacherEmail(iv.teacherId);
-  const jTitle    = jobTitleStr(iv.jobId);
+  const jTitle    = jobTitleStr(iv.jobId, tc.positionFallback);
   const canCancel = iv.status === "pending" || iv.status === "accepted";
   const canComplete = iv.status === "accepted";
 
@@ -357,7 +362,7 @@ function InterviewCard({ interview: iv, actionLoading, onCancelClick, onComplete
               <h3 className="text-sm font-bold text-gray-900 truncate">{tName}</h3>
               {tEmail && <p className="text-xs text-gray-400 truncate">{tEmail}</p>}
             </div>
-            <StatusBadge status={iv.status} />
+            <StatusBadge status={iv.status} td={td} />
           </div>
 
           {/* Job title */}
@@ -369,15 +374,15 @@ function InterviewCard({ interview: iv, actionLoading, onCancelClick, onComplete
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
               <Calendar size={11} className="text-gray-400" />
-              {formatScheduledAt(iv.scheduledAt)}
+              {formatScheduledAt(iv.scheduledAt, lang, tt)}
             </span>
             <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
               <Clock size={11} className="text-gray-400" />
-              {iv.duration} min
+              {iv.duration} {tt.durationSuffix}
             </span>
             <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
               <TypeIcon type={iv.type} />
-              {typeLabel(iv.type)}
+              {tt.typeLabels[iv.type] ?? iv.type}
             </span>
           </div>
 
@@ -391,7 +396,7 @@ function InterviewCard({ interview: iv, actionLoading, onCancelClick, onComplete
               style={{ color: "var(--brand-primary)" }}
             >
               <ExternalLink size={11} />
-              Join Meeting
+              {tt.joinMeetingLink}
             </a>
           )}
 
@@ -420,7 +425,7 @@ function InterviewCard({ interview: iv, actionLoading, onCancelClick, onComplete
                         : "bg-red-100 text-red-600"
                     }`}
                   >
-                    {iv.feedback.recommendation.charAt(0).toUpperCase() + iv.feedback.recommendation.slice(1)}
+                    {tt.recommendationOptions[iv.feedback.recommendation] ?? iv.feedback.recommendation}
                   </span>
                 )}
               </div>
@@ -439,7 +444,7 @@ function InterviewCard({ interview: iv, actionLoading, onCancelClick, onComplete
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg transition-all hover:shadow-sm disabled:opacity-60"
                 style={{ background: "var(--brand-gradient)" }}
               >
-                <CheckCircle2 size={12} /> Mark Complete
+                <CheckCircle2 size={12} /> {tt.markCompleteButton}
               </button>
             )}
             {canCancel && (
@@ -448,7 +453,7 @@ function InterviewCard({ interview: iv, actionLoading, onCancelClick, onComplete
                 disabled={isLoading}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-60"
               >
-                <XCircle size={12} /> Cancel
+                <XCircle size={12} /> {tt.cancelButton}
               </button>
             )}
           </div>
@@ -462,15 +467,14 @@ function InterviewCard({ interview: iv, actionLoading, onCancelClick, onComplete
 
 type TabFilter = "all" | "upcoming" | "pending_response" | "completed" | "cancelled";
 
-const TABS: { value: TabFilter; label: string }[] = [
-  { value: "all",              label: "All"              },
-  { value: "upcoming",         label: "Upcoming"         },
-  { value: "pending_response", label: "Pending Response" },
-  { value: "completed",        label: "Completed"        },
-  { value: "cancelled",        label: "Cancelled"        },
-];
+const TAB_VALUES: TabFilter[] = ["all", "upcoming", "pending_response", "completed", "cancelled"];
 
 export default function InterviewsPage() {
+  const { t, lang } = useTranslation();
+  const tt = t.school.interviews;
+  const tc = t.school.common;
+  const td = t.school.dashboard;
+
   const [interviews, setInterviews]     = useState<SchoolInterview[]>([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
@@ -485,11 +489,11 @@ export default function InterviewsPage() {
       const res = await listSchoolInterviews({ limit: 50 });
       setInterviews(res.interviews ?? []);
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to load interviews.");
+      setError((e as Error)?.message ?? tt.loadFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailedFallback]);
 
   useEffect(() => { loadInterviews(); }, [loadInterviews]);
 
@@ -515,7 +519,7 @@ export default function InterviewsPage() {
   };
 
   const handleCancel = async (iv: SchoolInterview) => {
-    if (!confirm(`Cancel interview with ${teacherName(iv.teacherId)}?`)) return;
+    if (!confirm(tt.cancelConfirmTemplate.replace("{name}", teacherName(iv.teacherId, tc.candidateFallback)))) return;
     setActionLoading(iv._id);
     try {
       const updated = await cancelInterview(iv._id);
@@ -537,19 +541,19 @@ export default function InterviewsPage() {
       <div>
         <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
           <Calendar size={20} style={{ color: "var(--brand-primary)" }} />
-          Interviews
+          {tt.pageTitle}
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">Manage your scheduled interviews</p>
+        <p className="text-sm text-gray-500 mt-0.5">{tt.pageSubtitle}</p>
       </div>
 
       {/* Stats */}
       {!loading && !error && (
-        <StatsRow interviews={interviews} />
+        <StatsRow interviews={interviews} tt={tt} td={td} />
       )}
 
       {/* Tabs */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit flex-wrap">
-        {TABS.map(({ value, label }) => {
+        {TAB_VALUES.map((value) => {
           const active = tab === value;
           const count  = countTab(value);
           return (
@@ -561,7 +565,7 @@ export default function InterviewsPage() {
               }`}
               style={active ? { color: "var(--brand-primary)" } : {}}
             >
-              {label}
+              {tt.tabLabels[value]}
               {count > 0 && (
                 <span
                   className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-5 text-center ${
@@ -591,7 +595,7 @@ export default function InterviewsPage() {
             className="px-4 py-2 text-sm font-medium text-white rounded-xl"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Retry
+            {tc.retry}
           </button>
         </div>
       ) : filtered.length === 0 ? (
@@ -599,11 +603,11 @@ export default function InterviewsPage() {
           <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
             <Calendar size={28} className="text-gray-400" />
           </div>
-          <h3 className="text-base font-bold text-gray-900 mb-1">No interviews found</h3>
+          <h3 className="text-base font-bold text-gray-900 mb-1">{tt.emptyTitle}</h3>
           <p className="text-sm text-gray-400 max-w-xs">
             {tab === "all"
-              ? "No interviews scheduled yet. Schedule interviews from the Applications page."
-              : `No ${tab.replace("_", " ")} interviews.`}
+              ? tt.emptyBodyAll
+              : tt.emptyBodyFilteredTemplate.replace("{status}", tt.tabLabels[tab])}
           </p>
         </div>
       ) : (
@@ -615,6 +619,10 @@ export default function InterviewsPage() {
               actionLoading={actionLoading}
               onCancelClick={handleCancel}
               onCompleteClick={setFeedbackTarget}
+              tt={tt}
+              tc={tc}
+              td={td}
+              lang={lang}
             />
           ))}
         </div>
@@ -624,8 +632,12 @@ export default function InterviewsPage() {
       {feedbackTarget && (
         <FeedbackModal
           interview={feedbackTarget}
+          fallback={tc.candidateFallback}
+          jobFallback={tc.positionFallback}
           onClose={() => setFeedbackTarget(null)}
           onCompleted={handleCompleted}
+          tt={tt}
+          tc={tc}
         />
       )}
     </div>
