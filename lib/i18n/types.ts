@@ -1073,6 +1073,10 @@ export interface SchoolCommonTranslations {
   schoolFallback: string;
   candidateFallback: string;
   positionFallback: string;
+  /** M3 Batch 2 — shared enum label maps reused across jobs.tsx + candidates.tsx (SUBJECT/CITY/EMPLOYMENT_TYPE option lists are byte-identical in both files). */
+  subjectLabels: Record<string, string>;
+  cityLabels: Record<string, string>;
+  employmentTypeLabels: Record<string, string>;
 }
 
 export interface SchoolLayoutTranslations {
@@ -1185,12 +1189,303 @@ export interface SchoolNotificationsTranslations {
   manage: string;
 }
 
+/** app/school/jobs/page.tsx — SRD 3.2 job posting CRUD + preview + repost/duplicate/extend. */
+export interface SchoolJobsTranslations {
+  pageTitle: string;
+  pageSubtitle: string;
+  postAJob: string;
+  statusTabLabels: Record<string, string>; // active/draft/closed/expired ("all" uses common.all)
+  deadlineExpired: string;
+  deadlineToday: string;
+  deadlineTomorrow: string;
+  deadlineDaysLeft: string; // "{n}d left"
+  emptyTitle: string;
+  emptyBody: string;
+  emptyCta: string;
+  loadFailedFallback: string;
+  deleteConfirm: string;
+  negotiable: string;
+  viewsSuffix: string; // "{n} views"
+  applicationsSuffix: string; // "{n} applications"
+  positionsSuffix: string; // "{n} positions"
+  moreSubjectsSuffix: string; // "+{n} more"
+  menuEdit: string;
+  menuPublish: string;
+  menuCloseJob: string;
+  menuExtendDeadline: string;
+  menuRepost: string;
+  menuDuplicate: string;
+  menuViewApplications: string;
+  menuDelete: string;
+  extendDialogTitle: string;
+  extendDialogReactivateNote: string;
+  extendDialogNewDeadlineLabel: string;
+  extendDialogConfirmCta: string;
+  extendFailedFallback: string;
+  modalTitlePreview: string;
+  modalTitleEdit: string;
+  modalTitleCreate: string;
+  modalTitleRepost: string;
+  modalTitleDuplicate: string;
+  modalSubtitlePreview: string;
+  modalSubtitleEdit: string;
+  modalSubtitleRepost: string;
+  modalSubtitleDuplicate: string;
+  modalSubtitleCreate: string;
+  sectionIdentityTitle: string;
+  sectionIdentitySubtitle: string;
+  titleEnLabel: string;
+  titleArLabel: string;
+  titleEnPlaceholder: string;
+  titleArPlaceholder: string;
+  titleHint: string;
+  suggestedTitlesLabel: string;
+  subjectsLabel: string;
+  gradeLevelsLabel: string;
+  gradeGroupLabels: Record<string, string>; // kg/elementary/middle/high (with ranges)
+  employmentTypeLabel: string;
+  openPositionsLabel: string;
+  sectionScheduleTitle: string;
+  sectionScheduleSubtitle: string;
+  startDateLabel: string;
+  deadlineLabel: string;
+  contractDurationModeLabel: string;
+  contractDurationOptions: Record<string, string>; // day/month/year
+  durationLabelTemplate: string; // "Duration ({unit})"
+  durationUnitLabels: Record<string, string>; // day/month/year -> days/months/years
+  durationUnitSingularLabels: Record<string, string>; // day/month/year -> day/month/year
+  durationPlaceholder: string;
+  salaryLabel: string;
+  salaryMinPlaceholder: string;
+  salaryMaxPlaceholder: string;
+  salaryDisplayOptions: Record<string, string>; // show/negotiable/hidden
+  dailyRateLabel: string;
+  dailyRateHint: string;
+  dailyRatePlaceholder: string;
+  sectionLocationTitle: string;
+  sectionLocationSubtitle: string;
+  cityLabel: string;
+  campusLabel: string;
+  campusHint: string;
+  campusPlaceholder: string;
+  sectionDescriptionTitle: string;
+  sectionDescriptionSubtitle: string;
+  descriptionSectionLabels: Record<string, string>; // responsibilities/requirements/culture/benefits
+  descriptionSectionPlaceholders: Record<string, string>;
+  wordsCountTemplate: string; // "{count} / {cap} words"
+  overLimitSuffix: string; // " · over limit"
+  sectionRequirementsTitle: string;
+  sectionRequirementsSubtitle: string;
+  languageRequirementLabel: string;
+  languageRequirementOptions: Record<string, string>; // arabic/english/bilingual
+  experienceRequiredLabel: string;
+  experienceOptions: Record<string, string>; // 0-1/1-3/3-5/5-10/10+
+  degreeRequiredLabel: string;
+  degreeOptions: Record<string, string>; // diploma/bachelor/master/phd
+  teachingLicenseLabel: string;
+  teachingLicenseHint: string;
+  certRequiredLabel: string;
+  certRequiredPlaceholder: string;
+  certPreferredLabel: string;
+  certPreferredPlaceholder: string;
+  removeTagAriaTemplate: string; // "Remove {v}"
+  sectionVisibilityTitle: string;
+  sectionVisibilitySubtitle: string;
+  anonymousLabel: string;
+  anonymousHint: string;
+  maxApplicationsLabel: string;
+  maxApplicationsHint: string;
+  maxApplicationsPlaceholder: string;
+  autoCloseLabel: string;
+  autoCloseHintEnabled: string;
+  autoCloseHintDisabled: string;
+  errorTitleRequired: string;
+  errorSubjectRequired: string;
+  errorCityRequired: string;
+  saveAsDraft: string;
+  previewCta: string;
+  backToEdit: string;
+  saveChanges: string;
+  publish: string;
+  previewPositionsSuffixSingular: string; // "position"
+  previewPositionsSuffixPlural: string; // "positions"
+  previewAnonymousBadge: string;
+  previewStartDateLabel: string;
+  previewDeadlineLabel: string;
+  previewContractLabel: string;
+  previewSalaryLabel: string;
+  previewDailyRateLabel: string;
+  previewApplicationCapLabel: string;
+  previewSalaryHidden: string;
+  previewSalaryNegotiable: string;
+  previewByUnitTemplate: string; // "By {unit}"
+  previewAutoClosesSuffix: string;
+  previewLanguageLabel: string;
+  previewExperienceLabel: string;
+  previewDegreeLabel: string;
+  previewLicenseLabel: string;
+  previewRequiredCertsLabel: string;
+  previewPreferredCertsLabel: string;
+  paywallTitleTemplate: string; // "Trial accounts can post {limit} job at a time"
+  paywallBullets: string[];
+}
+
+/** app/school/candidates/page.tsx — SRD 3.3/3.4 candidate search, filters, profile modal, history. */
+export interface SchoolCandidatesTranslations {
+  pageTitle: string;
+  candidatesFoundSuffix: string; // "{n} candidates found"
+  searchByNamePlaceholder: string;
+  filtersTitle: string;
+  subjectsLabel: string;
+  gradeLevelsLabel: string;
+  gradeGroupLabels: Record<string, string>; // kg/elementary/middle/high (short form)
+  experienceLabel: string;
+  experienceOptions: Record<string, string>; // ""(Any)/0-1/1-3/3-5/5-10/10+
+  cityLabel: string;
+  genderLabel: string;
+  genderOptions: Record<string, string>; // ""/male/female
+  degreeLabel: string;
+  degreeOptions: Record<string, string>; // ""(Any)/diploma/bachelor/master/phd
+  certificationsLabel: string;
+  certificationsPlaceholder: string;
+  certificationsHint: string;
+  languageLabel: string;
+  languageOptions: Record<string, string>; // ""(Any)/arabic/english/french/urdu/other
+  proficiencyOptions: Record<string, string>; // ""(Any)/basic/intermediate/fluent/native
+  availabilityLabel: string;
+  availabilityOptions: Record<string, string>; // ""(Any)/unemployed/employed/freelance
+  maxBudgetLabel: string;
+  maxBudgetPlaceholder: string;
+  maxBudgetHint: string;
+  sortByLabel: string;
+  sortOptions: Record<string, string>; // newest/completion
+  searchButton: string;
+  errorFallback: string;
+  emptyTitle: string;
+  emptyBody: string;
+  selectedCountSuffix: string; // "{n} selected"
+  addToShortlistButton: string;
+  chooseShortlistLabel: string;
+  noShortlistsYet: string;
+  exportPdfButton: string;
+  clearSelectionButton: string;
+  pageOfTemplate: string; // "Page {page} of {totalPages}"
+  selectCandidateAria: string;
+  deselectCandidateAria: string;
+  profileCompletenessLabel: string;
+  perMonthSuffix: string;
+  viewProfileButton: string;
+  newShortlistLabel: string;
+  profileTab: string;
+  historyTab: string;
+  sectionProfessional: string;
+  sectionEducation: string;
+  sectionLanguages: string;
+  sectionCertifications: string;
+  sectionLocationPreferences: string;
+  sectionSalaryExpectation: string;
+  sectionResume: string;
+  sectionAddNote: string;
+  experienceYearsSuffix: string; // "years of experience"
+  noticeSuffixTemplate: string; // " · {n}-day notice"
+  classOfTemplate: string; // "Class of {year}"
+  downloadResumeFallback: string;
+  notePlaceholder: string;
+  saveNoteButton: string;
+  noteSavedLabel: string;
+  footerAddToShortlistButton: string;
+  historyEmptyTitle: string;
+  historyEmptyHint: string;
+  historyApplicationsHeader: string; // "Applications ({n})"
+  historyInterviewsHeader: string;
+  historyOffersHeader: string;
+  historyShortlistsHeaderSingularTemplate: string; // "On {n} Shortlist"
+  historyShortlistsHeaderPluralTemplate: string; // "On {n} Shortlists"
+  historyNotesHeader: string;
+  jobUnavailableFallback: string;
+  refPrefixTemplate: string; // "Ref: {ref}"
+  matchSuffixTemplate: string; // "· Match: {n}%"
+  sentPrefixTemplate: string; // "· Sent {date}"
+  respondedPrefixTemplate: string; // "· Responded {date}"
+  perPeriodTemplate: string; // "{amount} / {period}"
+  newShortlistModalTitle: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  descriptionLabel: string;
+  descriptionPlaceholder: string;
+  colorLabel: string;
+  nameRequiredError: string;
+  createFailedFallback: string;
+  createAndAddButton: string;
+}
+
+/** app/school/applications/page.tsx — SRD 3.5 pipeline master-detail, review/shortlist/reject/interview/offer actions. */
+export interface SchoolApplicationsTranslations {
+  statusTabLabels: Record<string, string>; // full labels incl. "all"
+  statusTabShortLabels: Record<string, string>; // mobile-width labels incl. "all"; also reused for pipeline bar
+  pipelineOverviewTitle: string;
+  totalApplicationsSuffixTemplate: string; // "{n} total applications"
+  filterByJobTitle: string;
+  allJobsLabel: string;
+  noActiveJobsLabel: string;
+  manageJobPostingsLink: string;
+  loadFailedFallback: string;
+  emptyTitle: string;
+  emptyBodyFilteredTemplate: string; // "No {status} applications for the selected filter."
+  emptyBodyJobSelected: string;
+  emptyBodyDefault: string;
+  sortLabels: Record<string, string>; // newest/match_score/unread_first
+  startReviewButton: string;
+  shortlistButton: string;
+  rejectButton: string;
+  scheduleInterviewButton: string;
+  extendOfferButton: string;
+  awaitingResponseButton: string;
+  rejectModalTitle: string;
+  rejectModalForNameTemplate: string; // "for {name}"
+  rejectReasonLabel: string;
+  rejectReasonPlaceholder: string;
+  rejectReasonRequiredError: string;
+  rejectReasonHint: string;
+  rejectFailedFallback: string;
+  confirmRejectionButton: string;
+  scheduleModalTitle: string;
+  scheduleDateRequiredError: string;
+  scheduleFailedFallback: string;
+  interviewTypeLabel: string;
+  interviewTypeOptions: Record<string, string>; // video/in_person/phone
+  dateTimeLabel: string;
+  durationMinLabel: string;
+  meetingLinkLabel: string;
+  meetingLinkPlaceholder: string;
+  instructionsLabel: string;
+  instructionsPlaceholder: string;
+  scheduleConfirmButton: string;
+  offerModalTitle: string;
+  positionRequiredError: string;
+  salaryRequiredError: string;
+  deadlineRequiredError: string;
+  extendFailedFallback: string;
+  positionLabel: string;
+  positionPlaceholder: string;
+  monthlySalaryLabel: string;
+  salaryPlaceholder: string;
+  offerStartDateLabel: string;
+  offerDeadlineLabel: string;
+  benefitsLabel: string;
+  benefitsPlaceholder: string;
+  extendOfferConfirmButton: string;
+}
+
 export interface SchoolTranslations {
   common: SchoolCommonTranslations;
   layout: SchoolLayoutTranslations;
   dashboard: SchoolDashboardTranslations;
   settings: SchoolSettingsTranslations;
   notifications: SchoolNotificationsTranslations;
+  jobs: SchoolJobsTranslations;
+  candidates: SchoolCandidatesTranslations;
+  applications: SchoolApplicationsTranslations;
 }
 
 export interface Translations extends CommonTranslations {

@@ -21,95 +21,28 @@ import {
 } from "@/lib/api/school";
 import type { CandidateProfile, Shortlist, CandidateHistory } from "@/lib/api/school";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatNumber, formatDate as formatDateI18n, formatTime } from "@/lib/i18n/format";
+import type { SchoolCandidatesTranslations, SchoolCommonTranslations, SchoolDashboardTranslations } from "@/lib/i18n/types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+// Option lists carry only stable `value`s — display labels come from
+// t.school.common.* (shared with jobs.tsx) / t.school.candidates.* (SRD 6.1.1).
 
-const SUBJECT_OPTIONS = [
-  { label: "Islamic Studies",  value: "islamic_studies"  },
-  { label: "Arabic",           value: "arabic"           },
-  { label: "English",          value: "english"          },
-  { label: "Math",             value: "math"             },
-  { label: "Science",          value: "science"          },
-  { label: "Physics",          value: "physics"          },
-  { label: "Chemistry",        value: "chemistry"        },
-  { label: "Biology",          value: "biology"          },
-  { label: "Computer Science", value: "computer_science" },
-  { label: "Social Studies",   value: "social_studies"   },
-  { label: "PE",               value: "pe"               },
-  { label: "Art",              value: "art"              },
-  { label: "Other",            value: "other"            },
+const SUBJECT_VALUES = [
+  "islamic_studies", "arabic", "english", "math", "science", "physics",
+  "chemistry", "biology", "computer_science", "social_studies", "pe", "art", "other",
 ];
 
-const GRADE_LEVEL_OPTIONS = [
-  { label: "KG",          value: "kg"           },
-  { label: "Elementary",  value: "elementary"   },
-  { label: "Middle",      value: "middle"       },
-  { label: "High",        value: "high"         },
-];
+const GRADE_LEVEL_VALUES = ["kg", "elementary", "middle", "high"];
 
-const EXPERIENCE_OPTIONS = [
-  { label: "Any",        value: ""     },
-  { label: "0–1 years",  value: "0-1"  },
-  { label: "1–3 years",  value: "1-3"  },
-  { label: "3–5 years",  value: "3-5"  },
-  { label: "5–10 years", value: "5-10" },
-  { label: "10+ years",  value: "10+"  },
-];
+const EXPERIENCE_VALUES = ["", "0-1", "1-3", "3-5", "5-10", "10+"];
 
-const CITY_OPTIONS = [
-  { label: "Riyadh",  value: "riyadh"  },
-  { label: "Jeddah",  value: "jeddah"  },
-  { label: "Makkah",  value: "makkah"  },
-  { label: "Madinah", value: "madinah" },
-  { label: "Dammam",  value: "dammam"  },
-  { label: "Khobar",  value: "khobar"  },
-  { label: "Jubail",  value: "jubail"  },
-  { label: "Taif",    value: "taif"    },
-  { label: "Tabuk",   value: "tabuk"   },
-];
+const CITY_VALUES = ["riyadh", "jeddah", "makkah", "madinah", "dammam", "khobar", "jubail", "taif", "tabuk"];
 
-const DEGREE_OPTIONS = [
-  { label: "Any",        value: ""         },
-  { label: "Diploma",    value: "diploma"  },
-  { label: "Bachelor's", value: "bachelor" },
-  { label: "Master's",   value: "master"   },
-  { label: "PhD",        value: "phd"      },
-];
+const DEGREE_VALUES = ["", "diploma", "bachelor", "master", "phd"];
 
-const SORT_OPTIONS = [
-  { label: "Newest",              value: "newest"     },
-  { label: "Profile Completeness",value: "completion" },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function candidateDisplayName(c: CandidateProfile): string {
-  return c.personal?.fullNameEn ?? c.personal?.fullNameAr ?? "Unnamed Candidate";
-}
-
-function candidateInitials(c: CandidateProfile): string {
-  const name = candidateDisplayName(c);
-  const parts = name.trim().split(" ");
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
-
-function subjectLabel(v: string): string {
-  return SUBJECT_OPTIONS.find((s) => s.value === v)?.label ?? v;
-}
-
-function cityLabel(v: string): string {
-  return CITY_OPTIONS.find((c) => c.value === v)?.label ?? v;
-}
-
-function gradeGroupLabel(levels: string[]): string {
-  const groups: string[] = [];
-  if (levels.some((l) => l.startsWith("kg"))) groups.push("KG");
-  if (levels.some((l) => l.startsWith("elementary"))) groups.push("Elementary");
-  if (levels.some((l) => l.startsWith("middle"))) groups.push("Middle");
-  if (levels.some((l) => l.startsWith("high"))) groups.push("High");
-  return groups.join(", ") || levels.join(", ");
-}
+const SORT_VALUES = ["newest", "completion"];
 
 // ─── Filter State ─────────────────────────────────────────────────────────────
 
@@ -144,28 +77,10 @@ const DEFAULT_FILTERS: FilterState = {
   sortBy: "newest",
 };
 
-// SRD 3.3.2 — option lists for the new filter controls
-const LANGUAGE_OPTIONS = [
-  { label: "Any",        value: ""        },
-  { label: "Arabic",     value: "arabic"  },
-  { label: "English",    value: "english" },
-  { label: "French",     value: "french"  },
-  { label: "Urdu",       value: "urdu"    },
-  { label: "Other",      value: "other"   },
-];
-const PROFICIENCY_OPTIONS = [
-  { label: "Any",         value: ""        },
-  { label: "Basic",       value: "basic"   },
-  { label: "Intermediate",value: "intermediate" },
-  { label: "Fluent",      value: "fluent"  },
-  { label: "Native",      value: "native"  },
-];
-const AVAILABILITY_OPTIONS = [
-  { label: "Any",                 value: ""           },
-  { label: "Available immediately", value: "unemployed" },
-  { label: "Currently employed",    value: "employed"   },
-  { label: "Freelance / Open",      value: "freelance"  },
-];
+// SRD 3.3.2 — option value lists for the newer filter controls
+const LANGUAGE_VALUES = ["", "arabic", "english", "french", "urdu", "other"];
+const PROFICIENCY_VALUES = ["", "basic", "intermediate", "fluent", "native"];
+const AVAILABILITY_VALUES = ["", "unemployed", "employed", "freelance"];
 
 // ─── Add-to-Shortlist Dropdown ────────────────────────────────────────────────
 
@@ -178,6 +93,8 @@ interface ShortlistDropdownProps {
 }
 
 function ShortlistDropdown({ teacherId, shortlists, onAdded, onCreateNew, onClose }: ShortlistDropdownProps) {
+  const { t } = useTranslation();
+  const tt = t.school.candidates;
   const [adding, setAdding] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -207,13 +124,13 @@ function ShortlistDropdown({ teacherId, shortlists, onAdded, onCreateNew, onClos
   return (
     <div
       ref={ref}
-      className="absolute right-0 bottom-full mb-1 w-60 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-30"
+      className="absolute end-0 bottom-full mb-1 w-60 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-30"
     >
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">
-        Add to Shortlist
+        {tt.addToShortlistButton}
       </p>
       {active.length === 0 ? (
-        <p className="text-xs text-gray-500 px-3 py-2">No shortlists yet.</p>
+        <p className="text-xs text-gray-500 px-3 py-2">{tt.noShortlistsYet}</p>
       ) : (
         active.map((sl) => (
           <button
@@ -244,7 +161,7 @@ function ShortlistDropdown({ teacherId, shortlists, onAdded, onCreateNew, onClos
         style={{ color: "var(--brand-primary)" }}
       >
         <Plus size={13} />
-        New Shortlist
+        {tt.newShortlistLabel}
       </button>
     </div>
   );
@@ -263,6 +180,26 @@ interface CandidateCardProps {
   onToggleSelect: (id: string) => void;
 }
 
+function candidateDisplayName(c: CandidateProfile, fallback: string): string {
+  return c.personal?.fullNameEn ?? c.personal?.fullNameAr ?? fallback;
+}
+
+function candidateInitials(c: CandidateProfile, fallback: string): string {
+  const name = candidateDisplayName(c, fallback);
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+function gradeGroupLabel(levels: string[], groupLabels: Record<string, string>): string {
+  const groups: string[] = [];
+  if (levels.some((l) => l.startsWith("kg"))) groups.push(groupLabels.kg);
+  if (levels.some((l) => l.startsWith("elementary"))) groups.push(groupLabels.elementary);
+  if (levels.some((l) => l.startsWith("middle"))) groups.push(groupLabels.middle);
+  if (levels.some((l) => l.startsWith("high"))) groups.push(groupLabels.high);
+  return groups.join(", ") || levels.join(", ");
+}
+
 function CandidateCard({
   candidate: c,
   shortlists,
@@ -272,10 +209,14 @@ function CandidateCard({
   selected,
   onToggleSelect,
 }: CandidateCardProps) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.candidates;
+  const common = t.school.common;
   const [showShortlistDrop, setShowShortlistDrop] = useState(false);
   const displaySubjects = (c.professional?.subjects ?? []).slice(0, 3);
   const extraSubjects = (c.professional?.subjects?.length ?? 0) - 3;
   const cities = c.locationPreferences?.preferredCities ?? [];
+  const displayName = candidateDisplayName(c, common.candidateFallback);
 
   return (
     <div
@@ -288,8 +229,8 @@ function CandidateCard({
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onToggleSelect(c._id); }}
-        aria-label={selected ? "Deselect candidate" : "Select candidate"}
-        className={`absolute top-3 right-3 w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
+        aria-label={selected ? tt.deselectCandidateAria : tt.selectCandidateAria}
+        className={`absolute top-3 end-3 w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
           selected ? "border-transparent text-white" : "border-gray-300 bg-white text-transparent hover:border-gray-400"
         }`}
         style={selected ? { background: "var(--brand-gradient)" } : {}}
@@ -298,11 +239,11 @@ function CandidateCard({
       </button>
 
       {/* Avatar + name row */}
-      <div className="flex items-start gap-3 pr-8">
+      <div className="flex items-start gap-3 pe-8">
         {c.personal?.photoUrl ? (
           <img
             src={c.personal.photoUrl}
-            alt={candidateDisplayName(c)}
+            alt={displayName}
             className="w-11 h-11 rounded-xl object-cover shrink-0"
           />
         ) : (
@@ -310,12 +251,12 @@ function CandidateCard({
             className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
             style={{ background: "var(--brand-gradient)" }}
           >
-            {candidateInitials(c)}
+            {candidateInitials(c, common.candidateFallback)}
           </div>
         )}
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-gray-900 truncate">
-            {candidateDisplayName(c)}
+            {displayName}
           </h3>
           <div className="flex items-center gap-2 flex-wrap mt-0.5">
             {c.personal?.gender && (
@@ -335,12 +276,12 @@ function CandidateCard({
         <div className="flex flex-wrap gap-1.5">
           {displaySubjects.map((s) => (
             <span key={s} className="text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
-              {subjectLabel(s)}
+              {common.subjectLabels[s] ?? s}
             </span>
           ))}
           {extraSubjects > 0 && (
             <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
-              +{extraSubjects}
+              +{formatNumber(extraSubjects, lang)}
             </span>
           )}
         </div>
@@ -351,19 +292,19 @@ function CandidateCard({
         {(c.professional?.gradeLevels?.length ?? 0) > 0 && (
           <div className="flex items-center gap-1.5">
             <GraduationCap size={12} className="text-gray-400 shrink-0" />
-            <span>{gradeGroupLabel(c.professional!.gradeLevels!)}</span>
+            <span>{gradeGroupLabel(c.professional!.gradeLevels!, tt.gradeGroupLabels)}</span>
           </div>
         )}
         {c.professional?.experienceRange && (
           <div className="flex items-center gap-1.5">
             <Briefcase size={12} className="text-gray-400 shrink-0" />
-            <span>{c.professional.experienceRange} years</span>
+            <span>{c.professional.experienceRange} {tt.experienceYearsSuffix}</span>
           </div>
         )}
         {cities.length > 0 && (
           <div className="flex items-center gap-1.5">
             <MapPin size={12} className="text-gray-400 shrink-0" />
-            <span className="truncate">{cities.map(cityLabel).join(", ")}</span>
+            <span className="truncate">{cities.map((city) => common.cityLabels[city] ?? city).join(", ")}</span>
           </div>
         )}
       </div>
@@ -371,9 +312,9 @@ function CandidateCard({
       {/* Completion bar */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-gray-400">Profile completeness</span>
+          <span className="text-xs text-gray-400">{tt.profileCompletenessLabel}</span>
           <span className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }}>
-            {c.completionPercentage}%
+            {formatNumber(c.completionPercentage, lang)}%
           </span>
         </div>
         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -387,11 +328,11 @@ function CandidateCard({
       {/* Salary */}
       {(c.salaryExpectations?.minMonthlySAR || c.salaryExpectations?.maxMonthlySAR) && (
         <div className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-lg">
-          <SARSymbol />{c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
+          <SARSymbol />{c.salaryExpectations.minMonthlySAR != null ? formatNumber(c.salaryExpectations.minMonthlySAR, lang) : "–"}
           {c.salaryExpectations.maxMonthlySAR
-            ? `–${c.salaryExpectations.maxMonthlySAR.toLocaleString()}`
+            ? `–${formatNumber(c.salaryExpectations.maxMonthlySAR, lang)}`
             : "+"}{" "}
-          / month
+          {tt.perMonthSuffix}
         </div>
       )}
 
@@ -403,7 +344,7 @@ function CandidateCard({
           style={{ background: "var(--brand-gradient)" }}
         >
           <Eye size={12} />
-          View Profile
+          {tt.viewProfileButton}
         </button>
         <div className="relative">
           <button
@@ -428,17 +369,6 @@ function CandidateCard({
 }
 
 // ─── Candidate History Tab (SRD 3.4.3) ────────────────────────────────────────
-
-function formatDateTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-    hour: "numeric", minute: "2-digit",
-  });
-}
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
 
 const APPLICATION_STATUS_COLORS: Record<string, string> = {
   submitted:           "bg-slate-100 text-slate-700",
@@ -474,6 +404,10 @@ function HistoryTabBody({
   error: string | null;
   history: CandidateHistory | null;
 }) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.candidates;
+  const dashboard: SchoolDashboardTranslations = t.school.dashboard;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -504,8 +438,8 @@ function HistoryTabBody({
         <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
           <History size={20} className="text-gray-400" />
         </div>
-        <p className="text-sm text-gray-500">No prior interactions with this candidate yet.</p>
-        <p className="text-xs text-gray-400">Once you shortlist them, schedule an interview, or extend an offer, it&apos;ll show up here.</p>
+        <p className="text-sm text-gray-500">{tt.historyEmptyTitle}</p>
+        <p className="text-xs text-gray-400">{tt.historyEmptyHint}</p>
       </div>
     );
   }
@@ -517,21 +451,21 @@ function HistoryTabBody({
         <section>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <FileText size={12} />
-            Applications ({history.applications.length})
+            {tt.historyApplicationsHeader.replace("{n}", formatNumber(history.applications.length, lang))}
           </h3>
           <div className="space-y-2">
             {history.applications.map((a) => (
               <div key={a._id} className="border border-gray-100 rounded-xl p-3 bg-white">
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-sm font-semibold text-gray-900">{a.job?.title ?? "Job no longer available"}</p>
+                  <p className="text-sm font-semibold text-gray-900">{a.job?.title ?? tt.jobUnavailableFallback}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${APPLICATION_STATUS_COLORS[a.status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {a.status.replace(/_/g, " ")}
+                    {dashboard.applicationStatusLabels[a.status] ?? a.status.replace(/_/g, " ")}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-500">
-                  <span>Ref: {a.referenceNumber ?? "—"}</span>
-                  {a.matchScore != null && <span>· Match: {a.matchScore}%</span>}
-                  <span>· {formatDate(a.createdAt)}</span>
+                  <span>{tt.refPrefixTemplate.replace("{ref}", a.referenceNumber ?? "—")}</span>
+                  {a.matchScore != null && <span>{tt.matchSuffixTemplate.replace("{n}", formatNumber(a.matchScore, lang))}</span>}
+                  <span>· {formatDateI18n(a.createdAt, lang)}</span>
                 </div>
               </div>
             ))}
@@ -544,7 +478,7 @@ function HistoryTabBody({
         <section>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <CalendarIcon size={12} />
-            Interviews ({history.interviews.length})
+            {tt.historyInterviewsHeader.replace("{n}", formatNumber(history.interviews.length, lang))}
           </h3>
           <div className="space-y-2">
             {history.interviews.map((i) => (
@@ -552,20 +486,20 @@ function HistoryTabBody({
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-sm font-semibold text-gray-900">{i.job?.title ?? "—"}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${INTERVIEW_STATUS_COLORS[i.status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {i.status}
+                    {dashboard.interviewStatusLabels[i.status] ?? i.status}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-500">
-                  <span className="capitalize">{i.type.replace(/_/g, " ")}</span>
-                  <span>· {formatDateTime(i.scheduledAt)}</span>
-                  {i.duration && <span>· {i.duration} min</span>}
+                  <span className="capitalize">{dashboard.interviewTypeLabels[i.type] ?? i.type.replace(/_/g, " ")}</span>
+                  <span>· {formatDateI18n(i.scheduledAt, lang)} {formatTime(i.scheduledAt, lang)}</span>
+                  {i.duration && <span>· {formatNumber(i.duration, lang)} min</span>}
                 </div>
                 {i.feedback && (i.feedback.rating != null || i.feedback.recommendation) && (
                   <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-600 flex items-center gap-2">
                     {i.feedback.rating != null && (
                       <span className="flex items-center gap-0.5">
                         <Star size={11} className="text-amber-400 fill-amber-400" />
-                        {i.feedback.rating}/5
+                        {formatNumber(i.feedback.rating, lang)}/5
                       </span>
                     )}
                     {i.feedback.recommendation && (
@@ -584,7 +518,7 @@ function HistoryTabBody({
         <section>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <FileSignature size={12} />
-            Offers ({history.offers.length})
+            {tt.historyOffersHeader.replace("{n}", formatNumber(history.offers.length, lang))}
           </h3>
           <div className="space-y-2">
             {history.offers.map((o) => (
@@ -592,15 +526,17 @@ function HistoryTabBody({
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-sm font-semibold text-gray-900">{o.position ?? o.job?.title ?? "—"}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${OFFER_STATUS_COLORS[o.status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {o.status.replace(/_/g, " ")}
+                    {dashboard.offerStatusLabels[o.status] ?? o.status.replace(/_/g, " ")}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-gray-500">
                   {o.salary?.amount != null && (
-                    <span><SARSymbol />{o.salary.amount.toLocaleString()} / {o.salary.period ?? "month"}</span>
+                    <span>{tt.perPeriodTemplate
+                      .replace("{amount}", `SAR ${formatNumber(o.salary.amount, lang)}`)
+                      .replace("{period}", o.salary.period ?? "month")}</span>
                   )}
-                  {o.sentAt && <span>· Sent {formatDate(o.sentAt)}</span>}
-                  {o.respondedAt && <span>· Responded {formatDate(o.respondedAt)}</span>}
+                  {o.sentAt && <span>{tt.sentPrefixTemplate.replace("{date}", formatDateI18n(o.sentAt, lang))}</span>}
+                  {o.respondedAt && <span>{tt.respondedPrefixTemplate.replace("{date}", formatDateI18n(o.respondedAt, lang))}</span>}
                 </div>
               </div>
             ))}
@@ -613,7 +549,10 @@ function HistoryTabBody({
         <section>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <BookmarkPlus size={12} />
-            On {history.shortlistMemberships.length} Shortlist{history.shortlistMemberships.length === 1 ? "" : "s"}
+            {(history.shortlistMemberships.length === 1
+              ? tt.historyShortlistsHeaderSingularTemplate
+              : tt.historyShortlistsHeaderPluralTemplate
+            ).replace("{n}", formatNumber(history.shortlistMemberships.length, lang))}
           </h3>
           <div className="flex flex-wrap gap-2">
             {history.shortlistMemberships.map((m) => (
@@ -623,7 +562,7 @@ function HistoryTabBody({
               >
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color ?? "#3B82F6" }} />
                 {m.shortlistName}
-                <span className="text-gray-400">· {formatDate(m.addedAt)}</span>
+                <span className="text-gray-400">· {formatDateI18n(m.addedAt, lang)}</span>
               </span>
             ))}
           </div>
@@ -635,17 +574,17 @@ function HistoryTabBody({
         <section>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
             <MessageSquare size={12} />
-            Internal Notes ({history.notes.length})
+            {tt.historyNotesHeader.replace("{n}", formatNumber(history.notes.length, lang))}
           </h3>
           <div className="space-y-2">
             {history.notes.map((n) => (
               <div key={n._id} className="border border-gray-100 rounded-xl p-3 bg-amber-50/30">
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{n.content}</p>
                 <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-400">
-                  <span>{formatDateTime(n.createdAt)}</span>
-                  {(n.tags ?? []).map((t) => (
-                    <span key={t} className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                      {t}
+                  <span>{formatDateI18n(n.createdAt, lang)} {formatTime(n.createdAt, lang)}</span>
+                  {(n.tags ?? []).map((tag) => (
+                    <span key={tag} className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      {tag}
                     </span>
                   ))}
                 </div>
@@ -675,17 +614,23 @@ function CandidateProfileModal({
   onShortlistAdded,
   onCreateShortlist,
 }: CandidateProfileModalProps) {
+  const { t } = useTranslation();
+  const tt = t.school.candidates;
+  const common = t.school.common;
   const [noteText, setNoteText] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [noteSaved, setNoteSaved] = useState(false);
   const [showShortlistDrop, setShowShortlistDrop] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  void noteRef;
 
   // SRD 3.4.3 — Profile History tab
   const [activeTab, setActiveTab] = useState<"profile" | "history">("profile");
   const [history, setHistory] = useState<CandidateHistory | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+
+  const displayName = candidateDisplayName(c, common.candidateFallback);
 
   useEffect(() => {
     if (activeTab !== "history" || history) return;
@@ -695,10 +640,11 @@ function CandidateProfileModal({
     getCandidateHistory(c._id)
       .then((h) => { if (!cancelled) setHistory(h); })
       .catch((e: unknown) => {
-        if (!cancelled) setHistoryError(e instanceof Error ? e.message : "Failed to load history");
+        if (!cancelled) setHistoryError(e instanceof Error ? e.message : common.somethingWentWrong);
       })
       .finally(() => { if (!cancelled) setHistoryLoading(false); });
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, history, c._id]);
 
   const handleSaveNote = async () => {
@@ -719,14 +665,14 @@ function CandidateProfileModal({
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative ml-auto w-full max-w-2xl h-full bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+      <div className="relative ms-auto w-full max-w-2xl h-full bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-3">
             {c.personal?.photoUrl ? (
               <img
                 src={c.personal.photoUrl}
-                alt={candidateDisplayName(c)}
+                alt={displayName}
                 className="w-12 h-12 rounded-xl object-cover"
               />
             ) : (
@@ -734,11 +680,11 @@ function CandidateProfileModal({
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold shrink-0"
                 style={{ background: "var(--brand-gradient)" }}
               >
-                {candidateInitials(c)}
+                {candidateInitials(c, common.candidateFallback)}
               </div>
             )}
             <div>
-              <h2 className="text-base font-bold text-gray-900">{candidateDisplayName(c)}</h2>
+              <h2 className="text-base font-bold text-gray-900">{displayName}</h2>
               <div className="flex items-center gap-2 mt-0.5">
                 {c.personal?.gender && (
                   <span className="text-xs text-gray-500 capitalize">{c.personal.gender}</span>
@@ -769,22 +715,22 @@ function CandidateProfileModal({
         {/* SRD 3.4.3 — tab strip */}
         <div className="flex items-center gap-1 px-6 border-b border-gray-100 shrink-0">
           {([
-            { id: "profile", label: "Profile", icon: Eye },
-            { id: "history", label: "History", icon: History },
+            { id: "profile", label: tt.profileTab, icon: Eye },
+            { id: "history", label: tt.historyTab, icon: History },
           ] as const).map(({ id, label, icon: Icon }) => {
-            const active = activeTab === id;
+            const isActive = activeTab === id;
             return (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
                 className={`relative flex items-center gap-1.5 px-3 py-3 text-sm font-semibold transition-colors ${
-                  active ? "" : "text-gray-500 hover:text-gray-800"
+                  isActive ? "" : "text-gray-500 hover:text-gray-800"
                 }`}
-                style={active ? { color: "var(--brand-primary)" } : {}}
+                style={isActive ? { color: "var(--brand-primary)" } : {}}
               >
                 <Icon size={14} />
                 {label}
-                {active && (
+                {isActive && (
                   <span
                     className="absolute inset-x-2 -bottom-px h-0.5 rounded-full"
                     style={{ background: "var(--brand-gradient)" }}
@@ -810,7 +756,7 @@ function CandidateProfileModal({
           {c.professional && (
             <section>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Professional
+                {tt.sectionProfessional}
               </h3>
               <div className="bg-gray-50 rounded-xl p-4 space-y-2.5 text-sm">
                 {(c.professional.subjects?.length ?? 0) > 0 && (
@@ -819,7 +765,7 @@ function CandidateProfileModal({
                     <div className="flex flex-wrap gap-1.5">
                       {c.professional.subjects!.map((s) => (
                         <span key={s} className="text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
-                          {subjectLabel(s)}
+                          {common.subjectLabels[s] ?? s}
                         </span>
                       ))}
                     </div>
@@ -828,23 +774,23 @@ function CandidateProfileModal({
                 {(c.professional.gradeLevels?.length ?? 0) > 0 && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <GraduationCap size={14} className="text-gray-400 shrink-0" />
-                    <span>{gradeGroupLabel(c.professional.gradeLevels!)}</span>
+                    <span>{gradeGroupLabel(c.professional.gradeLevels!, tt.gradeGroupLabels)}</span>
                   </div>
                 )}
                 {c.professional.experienceRange && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Briefcase size={14} className="text-gray-400 shrink-0" />
-                    <span>{c.professional.experienceRange} years of experience</span>
+                    <span>{c.professional.experienceRange} {tt.experienceYearsSuffix}</span>
                   </div>
                 )}
                 {c.professional.employmentStatus && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Star size={14} className="text-gray-400 shrink-0" />
                     <span className="capitalize">
-                      {c.professional.employmentStatus.replace("_", " ")}
+                      {tt.availabilityOptions[c.professional.employmentStatus] ?? c.professional.employmentStatus.replace("_", " ")}
                       {c.professional.employmentStatus === "employed"
                         && typeof c.professional.noticePeriodDays === "number"
-                        && ` · ${c.professional.noticePeriodDays}-day notice`}
+                        && tt.noticeSuffixTemplate.replace("{n}", String(c.professional.noticePeriodDays))}
                     </span>
                   </div>
                 )}
@@ -856,18 +802,18 @@ function CandidateProfileModal({
           {c.education && (
             <section>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Education
+                {tt.sectionEducation}
               </h3>
               <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 space-y-1">
                 {c.education.degreeType && (
-                  <p className="font-semibold capitalize">{c.education.degreeType}</p>
+                  <p className="font-semibold capitalize">{tt.degreeOptions[c.education.degreeType] ?? c.education.degreeType}</p>
                 )}
                 {c.education.major && <p>{c.education.major}</p>}
                 {c.education.university && (
                   <p className="text-gray-500">{c.education.university}{c.education.country ? `, ${c.education.country}` : ""}</p>
                 )}
                 {c.education.graduationYear && (
-                  <p className="text-gray-400 text-xs">Class of {c.education.graduationYear}</p>
+                  <p className="text-gray-400 text-xs">{tt.classOfTemplate.replace("{year}", String(c.education.graduationYear))}</p>
                 )}
               </div>
             </section>
@@ -877,7 +823,7 @@ function CandidateProfileModal({
           {(c.languages?.length ?? 0) > 0 && (
             <section>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Languages
+                {tt.sectionLanguages}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {c.languages!.map((l, i) => (
@@ -895,7 +841,7 @@ function CandidateProfileModal({
           {(c.certifications?.length ?? 0) > 0 && (
             <section>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Certifications
+                {tt.sectionCertifications}
               </h3>
               <div className="space-y-2">
                 {c.certifications!.map((cert) => (
@@ -915,13 +861,13 @@ function CandidateProfileModal({
           {(c.locationPreferences?.preferredCities?.length ?? 0) > 0 && (
             <section>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Location Preferences
+                {tt.sectionLocationPreferences}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {c.locationPreferences!.preferredCities!.map((city) => (
                   <span key={city} className="flex items-center gap-1.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl">
                     <MapPin size={12} className="text-gray-400" />
-                    {cityLabel(city)}
+                    {common.cityLabels[city] ?? city}
                   </span>
                 ))}
               </div>
@@ -932,14 +878,14 @@ function CandidateProfileModal({
           {(c.salaryExpectations?.minMonthlySAR || c.salaryExpectations?.maxMonthlySAR) && (
             <section>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Salary Expectation
+                {tt.sectionSalaryExpectation}
               </h3>
               <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 text-sm font-semibold text-emerald-700">
-                <SARSymbol />{c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
+                <SARSymbol />{c.salaryExpectations.minMonthlySAR ?? "–"}
                 {c.salaryExpectations.maxMonthlySAR
-                  ? `–${c.salaryExpectations.maxMonthlySAR.toLocaleString()}`
+                  ? `–${c.salaryExpectations.maxMonthlySAR}`
                   : "+"}{" "}
-                / month
+                {tt.perMonthSuffix}
               </div>
             </section>
           )}
@@ -948,7 +894,7 @@ function CandidateProfileModal({
           {c.resume?.fileUrl && (
             <section>
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Resume
+                {tt.sectionResume}
               </h3>
               <a
                 href={c.resume.fileUrl}
@@ -958,7 +904,7 @@ function CandidateProfileModal({
                 style={{ color: "var(--brand-primary)" }}
               >
                 <Download size={14} />
-                {c.resume.originalName ?? "Download Resume"}
+                {c.resume.originalName ?? tt.downloadResumeFallback}
               </a>
             </section>
           )}
@@ -966,14 +912,13 @@ function CandidateProfileModal({
           {/* Add Note */}
           <section>
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-              Add a Note
+              {tt.sectionAddNote}
             </h3>
             <textarea
-              ref={noteRef}
               rows={3}
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
-              placeholder="Private note visible only to your team…"
+              placeholder={tt.notePlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -985,10 +930,10 @@ function CandidateProfileModal({
                 style={{ background: "var(--brand-gradient)" }}
               >
                 {savingNote ? <Loader2 size={12} className="animate-spin" /> : <StickyNote size={12} />}
-                Save Note
+                {tt.saveNoteButton}
               </button>
               {noteSaved && (
-                <span className="text-xs text-green-600 font-medium">Note saved!</span>
+                <span className="text-xs text-green-600 font-medium">{tt.noteSavedLabel}</span>
               )}
             </div>
           </section>
@@ -1004,10 +949,10 @@ function CandidateProfileModal({
               className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 bg-white rounded-xl hover:bg-gray-50 transition-colors"
             >
               <BookmarkPlus size={15} />
-              Add to Shortlist
+              {tt.footerAddToShortlistButton}
             </button>
             {showShortlistDrop && (
-              <div className="absolute bottom-full left-0 mb-1 w-full">
+              <div className="absolute bottom-full start-0 mb-1 w-full">
                 <ShortlistDropdown
                   teacherId={c._id}
                   shortlists={shortlists}
@@ -1022,7 +967,7 @@ function CandidateProfileModal({
             onClick={onClose}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
           >
-            Close
+            {common.close}
           </button>
         </div>
       </div>
@@ -1041,6 +986,9 @@ interface NewShortlistModalProps {
 const PRESET_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
 
 function NewShortlistModal({ pendingTeacherId, onClose, onCreated }: NewShortlistModalProps) {
+  const { t } = useTranslation();
+  const tt = t.school.candidates;
+  const common: SchoolCommonTranslations = t.school.common;
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(PRESET_COLORS[0]);
@@ -1048,7 +996,7 @@ function NewShortlistModal({ pendingTeacherId, onClose, onCreated }: NewShortlis
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!name.trim()) { setError("Name is required."); return; }
+    if (!name.trim()) { setError(tt.nameRequiredError); return; }
     setSaving(true);
     setError(null);
     try {
@@ -1059,7 +1007,7 @@ function NewShortlistModal({ pendingTeacherId, onClose, onCreated }: NewShortlis
       onCreated(sl, pendingTeacherId ?? "");
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to create shortlist.");
+      setError((e as Error)?.message ?? tt.createFailedFallback);
     } finally {
       setSaving(false);
     }
@@ -1070,7 +1018,7 @@ function NewShortlistModal({ pendingTeacherId, onClose, onCreated }: NewShortlis
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-base font-bold text-gray-900">New Shortlist</h3>
+          <h3 className="text-base font-bold text-gray-900">{tt.newShortlistModalTitle}</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
             <X size={16} />
           </button>
@@ -1085,39 +1033,39 @@ function NewShortlistModal({ pendingTeacherId, onClose, onCreated }: NewShortlis
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Name <span className="text-red-500">*</span>
+              {tt.nameLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Math Teachers – Riyadh"
+              placeholder={tt.namePlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Description</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.descriptionLabel}</label>
             <textarea
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description…"
+              placeholder={tt.descriptionPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-2">Color</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">{tt.colorLabel}</label>
             <div className="flex items-center gap-2">
-              {PRESET_COLORS.map((c) => (
+              {PRESET_COLORS.map((clr) => (
                 <button
-                  key={c}
+                  key={clr}
                   type="button"
-                  onClick={() => setColor(c)}
-                  className={`w-7 h-7 rounded-full transition-all ${color === c ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : ""}`}
-                  style={{ backgroundColor: c }}
+                  onClick={() => setColor(clr)}
+                  className={`w-7 h-7 rounded-full transition-all ${color === clr ? "ring-2 ring-offset-2 ring-gray-400 scale-110" : ""}`}
+                  style={{ backgroundColor: clr }}
                 />
               ))}
             </div>
@@ -1130,7 +1078,7 @@ function NewShortlistModal({ pendingTeacherId, onClose, onCreated }: NewShortlis
             disabled={saving}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {common.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -1138,7 +1086,7 @@ function NewShortlistModal({ pendingTeacherId, onClose, onCreated }: NewShortlis
             className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60"
             style={{ background: "var(--brand-gradient)" }}
           >
-            {saving ? <Loader2 size={14} className="animate-spin" /> : "Create & Add"}
+            {saving ? <Loader2 size={14} className="animate-spin" /> : tt.createAndAddButton}
           </button>
         </div>
       </div>
@@ -1157,6 +1105,10 @@ interface FilterPanelProps {
 }
 
 function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPanelProps) {
+  const { t } = useTranslation();
+  const tt = t.school.candidates;
+  const common = t.school.common;
+
   const set = <K extends keyof FilterState>(key: K, val: FilterState[K]) =>
     onChange({ ...filters, [key]: val });
 
@@ -1166,18 +1118,18 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
   };
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-gray-100 flex flex-col overflow-y-auto">
+    <aside className="w-64 shrink-0 bg-white border-e border-gray-100 flex flex-col overflow-y-auto">
       <div className="px-4 py-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
             <Filter size={14} style={{ color: "var(--brand-primary)" }} />
-            Filters
+            {tt.filtersTitle}
           </h2>
           <button
             onClick={onClear}
             className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
-            Clear all
+            {common.clearAll}
           </button>
         </div>
       </div>
@@ -1186,10 +1138,10 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
         {/* Subjects */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Subjects
+            {tt.subjectsLabel}
           </label>
           <div className="flex flex-wrap gap-1.5">
-            {SUBJECT_OPTIONS.map(({ label, value }) => {
+            {SUBJECT_VALUES.map((value) => {
               const active = filters.subjects.includes(value);
               return (
                 <button
@@ -1203,7 +1155,7 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
                   }`}
                   style={active ? { background: "var(--brand-gradient)" } : {}}
                 >
-                  {label}
+                  {common.subjectLabels[value] ?? value}
                 </button>
               );
             })}
@@ -1213,10 +1165,10 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
         {/* Grade Levels */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Grade Levels
+            {tt.gradeLevelsLabel}
           </label>
           <div className="grid grid-cols-2 gap-1.5">
-            {GRADE_LEVEL_OPTIONS.map(({ label, value }) => {
+            {GRADE_LEVEL_VALUES.map((value) => {
               const active = filters.gradeLevels.includes(value);
               return (
                 <button
@@ -1231,7 +1183,7 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
                   style={active ? { background: "var(--brand-gradient)" } : {}}
                 >
                   {active ? <CheckSquare size={11} /> : <Square size={11} />}
-                  {label}
+                  {tt.gradeGroupLabels[value]}
                 </button>
               );
             })}
@@ -1241,43 +1193,43 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
         {/* Experience */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Experience
+            {tt.experienceLabel}
           </label>
           <div className="relative">
             <select
               value={filters.experienceRange}
               onChange={(e) => set("experienceRange", e.target.value)}
-              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-7"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             >
-              {EXPERIENCE_OPTIONS.map(({ label, value }) => (
-                <option key={value} value={value}>{label}</option>
+              {EXPERIENCE_VALUES.map((value) => (
+                <option key={value} value={value}>{tt.experienceOptions[value]}</option>
               ))}
             </select>
-            <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <ChevronDown size={12} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
         </div>
 
         {/* City */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            City
+            {tt.cityLabel}
           </label>
           <div className="space-y-1">
-            {CITY_OPTIONS.map(({ label, value }) => {
+            {CITY_VALUES.map((value) => {
               const active = filters.city.includes(value);
               return (
                 <button
                   key={value}
                   type="button"
                   onClick={() => toggleArr("city", value)}
-                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all text-left ${
+                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-lg transition-all text-start ${
                     active ? "font-semibold text-white" : "text-gray-600 hover:bg-gray-50"
                   }`}
                   style={active ? { background: "var(--brand-gradient)" } : {}}
                 >
                   {active ? <CheckSquare size={11} className="shrink-0" /> : <Square size={11} className="shrink-0" />}
-                  {label}
+                  {common.cityLabels[value] ?? value}
                 </button>
               );
             })}
@@ -1287,14 +1239,10 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
         {/* Gender */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Gender
+            {tt.genderLabel}
           </label>
           <div className="flex gap-1.5">
-            {[
-              { label: "Any",    value: ""       },
-              { label: "Male",   value: "male"   },
-              { label: "Female", value: "female" },
-            ].map(({ label, value }) => {
+            {["", "male", "female"].map((value) => {
               const active = filters.gender === value;
               return (
                 <button
@@ -1306,7 +1254,7 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
                   }`}
                   style={active ? { background: "var(--brand-gradient)" } : {}}
                 >
-                  {label}
+                  {tt.genderOptions[value]}
                 </button>
               );
             })}
@@ -1316,70 +1264,70 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
         {/* Degree */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Degree
+            {tt.degreeLabel}
           </label>
           <div className="relative">
             <select
               value={filters.degreeType}
               onChange={(e) => set("degreeType", e.target.value)}
-              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-7"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             >
-              {DEGREE_OPTIONS.map(({ label, value }) => (
-                <option key={value} value={value}>{label}</option>
+              {DEGREE_VALUES.map((value) => (
+                <option key={value} value={value}>{tt.degreeOptions[value]}</option>
               ))}
             </select>
-            <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <ChevronDown size={12} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
         </div>
 
         {/* SRD 3.3.2 — Certifications keyword */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Certifications
+            {tt.certificationsLabel}
           </label>
           <input
             type="text"
             value={filters.certificationsKeyword}
             onChange={(e) => set("certificationsKeyword", e.target.value)}
-            placeholder="e.g. TEFL, IB Educator…"
+            placeholder={tt.certificationsPlaceholder}
             className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
             style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
           />
-          <p className="text-[10px] text-gray-400 mt-1">Matches any cert containing this text.</p>
+          <p className="text-[10px] text-gray-400 mt-1">{tt.certificationsHint}</p>
         </div>
 
         {/* SRD 3.3.2 — Language + proficiency */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Language
+            {tt.languageLabel}
           </label>
           <div className="grid grid-cols-2 gap-1.5">
             <div className="relative">
               <select
                 value={filters.language}
                 onChange={(e) => set("language", e.target.value)}
-                className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+                className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-7"
                 style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               >
-                {LANGUAGE_OPTIONS.map(({ label, value }) => (
-                  <option key={value} value={value}>{label}</option>
+                {LANGUAGE_VALUES.map((value) => (
+                  <option key={value} value={value}>{tt.languageOptions[value]}</option>
                 ))}
               </select>
-              <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <ChevronDown size={12} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
             <div className="relative">
               <select
                 value={filters.languageProficiency}
                 onChange={(e) => set("languageProficiency", e.target.value)}
-                className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+                className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-7"
                 style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               >
-                {PROFICIENCY_OPTIONS.map(({ label, value }) => (
-                  <option key={value} value={value}>{label}</option>
+                {PROFICIENCY_VALUES.map((value) => (
+                  <option key={value} value={value}>{tt.proficiencyOptions[value]}</option>
                 ))}
               </select>
-              <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <ChevronDown size={12} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
         </div>
@@ -1387,57 +1335,57 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
         {/* SRD 3.3.2 — Availability (maps to employmentStatus) */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Availability
+            {tt.availabilityLabel}
           </label>
           <div className="relative">
             <select
               value={filters.employmentStatus}
               onChange={(e) => set("employmentStatus", e.target.value)}
-              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-7"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             >
-              {AVAILABILITY_OPTIONS.map(({ label, value }) => (
-                <option key={value} value={value}>{label}</option>
+              {AVAILABILITY_VALUES.map((value) => (
+                <option key={value} value={value}>{tt.availabilityOptions[value]}</option>
               ))}
             </select>
-            <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <ChevronDown size={12} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
         </div>
 
         {/* SRD 3.3.2 — Salary expectations (school's budget ceiling) */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Max Budget (SAR/mo)
+            {tt.maxBudgetLabel}
           </label>
           <input
             type="number"
             min={0}
             value={filters.salaryMaxAcceptable}
             onChange={(e) => set("salaryMaxAcceptable", e.target.value)}
-            placeholder="e.g. 10000"
+            placeholder={tt.maxBudgetPlaceholder}
             className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
             style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
           />
-          <p className="text-[10px] text-gray-400 mt-1">Shows teachers whose min expectation fits this budget.</p>
+          <p className="text-[10px] text-gray-400 mt-1">{tt.maxBudgetHint}</p>
         </div>
 
         {/* Sort */}
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Sort By
+            {tt.sortByLabel}
           </label>
           <div className="relative">
             <select
               value={filters.sortBy}
               onChange={(e) => set("sortBy", e.target.value)}
-              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-7"
+              className="w-full appearance-none px-3 py-2 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-7"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             >
-              {SORT_OPTIONS.map(({ label, value }) => (
-                <option key={value} value={value}>{label}</option>
+              {SORT_VALUES.map((value) => (
+                <option key={value} value={value}>{tt.sortOptions[value]}</option>
               ))}
             </select>
-            <ChevronDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <ChevronDown size={12} className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
           </div>
         </div>
       </div>
@@ -1451,13 +1399,13 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
           style={{ background: "var(--brand-gradient)" }}
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-          Search
+          {tt.searchButton}
         </button>
         <button
           onClick={onClear}
           className="w-full py-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
         >
-          Clear Filters
+          {common.clearFilters}
         </button>
       </div>
     </aside>
@@ -1469,6 +1417,10 @@ function FilterPanel({ filters, onChange, onSearch, onClear, loading }: FilterPa
 const PAGE_SIZE = 12;
 
 export default function CandidatesPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt: SchoolCandidatesTranslations = t.school.candidates;
+  const common = t.school.common;
+
   const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
@@ -1496,6 +1448,15 @@ export default function CandidatesPage() {
   }, []);
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
+  const loadShortlists = useCallback(async () => {
+    try {
+      const sl = await listShortlists();
+      setShortlists(sl ?? []);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const handleBulkShortlist = useCallback(async (shortlistId: string) => {
     if (selectedIds.size === 0) return;
     setBulkBusy("shortlist");
@@ -1505,14 +1466,14 @@ export default function CandidatesPage() {
       void loadShortlists();
       setBulkShortlistOpen(false);
       clearSelection();
-      alert(`${r.added} added${r.skipped > 0 ? `, ${r.skipped} already on this shortlist` : ""}.`);
+      alert(`${formatNumber(r.added, lang)} added${r.skipped > 0 ? `, ${formatNumber(r.skipped, lang)} already on this shortlist` : ""}.`);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to add to shortlist";
+      const msg = e instanceof Error ? e.message : common.somethingWentWrong;
       alert(msg);
     } finally {
       setBulkBusy(null);
     }
-  }, [selectedIds, clearSelection]);
+  }, [selectedIds, clearSelection, loadShortlists, lang, common.somethingWentWrong]);
 
   const handleExportPdf = useCallback(async () => {
     if (selectedIds.size === 0) return;
@@ -1528,21 +1489,12 @@ export default function CandidatesPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to export PDF";
+      const msg = e instanceof Error ? e.message : common.somethingWentWrong;
       alert(msg);
     } finally {
       setBulkBusy(null);
     }
-  }, [selectedIds]);
-
-  const loadShortlists = useCallback(async () => {
-    try {
-      const sl = await listShortlists();
-      setShortlists(sl ?? []);
-    } catch {
-      // ignore
-    }
-  }, []);
+  }, [selectedIds, common.somethingWentWrong]);
 
   const doSearch = useCallback(async (pageNum: number, f: FilterState) => {
     setLoading(true);
@@ -1569,11 +1521,11 @@ export default function CandidatesPage() {
       setTotalPages(res.totalPages ?? 1);
       setPage(pageNum);
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to search candidates.");
+      setError((e as Error)?.message ?? tt.errorFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.errorFallback]);
 
   useEffect(() => {
     doSearch(1, filters);
@@ -1592,7 +1544,7 @@ export default function CandidatesPage() {
 
   const displayedCandidates = nameSearch.trim()
     ? candidates.filter((c) =>
-        candidateDisplayName(c).toLowerCase().includes(nameSearch.toLowerCase())
+        candidateDisplayName(c, common.candidateFallback).toLowerCase().includes(nameSearch.toLowerCase())
       )
     : candidates;
 
@@ -1618,29 +1570,29 @@ export default function CandidatesPage() {
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <Users size={18} style={{ color: "var(--brand-primary)" }} />
-              Candidate Search
+              {tt.pageTitle}
             </h1>
             {!loading && (
               <p className="text-xs text-gray-400 mt-0.5">
-                {total.toLocaleString()} candidates found
+                {tt.candidatesFoundSuffix.replace("{n}", formatNumber(total, lang))}
               </p>
             )}
           </div>
           {/* Name search */}
           <div className="relative w-64">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
               type="text"
               value={nameSearch}
               onChange={(e) => setNameSearch(e.target.value)}
-              placeholder="Search by name…"
-              className="w-full pl-8 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
+              placeholder={tt.searchByNamePlaceholder}
+              className="w-full ps-8 pe-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
             {nameSearch && (
               <button
                 onClick={() => setNameSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute end-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X size={13} />
               </button>
@@ -1663,7 +1615,7 @@ export default function CandidatesPage() {
                 className="px-4 py-2 text-sm font-medium text-white rounded-xl"
                 style={{ background: "var(--brand-gradient)" }}
               >
-                Retry
+                {common.retry}
               </button>
             </div>
           ) : displayedCandidates.length === 0 ? (
@@ -1671,17 +1623,17 @@ export default function CandidatesPage() {
               <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                 <Users size={28} className="text-gray-400" />
               </div>
-              <h3 className="text-base font-bold text-gray-900 mb-1">No candidates found</h3>
-              <p className="text-sm text-gray-400">Try adjusting your filters to see more results.</p>
+              <h3 className="text-base font-bold text-gray-900 mb-1">{tt.emptyTitle}</h3>
+              <p className="text-sm text-gray-400">{tt.emptyBody}</p>
             </div>
           ) : (
             <>
               {/* SRD 3.3.5 — selection toolbar */}
               {selectedIds.size > 0 && (
                 <div className="sticky top-0 z-10 mb-4 bg-white rounded-xl shadow-md border border-gray-100 p-3 flex items-center gap-3"
-                  style={{ borderLeftWidth: 3, borderLeftColor: "var(--brand-primary)" }}>
+                  style={{ borderInlineStartWidth: 3, borderInlineStartColor: "var(--brand-primary)" }}>
                   <span className="text-sm font-semibold text-gray-900">
-                    {selectedIds.size} selected
+                    {tt.selectedCountSuffix.replace("{n}", formatNumber(selectedIds.size, lang))}
                   </span>
                   <div className="h-5 w-px bg-gray-200" />
 
@@ -1694,15 +1646,15 @@ export default function CandidatesPage() {
                       style={{ background: "var(--brand-gradient)" }}
                     >
                       {bulkBusy === "shortlist" ? <Loader2 size={12} className="animate-spin" /> : <BookmarkPlus size={12} />}
-                      Add to Shortlist
+                      {tt.addToShortlistButton}
                     </button>
                     {bulkShortlistOpen && (
-                      <div className="absolute left-0 top-full mt-1 w-60 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-30">
+                      <div className="absolute start-0 top-full mt-1 w-60 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-30">
                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-1.5">
-                          Choose Shortlist
+                          {tt.chooseShortlistLabel}
                         </p>
                         {shortlists.filter((s) => !s.isArchived).length === 0 ? (
-                          <p className="text-xs text-gray-500 px-3 py-2">No shortlists yet.</p>
+                          <p className="text-xs text-gray-500 px-3 py-2">{tt.noShortlistsYet}</p>
                         ) : (
                           shortlists.filter((s) => !s.isArchived).map((sl) => (
                             <button
@@ -1730,7 +1682,7 @@ export default function CandidatesPage() {
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60"
                   >
                     {bulkBusy === "pdf" ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
-                    Export PDF
+                    {tt.exportPdfButton}
                   </button>
 
                   <div className="flex-1" />
@@ -1740,7 +1692,7 @@ export default function CandidatesPage() {
                     disabled={bulkBusy !== null}
                     className="text-xs text-gray-400 hover:text-gray-700 px-2"
                   >
-                    Clear
+                    {tt.clearSelectionButton}
                   </button>
                 </div>
               )}
@@ -1766,9 +1718,10 @@ export default function CandidatesPage() {
                   <button
                     onClick={() => handlePageChange(page - 1)}
                     disabled={page <= 1}
+                    aria-label={common.previousPage}
                     className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
                   >
-                    <ChevronLeft size={15} />
+                    {isRTL ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => {
@@ -1782,7 +1735,7 @@ export default function CandidatesPage() {
                           }`}
                           style={page === p ? { background: "var(--brand-gradient)" } : {}}
                         >
-                          {p}
+                          {formatNumber(p, lang)}
                         </button>
                       );
                     })}
@@ -1790,12 +1743,15 @@ export default function CandidatesPage() {
                   <button
                     onClick={() => handlePageChange(page + 1)}
                     disabled={page >= totalPages}
+                    aria-label={common.nextPage}
                     className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
                   >
-                    <ChevronRight size={15} />
+                    {isRTL ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
                   </button>
-                  <span className="text-xs text-gray-400 ml-2">
-                    Page {page} of {totalPages}
+                  <span className="text-xs text-gray-400 ms-2">
+                    {tt.pageOfTemplate
+                      .replace("{page}", formatNumber(page, lang))
+                      .replace("{totalPages}", formatNumber(totalPages, lang))}
                   </span>
                 </div>
               )}

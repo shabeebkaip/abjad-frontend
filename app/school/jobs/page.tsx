@@ -5,9 +5,9 @@ import Link from "next/link";
 import {
   Plus, Briefcase, MoreVertical, Eye, FileText, Pencil,
   Send, X, Trash2, Loader2, AlertCircle, CheckSquare,
-  Square, MapPin, Clock, DollarSign, ChevronDown, ChevronLeft,
-  BookOpen, GraduationCap, Globe, Shield, Users, Calendar,
-  Building, Languages, Tag, Sparkles, BookCheck,
+  Square, MapPin, Clock, DollarSign, ChevronDown, ChevronLeft, ChevronRight,
+  BookOpen, GraduationCap, Shield, Users, Calendar,
+  Languages, Tag, Sparkles, BookCheck,
   CalendarPlus, RotateCcw, Copy,
 } from "lucide-react";
 import {
@@ -23,114 +23,76 @@ import type { SchoolJob } from "@/lib/api/school";
 import { ApiError } from "@/lib/api/client";
 import { PaywallModal } from "@/components/billing/PaywallModal";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatNumber, formatCurrency } from "@/lib/i18n/format";
+import type { SchoolJobsTranslations, SchoolCommonTranslations } from "@/lib/i18n/types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+// Option lists carry only stable `value`s now — display labels come from
+// t.school.common.* (shared with candidates.tsx) / t.school.jobs.* (SRD 6.1.1).
 
-const SUBJECT_OPTIONS: { label: string; value: string }[] = [
-  { label: "Islamic Studies",    value: "islamic_studies"  },
-  { label: "Arabic",             value: "arabic"           },
-  { label: "English",            value: "english"          },
-  { label: "Math",               value: "math"             },
-  { label: "Science",            value: "science"          },
-  { label: "Physics",            value: "physics"          },
-  { label: "Chemistry",          value: "chemistry"        },
-  { label: "Biology",            value: "biology"          },
-  { label: "Computer Science",   value: "computer_science" },
-  { label: "Social Studies",     value: "social_studies"   },
-  { label: "PE",                 value: "pe"               },
-  { label: "Art",                value: "art"              },
-  { label: "Other",              value: "other"            },
+const SUBJECT_VALUES = [
+  "islamic_studies", "arabic", "english", "math", "science", "physics",
+  "chemistry", "biology", "computer_science", "social_studies", "pe", "art", "other",
 ];
 
-const GRADE_GROUPS: { label: string; values: string[] }[] = [
-  { label: "KG",               values: ["kg"] },
-  { label: "Elementary (1–6)", values: ["elementary_1","elementary_2","elementary_3","elementary_4","elementary_5","elementary_6"] },
-  { label: "Middle (7–9)",     values: ["middle_7","middle_8","middle_9"] },
-  { label: "High (10–12)",     values: ["high_10","high_11","high_12"] },
+const GRADE_GROUPS: { key: "kg" | "elementary" | "middle" | "high"; values: string[] }[] = [
+  { key: "kg",         values: ["kg"] },
+  { key: "elementary", values: ["elementary_1","elementary_2","elementary_3","elementary_4","elementary_5","elementary_6"] },
+  { key: "middle",     values: ["middle_7","middle_8","middle_9"] },
+  { key: "high",       values: ["high_10","high_11","high_12"] },
 ];
 
-const EMPLOYMENT_TYPE_OPTIONS = [
-  { label: "Full Time",  value: "full_time"  },
-  { label: "Part Time",  value: "part_time"  },
-  { label: "Contract",   value: "contract"   },
-  { label: "Temporary",  value: "temporary"  },
-];
+const EMPLOYMENT_TYPE_VALUES = ["full_time", "part_time", "contract", "temporary"];
 
-const CITY_OPTIONS = [
-  { label: "Riyadh",  value: "riyadh"  },
-  { label: "Jeddah",  value: "jeddah"  },
-  { label: "Makkah",  value: "makkah"  },
-  { label: "Madinah", value: "madinah" },
-  { label: "Dammam",  value: "dammam"  },
-  { label: "Khobar",  value: "khobar"  },
-  { label: "Jubail",  value: "jubail"  },
-  { label: "Taif",    value: "taif"    },
-  { label: "Tabuk",   value: "tabuk"   },
-  { label: "Other",   value: "other"   },
-];
+const CITY_VALUES = ["riyadh", "jeddah", "makkah", "madinah", "dammam", "khobar", "jubail", "taif", "tabuk", "other"];
 
-const LANGUAGE_OPTIONS = [
-  { label: "Arabic",    value: "arabic"    },
-  { label: "English",   value: "english"   },
-  { label: "Bilingual", value: "bilingual" },
-];
+const LANGUAGE_VALUES = ["arabic", "english", "bilingual"];
 
-const EXPERIENCE_OPTIONS = [
-  { label: "0–1 years",  value: "0-1"  },
-  { label: "1–3 years",  value: "1-3"  },
-  { label: "3–5 years",  value: "3-5"  },
-  { label: "5–10 years", value: "5-10" },
-  { label: "10+ years",  value: "10+"  },
-];
+const EXPERIENCE_VALUES = ["0-1", "1-3", "3-5", "5-10", "10+"];
 
-const DEGREE_OPTIONS = [
-  { label: "Diploma",     value: "diploma"   },
-  { label: "Bachelor's",  value: "bachelor"  },
-  { label: "Master's",    value: "master"    },
-  { label: "PhD",         value: "phd"       },
-];
+const DEGREE_VALUES = ["diploma", "bachelor", "master", "phd"];
 
-const SALARY_DISPLAY_OPTIONS = [
-  { label: "Show",        value: "show"        },
-  { label: "Negotiable",  value: "negotiable"  },
-  { label: "Hidden",      value: "hidden"      },
-];
+const SALARY_DISPLAY_VALUES = ["show", "negotiable", "hidden"] as const;
 
 type StatusFilter = "all" | "active" | "draft" | "closed" | "expired";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDeadline(isoStr: string): string {
+type DeadlineInfo = { kind: "expired" | "today" | "tomorrow" | "days"; days?: number };
+
+function deadlineInfo(isoStr: string): DeadlineInfo {
   const d = new Date(isoStr);
   const now = new Date();
   const days = Math.ceil((d.getTime() - now.getTime()) / 86_400_000);
-  if (days < 0)   return "Expired";
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  return `${days}d left`;
+  if (days < 0)   return { kind: "expired" };
+  if (days === 0) return { kind: "today" };
+  if (days === 1) return { kind: "tomorrow" };
+  return { kind: "days", days };
 }
 
-function cityLabel(v: string): string {
-  return CITY_OPTIONS.find((c) => c.value === v)?.label ?? v;
-}
-
-function employmentLabel(v: string): string {
-  return EMPLOYMENT_TYPE_OPTIONS.find((e) => e.value === v)?.label ?? v;
+function deadlineLabel(info: DeadlineInfo, tt: SchoolJobsTranslations, lang: "en" | "ar"): string {
+  if (info.kind === "expired")  return tt.deadlineExpired;
+  if (info.kind === "today")    return tt.deadlineToday;
+  if (info.kind === "tomorrow") return tt.deadlineTomorrow;
+  return tt.deadlineDaysLeft.replace("{n}", formatNumber(info.days ?? 0, lang));
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: SchoolJob["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    active:  { label: "Active",  cls: "bg-green-100 text-green-700 border border-green-200"    },
-    draft:   { label: "Draft",   cls: "bg-amber-100 text-amber-700 border border-amber-200"    },
-    closed:  { label: "Closed",  cls: "bg-slate-100 text-slate-600 border border-slate-200"    },
-    expired: { label: "Expired", cls: "bg-red-100 text-red-600 border border-red-200"          },
+  const { t } = useTranslation();
+  const tt = t.school.jobs;
+  const map: Record<string, string> = {
+    active:  "bg-green-100 text-green-700 border border-green-200",
+    draft:   "bg-amber-100 text-amber-700 border border-amber-200",
+    closed:  "bg-slate-100 text-slate-600 border border-slate-200",
+    expired: "bg-red-100 text-red-600 border border-red-200",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600" };
+  const cls = map[status] ?? "bg-gray-100 text-gray-600";
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
-      {label}
+      {tt.statusTabLabels[status] ?? status}
     </span>
   );
 }
@@ -248,6 +210,9 @@ function jobToForm(job: SchoolJob): JobFormData {
 }
 
 // ─── Title auto-suggest (SRD 3.2.1) ──────────────────────────────────────────
+// Bilingual suggestions display BOTH languages side by side regardless of the
+// active UI language (the whole point is offering a pick for either title
+// field) — this data is inherently bilingual, not a hardcoded UI string.
 
 const SUBJECT_TITLES: Record<string, { en: string; ar: string }> = {
   islamic_studies:  { en: "Islamic Studies Teacher",  ar: "مدرس دراسات إسلامية" },
@@ -264,7 +229,7 @@ const SUBJECT_TITLES: Record<string, { en: string; ar: string }> = {
   art:              { en: "Art Teacher",              ar: "مدرس تربية فنية" },
 };
 
-const GRADE_GROUP_LABELS: Record<string, { en: string; ar: string }> = {
+const GRADE_GROUP_TITLE_LABELS: Record<string, { en: string; ar: string }> = {
   kg:         { en: "KG",            ar: "روضة" },
   elementary: { en: "Elementary",    ar: "ابتدائي" },
   middle:     { en: "Middle School", ar: "متوسط" },
@@ -299,7 +264,7 @@ function buildTitleSuggestions(
 
   const groups = Array.from(new Set(gradeLevels.map(gradeGroupOf).filter(Boolean))) as string[];
   if (subjectTitles.length === 1 && groups.length === 1) {
-    const lbl = GRADE_GROUP_LABELS[groups[0]];
+    const lbl = GRADE_GROUP_TITLE_LABELS[groups[0]];
     out.push({
       en: `${subjectTitles[0].en} — ${lbl.en}`,
       ar: `${subjectTitles[0].ar} — ${lbl.ar}`,
@@ -326,6 +291,8 @@ function countWords(s: string): number {
 }
 
 function WordCounter({ count }: { count: number }) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.jobs;
   const cls =
     count > WORD_SOFT_CAP
       ? "text-red-600"
@@ -333,9 +300,11 @@ function WordCounter({ count }: { count: number }) {
       ? "text-amber-600"
       : "text-gray-400";
   return (
-    <p className={`text-xs ${cls} mt-1 text-right tabular-nums`}>
-      {count.toLocaleString()} / {WORD_SOFT_CAP.toLocaleString()} words
-      {count > WORD_SOFT_CAP && " · over limit"}
+    <p className={`text-xs ${cls} mt-1 text-end tabular-nums`}>
+      {tt.wordsCountTemplate
+        .replace("{count}", formatNumber(count, lang))
+        .replace("{cap}", formatNumber(WORD_SOFT_CAP, lang))}
+      {count > WORD_SOFT_CAP && tt.overLimitSuffix}
     </p>
   );
 }
@@ -361,10 +330,12 @@ function TagInput({
   values,
   onChange,
   placeholder,
+  removeAriaTemplate,
 }: {
   values: string[];
   onChange: (next: string[]) => void;
   placeholder: string;
+  removeAriaTemplate: string;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -387,7 +358,7 @@ function TagInput({
             type="button"
             onClick={() => onChange(values.filter((x) => x !== v))}
             className="text-gray-400 hover:text-gray-700"
-            aria-label={`Remove ${v}`}
+            aria-label={removeAriaTemplate.replace("{v}", v)}
           >
             <X size={11} />
           </button>
@@ -449,6 +420,10 @@ function buildTemplateForm(source: SchoolJob, mode: "repost" | "duplicate"): Job
 }
 
 function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPaywall }: JobModalProps) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.jobs;
+  const common = t.school.common;
+
   const [form, setForm] = useState<JobFormData>(() => {
     if (editJob) return jobToForm(editJob);
     if (templateJob) return buildTemplateForm(templateJob, templateMode ?? "duplicate");
@@ -494,9 +469,9 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
     form.employmentType === "contract" || form.employmentType === "temporary";
 
   const validate = (): string | null => {
-    if (!form.titleEn.trim() && !form.titleAr.trim()) return "Add a job title in English or Arabic.";
-    if (form.subjects.length === 0) return "Select at least one subject.";
-    if (!form.city) return "City is required.";
+    if (!form.titleEn.trim() && !form.titleAr.trim()) return tt.errorTitleRequired;
+    if (form.subjects.length === 0) return tt.errorSubjectRequired;
+    if (!form.city) return tt.errorCityRequired;
     return null;
   };
 
@@ -582,7 +557,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
         });
         return;
       }
-      setError((e as Error)?.message ?? "Something went wrong.");
+      setError((e as Error)?.message ?? common.somethingWentWrong);
     } finally {
       setSaving(false);
     }
@@ -597,29 +572,27 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
         onClick={onClose}
       />
       {/* Panel */}
-      <div className="relative ml-auto w-full max-w-3xl h-full bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+      <div className="relative ms-auto w-full max-w-3xl h-full bg-white shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-lg font-bold text-gray-900">
               {mode === "preview"
-                ? "Review & Publish"
+                ? tt.modalTitlePreview
                 : editJob
-                ? "Edit Job"
+                ? tt.modalTitleEdit
                 : templateJob
-                ? (templateMode === "repost" ? "Repost Job" : "Duplicate Job")
-                : "Post a New Job"}
+                ? (templateMode === "repost" ? tt.modalTitleRepost : tt.modalTitleDuplicate)
+                : tt.modalTitleCreate}
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
               {mode === "preview"
-                ? "This is how teachers will see your job. Go back to edit anything."
+                ? tt.modalSubtitlePreview
                 : editJob
-                ? "Update your job posting details"
+                ? tt.modalSubtitleEdit
                 : templateJob
-                ? (templateMode === "repost"
-                    ? "Reposting with a fresh 30-day deadline. Edit anything before publishing."
-                    : "Pre-filled from the original. Update what's different.")
-                : "Fill in the details to create a job posting"}
+                ? (templateMode === "repost" ? tt.modalSubtitleRepost : tt.modalSubtitleDuplicate)
+                : tt.modalSubtitleCreate}
             </p>
           </div>
           <button
@@ -645,18 +618,18 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
             <>
               {/* ── Identity ───────────────────────────────────────────── */}
               <section>
-                <SectionHeader icon={Briefcase} title="Job Identity" subtitle="What is this role and what does it cover?" />
+                <SectionHeader icon={Briefcase} title={tt.sectionIdentityTitle} subtitle={tt.sectionIdentitySubtitle} />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                      Job Title (English) <span className="text-gray-400 font-normal">*</span>
+                      {tt.titleEnLabel} <span className="text-gray-400 font-normal">*</span>
                     </label>
                     <input
                       type="text"
                       value={form.titleEn}
                       onChange={(e) => set("titleEn", e.target.value)}
-                      placeholder="e.g. Math Teacher — Middle School"
+                      placeholder={tt.titleEnPlaceholder}
                       dir="ltr"
                       className={inputCls}
                       style={inputStyle}
@@ -664,25 +637,25 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                      Job Title (Arabic) <span className="text-gray-400 font-normal">*</span>
+                      {tt.titleArLabel} <span className="text-gray-400 font-normal">*</span>
                     </label>
                     <input
                       type="text"
                       value={form.titleAr}
                       onChange={(e) => set("titleAr", e.target.value)}
-                      placeholder="مثال: مدرس رياضيات — المرحلة المتوسطة"
+                      placeholder={tt.titleArPlaceholder}
                       dir="rtl"
                       className={inputCls}
                       style={inputStyle}
                     />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1.5">Add at least one language — the other will display as a fallback.</p>
+                <p className="text-xs text-gray-500 mt-1.5">{tt.titleHint}</p>
 
                 {suggestions.length > 0 && (
                   <div className="mt-3 bg-purple-50/40 border border-purple-100 rounded-xl p-3">
                     <p className="text-xs font-semibold text-purple-700 flex items-center gap-1.5 mb-2">
-                      <Sparkles size={12} /> Suggested titles
+                      <Sparkles size={12} /> {tt.suggestedTitlesLabel}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {suggestions.map((s, i) => (
@@ -704,10 +677,10 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 {/* Subjects */}
                 <div className="mt-5">
                   <label className="block text-sm font-semibold text-gray-800 mb-2">
-                    Subjects <span className="text-red-500">*</span>
+                    {tt.subjectsLabel} <span className="text-red-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {SUBJECT_OPTIONS.map(({ label, value }) => {
+                    {SUBJECT_VALUES.map((value) => {
                       const active = form.subjects.includes(value);
                       return (
                         <button
@@ -721,7 +694,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                           }`}
                           style={active ? { background: "var(--brand-gradient)" } : {}}
                         >
-                          {label}
+                          {common.subjectLabels[value] ?? value}
                         </button>
                       );
                     })}
@@ -730,17 +703,17 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
 
                 {/* Grade Levels */}
                 <div className="mt-5">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">Grade Levels</label>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">{tt.gradeLevelsLabel}</label>
                   <div className="grid grid-cols-2 gap-2">
-                    {GRADE_GROUPS.map(({ label, values }) => {
+                    {GRADE_GROUPS.map(({ key, values }) => {
                       const allSelected = values.every((v) => form.gradeLevels.includes(v));
                       const someSelected = values.some((v) => form.gradeLevels.includes(v));
                       return (
                         <button
-                          key={label}
+                          key={key}
                           type="button"
                           onClick={() => toggleGradeGroup(values)}
-                          className={`flex items-center gap-2 px-3.5 py-2.5 text-sm rounded-xl border transition-all text-left ${
+                          className={`flex items-center gap-2 px-3.5 py-2.5 text-sm rounded-xl border transition-all text-start ${
                             allSelected
                               ? "border-transparent text-white"
                               : someSelected
@@ -754,7 +727,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                           ) : (
                             <Square size={14} className="shrink-0" />
                           )}
-                          {label}
+                          {tt.gradeGroupLabels[key]}
                         </button>
                       );
                     })}
@@ -764,23 +737,23 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 {/* Employment type + Positions */}
                 <div className="grid grid-cols-2 gap-4 mt-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Employment Type</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.employmentTypeLabel}</label>
                     <div className="relative">
                       <select
                         value={form.employmentType}
                         onChange={(e) => set("employmentType", e.target.value)}
-                        className={`${inputCls} appearance-none pr-9 bg-white`}
+                        className={`${inputCls} appearance-none pe-9 bg-white`}
                         style={inputStyle}
                       >
-                        {EMPLOYMENT_TYPE_OPTIONS.map(({ label, value }) => (
-                          <option key={value} value={value}>{label}</option>
+                        {EMPLOYMENT_TYPE_VALUES.map((value) => (
+                          <option key={value} value={value}>{common.employmentTypeLabels[value] ?? value}</option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Open Positions</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.openPositionsLabel}</label>
                     <input
                       type="number"
                       min="1"
@@ -795,11 +768,11 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
 
               {/* ── Schedule ───────────────────────────────────────────── */}
               <section>
-                <SectionHeader icon={Calendar} title="Schedule & Compensation" subtitle="When does the role start, and how is it paid?" />
+                <SectionHeader icon={Calendar} title={tt.sectionScheduleTitle} subtitle={tt.sectionScheduleSubtitle} />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Start Date</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.startDateLabel}</label>
                     <input
                       type="date"
                       value={form.startDate}
@@ -809,7 +782,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Application Deadline</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.deadlineLabel}</label>
                     <input
                       type="date"
                       value={form.deadline}
@@ -825,31 +798,31 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 {needsContractDuration && (
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">Contract Duration Mode</label>
+                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.contractDurationModeLabel}</label>
                       <div className="relative">
                         <select
                           value={form.contractDurationType}
                           onChange={(e) => set("contractDurationType", e.target.value as JobFormData["contractDurationType"])}
-                          className={`${inputCls} appearance-none pr-9 bg-white`}
+                          className={`${inputCls} appearance-none pe-9 bg-white`}
                           style={inputStyle}
                         >
-                          <option value="day">By Day (substitute)</option>
-                          <option value="month">By Month</option>
-                          <option value="year">By Year</option>
+                          <option value="day">{tt.contractDurationOptions.day}</option>
+                          <option value="month">{tt.contractDurationOptions.month}</option>
+                          <option value="year">{tt.contractDurationOptions.year}</option>
                         </select>
-                        <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                        Duration ({form.contractDurationType === "day" ? "days" : form.contractDurationType === "month" ? "months" : "years"})
+                        {tt.durationLabelTemplate.replace("{unit}", tt.durationUnitLabels[form.contractDurationType])}
                       </label>
                       <input
                         type="number"
                         min="0"
                         value={form.contractDurationValue}
                         onChange={(e) => set("contractDurationValue", e.target.value)}
-                        placeholder="optional"
+                        placeholder={tt.durationPlaceholder}
                         className={inputCls}
                         style={inputStyle}
                       />
@@ -859,11 +832,11 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
 
                 {/* Salary */}
                 <div className="mt-5">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">Salary (SAR / Month)</label>
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">{tt.salaryLabel}</label>
                   <div className="grid grid-cols-3 gap-3">
                     <input
                       type="number"
-                      placeholder="Min"
+                      placeholder={tt.salaryMinPlaceholder}
                       value={form.salaryMin}
                       onChange={(e) => set("salaryMin", e.target.value)}
                       className={inputCls}
@@ -871,7 +844,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                     />
                     <input
                       type="number"
-                      placeholder="Max"
+                      placeholder={tt.salaryMaxPlaceholder}
                       value={form.salaryMax}
                       onChange={(e) => set("salaryMax", e.target.value)}
                       className={inputCls}
@@ -881,14 +854,14 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                       <select
                         value={form.salaryDisplay}
                         onChange={(e) => set("salaryDisplay", e.target.value)}
-                        className={`${inputCls} appearance-none pr-9 bg-white`}
+                        className={`${inputCls} appearance-none pe-9 bg-white`}
                         style={inputStyle}
                       >
-                        {SALARY_DISPLAY_OPTIONS.map(({ label, value }) => (
-                          <option key={value} value={value}>{label}</option>
+                        {SALARY_DISPLAY_VALUES.map((value) => (
+                          <option key={value} value={value}>{tt.salaryDisplayOptions[value]}</option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
                   </div>
                 </div>
@@ -897,15 +870,15 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 {isSubstituteLike && (
                   <div className="mt-4">
                     <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                      Daily Rate (SAR)
-                      <span className="ml-2 text-xs text-gray-400 font-normal">for substitute / per-diem roles</span>
+                      {tt.dailyRateLabel}
+                      <span className="ms-2 text-xs text-gray-400 font-normal">{tt.dailyRateHint}</span>
                     </label>
                     <input
                       type="number"
                       min="0"
                       value={form.dailyRate}
                       onChange={(e) => set("dailyRate", e.target.value)}
-                      placeholder="e.g. 400"
+                      placeholder={tt.dailyRatePlaceholder}
                       className={inputCls}
                       style={inputStyle}
                     />
@@ -915,33 +888,33 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
 
               {/* ── Location ─────────────────────────────────────────── */}
               <section>
-                <SectionHeader icon={MapPin} title="Location" subtitle="Where will the teacher be based?" />
+                <SectionHeader icon={MapPin} title={tt.sectionLocationTitle} subtitle={tt.sectionLocationSubtitle} />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">City</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.cityLabel}</label>
                     <div className="relative">
                       <select
                         value={form.city}
                         onChange={(e) => set("city", e.target.value)}
-                        className={`${inputCls} appearance-none pr-9 bg-white`}
+                        className={`${inputCls} appearance-none pe-9 bg-white`}
                         style={inputStyle}
                       >
-                        {CITY_OPTIONS.map(({ label, value }) => (
-                          <option key={value} value={value}>{label}</option>
+                        {CITY_VALUES.map((value) => (
+                          <option key={value} value={value}>{common.cityLabels[value] ?? value}</option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                      Campus <span className="text-gray-400 font-normal text-xs">(if multiple)</span>
+                      {tt.campusLabel} <span className="text-gray-400 font-normal text-xs">{tt.campusHint}</span>
                     </label>
                     <input
                       type="text"
                       value={form.campus}
                       onChange={(e) => set("campus", e.target.value)}
-                      placeholder="e.g. Al-Olaya branch"
+                      placeholder={tt.campusPlaceholder}
                       className={inputCls}
                       style={inputStyle}
                     />
@@ -951,14 +924,11 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
 
               {/* ── Description (4 sections × Ar/En) ────────────────── */}
               <section>
-                <SectionHeader icon={BookOpen} title="Job Description" subtitle="Structured sections — add at least one language per section." />
+                <SectionHeader icon={BookOpen} title={tt.sectionDescriptionTitle} subtitle={tt.sectionDescriptionSubtitle} />
 
-                {([
-                  { key: "responsibilities", label: "Responsibilities", placeholder: "Teach, plan lessons, mentor students…" },
-                  { key: "requirements",     label: "Requirements",     placeholder: "Education, experience, certifications, soft skills…" },
-                  { key: "culture",          label: "School Culture",   placeholder: "Values, work environment, team…" },
-                  { key: "benefits",         label: "Benefits",         placeholder: "Housing, transport, professional development…" },
-                ] as const).map(({ key, label, placeholder }) => {
+                {(["responsibilities", "requirements", "culture", "benefits"] as const).map((key) => {
+                  const label = tt.descriptionSectionLabels[key];
+                  const placeholder = tt.descriptionSectionPlaceholders[key];
                   const enKey = (key + "En") as keyof JobFormData;
                   const arKey = (key + "Ar") as keyof JobFormData;
                   const enValue = form[enKey] as string;
@@ -1007,59 +977,59 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
 
               {/* ── Requirements ─────────────────────────────────────── */}
               <section>
-                <SectionHeader icon={GraduationCap} title="Candidate Requirements" subtitle="Who are you looking for?" />
+                <SectionHeader icon={GraduationCap} title={tt.sectionRequirementsTitle} subtitle={tt.sectionRequirementsSubtitle} />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Language Requirement</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.languageRequirementLabel}</label>
                     <div className="relative">
                       <select
                         value={form.languageRequirement}
                         onChange={(e) => set("languageRequirement", e.target.value)}
-                        className={`${inputCls} appearance-none pr-9 bg-white`}
+                        className={`${inputCls} appearance-none pe-9 bg-white`}
                         style={inputStyle}
                       >
-                        {LANGUAGE_OPTIONS.map(({ label, value }) => (
-                          <option key={value} value={value}>{label}</option>
+                        {LANGUAGE_VALUES.map((value) => (
+                          <option key={value} value={value}>{tt.languageRequirementOptions[value]}</option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Experience Required</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.experienceRequiredLabel}</label>
                     <div className="relative">
                       <select
                         value={form.experienceRequired}
                         onChange={(e) => set("experienceRequired", e.target.value)}
-                        className={`${inputCls} appearance-none pr-9 bg-white`}
+                        className={`${inputCls} appearance-none pe-9 bg-white`}
                         style={inputStyle}
                       >
-                        {EXPERIENCE_OPTIONS.map(({ label, value }) => (
-                          <option key={value} value={value}>{label}</option>
+                        {EXPERIENCE_VALUES.map((value) => (
+                          <option key={value} value={value}>{tt.experienceOptions[value]}</option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Degree Required</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.degreeRequiredLabel}</label>
                     <div className="relative">
                       <select
                         value={form.degreeRequired}
                         onChange={(e) => set("degreeRequired", e.target.value)}
-                        className={`${inputCls} appearance-none pr-9 bg-white`}
+                        className={`${inputCls} appearance-none pe-9 bg-white`}
                         style={inputStyle}
                       >
-                        {DEGREE_OPTIONS.map(({ label, value }) => (
-                          <option key={value} value={value}>{label}</option>
+                        {DEGREE_VALUES.map((value) => (
+                          <option key={value} value={value}>{tt.degreeOptions[value]}</option>
                         ))}
                       </select>
-                      <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">Teaching License</label>
+                    <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.teachingLicenseLabel}</label>
                     <button
                       type="button"
                       onClick={() => set("teachingLicenseRequired", !form.teachingLicenseRequired)}
@@ -1072,7 +1042,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                     >
                       {form.teachingLicenseRequired ? <CheckSquare size={14} /> : <Square size={14} />}
                       <Shield size={13} />
-                      Saudi license required
+                      {tt.teachingLicenseHint}
                     </button>
                   </div>
                 </div>
@@ -1080,29 +1050,31 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 {/* Certifications */}
                 <div className="mt-5">
                   <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                    Required Certifications
+                    {tt.certRequiredLabel}
                   </label>
                   <TagInput
                     values={form.certificationsRequired}
                     onChange={(v) => set("certificationsRequired", v)}
-                    placeholder="Type a certification (e.g. TEFL, IB Educator) and press Enter…"
+                    placeholder={tt.certRequiredPlaceholder}
+                    removeAriaTemplate={tt.removeTagAriaTemplate}
                   />
                 </div>
                 <div className="mt-4">
                   <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                    Preferred Certifications
+                    {tt.certPreferredLabel}
                   </label>
                   <TagInput
                     values={form.certificationsPreferred}
                     onChange={(v) => set("certificationsPreferred", v)}
-                    placeholder="Nice-to-have credentials…"
+                    placeholder={tt.certPreferredPlaceholder}
+                    removeAriaTemplate={tt.removeTagAriaTemplate}
                   />
                 </div>
               </section>
 
               {/* ── Visibility & Application Settings ─────────────────── */}
               <section>
-                <SectionHeader icon={Users} title="Visibility & Applications" subtitle="Control who sees the post and how many candidates can apply." />
+                <SectionHeader icon={Users} title={tt.sectionVisibilityTitle} subtitle={tt.sectionVisibilitySubtitle} />
 
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <button
@@ -1120,23 +1092,23 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                     />
                   </button>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">Post Anonymously</p>
-                    <p className="text-xs text-gray-500">Hide school name from public job listing</p>
+                    <p className="text-sm font-semibold text-gray-800">{tt.anonymousLabel}</p>
+                    <p className="text-xs text-gray-500">{tt.anonymousHint}</p>
                   </div>
                 </label>
 
                 {/* SRD 3.2.4 — application cap + auto-close */}
                 <div className="mt-5 pt-5 border-t border-gray-100">
                   <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-                    Maximum Applications
-                    <span className="ml-2 text-xs text-gray-400 font-normal">optional cap</span>
+                    {tt.maxApplicationsLabel}
+                    <span className="ms-2 text-xs text-gray-400 font-normal">{tt.maxApplicationsHint}</span>
                   </label>
                   <input
                     type="number"
                     min="1"
                     value={form.maxApplications}
                     onChange={(e) => set("maxApplications", e.target.value)}
-                    placeholder="e.g. 50 — leave blank for unlimited"
+                    placeholder={tt.maxApplicationsPlaceholder}
                     className={inputCls}
                     style={inputStyle}
                   />
@@ -1158,11 +1130,9 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                       />
                     </button>
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">Auto-close when full</p>
+                      <p className="text-sm font-semibold text-gray-800">{tt.autoCloseLabel}</p>
                       <p className="text-xs text-gray-500">
-                        {form.maxApplications
-                          ? "Job will be moved to Closed automatically once it reaches the application cap."
-                          : "Set a cap above to enable auto-close."}
+                        {form.maxApplications ? tt.autoCloseHintEnabled : tt.autoCloseHintDisabled}
                       </p>
                     </div>
                   </label>
@@ -1182,23 +1152,23 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <Briefcase size={12} />
-                    {employmentLabel(form.employmentType)}
+                    {common.employmentTypeLabels[form.employmentType] ?? form.employmentType}
                   </span>
                   <span>·</span>
                   <span className="flex items-center gap-1">
                     <MapPin size={12} />
-                    {cityLabel(form.city)}{form.campus ? ` (${form.campus})` : ""}
+                    {(common.cityLabels[form.city] ?? form.city)}{form.campus ? ` (${form.campus})` : ""}
                   </span>
                   {form.positions && (
                     <>
                       <span>·</span>
-                      <span>{form.positions} position{form.positions === "1" ? "" : "s"}</span>
+                      <span>{form.positions} {form.positions === "1" ? tt.previewPositionsSuffixSingular : tt.previewPositionsSuffixPlural}</span>
                     </>
                   )}
                   {form.isAnonymous && (
                     <>
                       <span>·</span>
-                      <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Anonymous</span>
+                      <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{tt.previewAnonymousBadge}</span>
                     </>
                   )}
                 </div>
@@ -1208,12 +1178,12 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
               <div className="flex flex-wrap gap-1.5">
                 {form.subjects.map((s) => (
                   <span key={s} className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                    {SUBJECT_OPTIONS.find((o) => o.value === s)?.label ?? s}
+                    {common.subjectLabels[s] ?? s}
                   </span>
                 ))}
                 {Array.from(new Set(form.gradeLevels.map(gradeGroupOf).filter(Boolean))).map((g) => (
                   <span key={g as string} className="text-xs font-medium px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
-                    {GRADE_GROUP_LABELS[g as string]?.en}
+                    {tt.gradeGroupLabels[g as string]}
                   </span>
                 ))}
               </div>
@@ -1221,30 +1191,30 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
               {/* Schedule + compensation */}
               <div className="grid grid-cols-2 gap-4 bg-gray-50 border border-gray-100 rounded-xl p-4">
                 <div>
-                  <p className="text-xs text-gray-500">Start date</p>
+                  <p className="text-xs text-gray-500">{tt.previewStartDateLabel}</p>
                   <p className="text-sm font-semibold text-gray-800">{form.startDate || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Application deadline</p>
+                  <p className="text-xs text-gray-500">{tt.previewDeadlineLabel}</p>
                   <p className="text-sm font-semibold text-gray-800">{form.deadline || "—"}</p>
                 </div>
                 {needsContractDuration && (
                   <div>
-                    <p className="text-xs text-gray-500">Contract</p>
+                    <p className="text-xs text-gray-500">{tt.previewContractLabel}</p>
                     <p className="text-sm font-semibold text-gray-800">
                       {form.contractDurationValue
-                        ? `${form.contractDurationValue} ${form.contractDurationType}${form.contractDurationValue === "1" ? "" : "s"}`
-                        : `By ${form.contractDurationType}`}
+                        ? `${form.contractDurationValue} ${form.contractDurationValue === "1" ? tt.durationUnitSingularLabels[form.contractDurationType] : tt.durationUnitLabels[form.contractDurationType]}`
+                        : tt.previewByUnitTemplate.replace("{unit}", tt.durationUnitSingularLabels[form.contractDurationType])}
                     </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-xs text-gray-500">Salary</p>
+                  <p className="text-xs text-gray-500">{tt.previewSalaryLabel}</p>
                   <p className="text-sm font-semibold text-gray-800">
                     {form.salaryDisplay === "hidden"
-                      ? "Hidden"
+                      ? tt.previewSalaryHidden
                       : form.salaryDisplay === "negotiable"
-                      ? "Negotiable"
+                      ? tt.previewSalaryNegotiable
                       : (form.salaryMin || form.salaryMax)
                         ? <><SARSymbol />{form.salaryMin || "?"} – {form.salaryMax || "?"}/mo</>
                         : "—"}
@@ -1252,15 +1222,15 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 </div>
                 {form.dailyRate && (
                   <div>
-                    <p className="text-xs text-gray-500">Daily rate</p>
+                    <p className="text-xs text-gray-500">{tt.previewDailyRateLabel}</p>
                     <p className="text-sm font-semibold text-gray-800"><SARSymbol />{form.dailyRate}/day</p>
                   </div>
                 )}
                 {form.maxApplications && (
                   <div>
-                    <p className="text-xs text-gray-500">Application cap</p>
+                    <p className="text-xs text-gray-500">{tt.previewApplicationCapLabel}</p>
                     <p className="text-sm font-semibold text-gray-800">
-                      {form.maxApplications}{form.autoCloseOnMax ? " · auto-closes" : ""}
+                      {form.maxApplications}{form.autoCloseOnMax ? tt.previewAutoClosesSuffix : ""}
                     </p>
                   </div>
                 )}
@@ -1268,19 +1238,19 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
 
               {/* Description sections */}
               <div className="space-y-5">
-                <PreviewBlock label="Responsibilities" en={form.responsibilitiesEn} ar={form.responsibilitiesAr} />
-                <PreviewBlock label="Requirements"     en={form.requirementsEn}     ar={form.requirementsAr} />
-                <PreviewBlock label="School Culture"   en={form.cultureEn}          ar={form.cultureAr} />
-                <PreviewBlock label="Benefits"         en={form.benefitsEn}         ar={form.benefitsAr} />
+                <PreviewBlock label={tt.descriptionSectionLabels.responsibilities} en={form.responsibilitiesEn} ar={form.responsibilitiesAr} />
+                <PreviewBlock label={tt.descriptionSectionLabels.requirements}     en={form.requirementsEn}     ar={form.requirementsAr} />
+                <PreviewBlock label={tt.descriptionSectionLabels.culture}          en={form.cultureEn}          ar={form.cultureAr} />
+                <PreviewBlock label={tt.descriptionSectionLabels.benefits}         en={form.benefitsEn}         ar={form.benefitsAr} />
               </div>
 
               {/* Credentials + langs */}
               <div className="text-sm text-gray-700 space-y-1.5">
-                <p className="flex items-center gap-2"><Languages size={13} className="text-gray-400" /> Language: <span className="font-medium">{form.languageRequirement}</span></p>
-                <p className="flex items-center gap-2"><Briefcase size={13} className="text-gray-400" /> Experience: <span className="font-medium">{form.experienceRequired}</span></p>
-                <p className="flex items-center gap-2"><GraduationCap size={13} className="text-gray-400" /> Degree: <span className="font-medium">{form.degreeRequired}</span></p>
+                <p className="flex items-center gap-2"><Languages size={13} className="text-gray-400" /> {tt.previewLanguageLabel} <span className="font-medium">{tt.languageRequirementOptions[form.languageRequirement]}</span></p>
+                <p className="flex items-center gap-2"><Briefcase size={13} className="text-gray-400" /> {tt.previewExperienceLabel} <span className="font-medium">{tt.experienceOptions[form.experienceRequired] ?? form.experienceRequired}</span></p>
+                <p className="flex items-center gap-2"><GraduationCap size={13} className="text-gray-400" /> {tt.previewDegreeLabel} <span className="font-medium">{tt.degreeOptions[form.degreeRequired] ?? form.degreeRequired}</span></p>
                 {form.teachingLicenseRequired && (
-                  <p className="flex items-center gap-2"><Shield size={13} className="text-gray-400" /> Saudi teaching license required</p>
+                  <p className="flex items-center gap-2"><Shield size={13} className="text-gray-400" /> {tt.previewLicenseLabel}</p>
                 )}
               </div>
 
@@ -1288,7 +1258,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 <div className="space-y-2">
                   {form.certificationsRequired.length > 0 && (
                     <div>
-                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">Required Certifications</p>
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">{tt.previewRequiredCertsLabel}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {form.certificationsRequired.map((c) => (
                           <span key={c} className="text-xs px-2 py-1 rounded-lg bg-red-50 border border-red-100 text-red-700">{c}</span>
@@ -1298,7 +1268,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                   )}
                   {form.certificationsPreferred.length > 0 && (
                     <div>
-                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">Preferred Certifications</p>
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">{tt.previewPreferredCertsLabel}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {form.certificationsPreferred.map((c) => (
                           <span key={c} className="text-xs px-2 py-1 rounded-lg bg-gray-100 border border-gray-200 text-gray-700">{c}</span>
@@ -1322,7 +1292,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 disabled={saving}
                 className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
               >
-                Cancel
+                {common.cancel}
               </button>
               <div className="flex items-center gap-2">
                 <button
@@ -1331,7 +1301,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                   disabled={saving}
                   className="px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 rounded-xl transition-colors disabled:opacity-60"
                 >
-                  {saving ? <Loader2 size={15} className="animate-spin" /> : "Save as Draft"}
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : tt.saveAsDraft}
                 </button>
                 <button
                   type="button"
@@ -1341,7 +1311,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                   style={{ background: "var(--brand-gradient)" }}
                 >
                   <Eye size={14} />
-                  Preview
+                  {tt.previewCta}
                 </button>
               </div>
             </>
@@ -1353,7 +1323,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                 disabled={saving}
                 className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
               >
-                <ChevronLeft size={14} /> Back to Edit
+                {lang === "ar" ? <ChevronRight size={14} /> : <ChevronLeft size={14} />} {tt.backToEdit}
               </button>
               <div className="flex items-center gap-2">
                 <button
@@ -1362,7 +1332,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                   disabled={saving}
                   className="px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 rounded-xl transition-colors disabled:opacity-60"
                 >
-                  {saving ? <Loader2 size={15} className="animate-spin" /> : "Save as Draft"}
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : tt.saveAsDraft}
                 </button>
                 <button
                   type="button"
@@ -1376,7 +1346,7 @@ function JobModal({ editJob, templateJob, templateMode, onClose, onSaved, onPayw
                   ) : (
                     <>
                       <Send size={14} />
-                      {editJob && editJob.status === "active" ? "Save Changes" : "Publish"}
+                      {editJob && editJob.status === "active" ? tt.saveChanges : tt.publish}
                     </>
                   )}
                 </button>
@@ -1405,6 +1375,9 @@ interface JobCardProps {
 }
 
 function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, onRepost, onDuplicate, actionLoading }: JobCardProps) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.jobs;
+  const common = t.school.common;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const isLoading = actionLoading === job._id;
@@ -1421,8 +1394,9 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
 
   const displayedSubjects = job.subjects.slice(0, 3);
   const extraSubjects = job.subjects.length - 3;
-  const deadlineLabel = job.deadline ? formatDeadline(job.deadline) : null;
-  const isDeadlineUrgent = deadlineLabel && deadlineLabel !== "Expired" && parseInt(deadlineLabel) <= 3;
+  const dInfo = job.deadline ? deadlineInfo(job.deadline) : null;
+  const dLabel = dInfo ? deadlineLabel(dInfo, tt, lang) : null;
+  const isDeadlineUrgent = dInfo?.kind === "days" && (dInfo.days ?? 99) <= 3;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all relative group">
@@ -1437,18 +1411,18 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-2 flex-wrap">
           <StatusBadge status={job.status} />
-          {deadlineLabel && (
+          {dLabel && (
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                deadlineLabel === "Expired"
+                dInfo?.kind === "expired"
                   ? "bg-red-50 text-red-500"
                   : isDeadlineUrgent
                   ? "bg-orange-50 text-orange-600"
                   : "bg-gray-50 text-gray-500"
               }`}
             >
-              <Clock size={10} className="inline mr-1" />
-              {deadlineLabel}
+              <Clock size={10} className="inline me-1" />
+              {dLabel}
             </span>
           )}
         </div>
@@ -1462,19 +1436,19 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
             <MoreVertical size={16} />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20">
+            <div className="absolute end-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20">
               <button
                 onClick={() => { setMenuOpen(false); onEdit(job); }}
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                <Pencil size={13} className="text-gray-400" /> Edit
+                <Pencil size={13} className="text-gray-400" /> {tt.menuEdit}
               </button>
               {job.status === "draft" && (
                 <button
                   onClick={() => { setMenuOpen(false); onPublish(job._id); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <Send size={13} className="text-blue-400" /> Publish
+                  <Send size={13} className="text-blue-400" /> {tt.menuPublish}
                 </button>
               )}
               {job.status === "active" && (
@@ -1482,7 +1456,7 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
                   onClick={() => { setMenuOpen(false); onClose(job._id); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <X size={13} className="text-amber-400" /> Close Job
+                  <X size={13} className="text-amber-400" /> {tt.menuCloseJob}
                 </button>
               )}
               {/* SRD 3.2.7 — Extend deadline (active + expired) */}
@@ -1491,7 +1465,7 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
                   onClick={() => { setMenuOpen(false); onExtendDeadline(job); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <CalendarPlus size={13} className="text-emerald-400" /> Extend deadline
+                  <CalendarPlus size={13} className="text-emerald-400" /> {tt.menuExtendDeadline}
                 </button>
               )}
               {/* SRD 3.2.7 — Repost (expired only) */}
@@ -1500,7 +1474,7 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
                   onClick={() => { setMenuOpen(false); onRepost(job); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <RotateCcw size={13} className="text-purple-400" /> Repost
+                  <RotateCcw size={13} className="text-purple-400" /> {tt.menuRepost}
                 </button>
               )}
               {/* SRD 3.2.7 — Duplicate (any status) */}
@@ -1508,14 +1482,14 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
                 onClick={() => { setMenuOpen(false); onDuplicate(job); }}
                 className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                <Copy size={13} className="text-sky-400" /> Duplicate
+                <Copy size={13} className="text-sky-400" /> {tt.menuDuplicate}
               </button>
               <Link
                 href={`/school/applications?jobId=${job._id}`}
                 className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 onClick={() => setMenuOpen(false)}
               >
-                <FileText size={13} className="text-indigo-400" /> View Applications
+                <FileText size={13} className="text-indigo-400" /> {tt.menuViewApplications}
               </Link>
               {job.status === "draft" && (
                 <>
@@ -1524,7 +1498,7 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
                     onClick={() => { setMenuOpen(false); onDelete(job._id); }}
                     className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
                   >
-                    <Trash2 size={13} /> Delete
+                    <Trash2 size={13} /> {tt.menuDelete}
                   </button>
                 </>
               )}
@@ -1542,22 +1516,22 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
       <div className="flex flex-wrap items-center gap-1.5 mb-3">
         <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 border border-gray-100 px-2 py-1 rounded-full">
           <MapPin size={10} className="text-gray-400" />
-          {cityLabel(job.city)}
+          {common.cityLabels[job.city] ?? job.city}
         </span>
         <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-50 border border-gray-100 px-2 py-1 rounded-full">
           <Briefcase size={10} className="text-gray-400" />
-          {employmentLabel(job.employmentType)}
+          {common.employmentTypeLabels[job.employmentType] ?? job.employmentType}
         </span>
         {job.salary.display === "show" && (job.salary.min || job.salary.max) && (
           <span className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">
             <DollarSign size={10} />
-            <SARSymbol />{job.salary.min?.toLocaleString() ?? "–"}
-            {job.salary.max ? `–${job.salary.max.toLocaleString()}` : "+"}
+            {job.salary.min ? formatCurrency(job.salary.min, lang) : "–"}
+            {job.salary.max ? `–${formatNumber(job.salary.max, lang)}` : "+"}
           </span>
         )}
         {job.salary.display === "negotiable" && (
           <span className="text-xs text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded-full">
-            Negotiable
+            {tt.negotiable}
           </span>
         )}
       </div>
@@ -1565,17 +1539,14 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
       {/* Subjects */}
       {job.subjects.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {displayedSubjects.map((s) => {
-            const label = SUBJECT_OPTIONS.find((o) => o.value === s)?.label ?? s;
-            return (
-              <span key={s} className="text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
-                {label}
-              </span>
-            );
-          })}
+          {displayedSubjects.map((s) => (
+            <span key={s} className="text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
+              {common.subjectLabels[s] ?? s}
+            </span>
+          ))}
           {extraSubjects > 0 && (
             <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full">
-              +{extraSubjects} more
+              {tt.moreSubjectsSuffix.replace("{n}", formatNumber(extraSubjects, lang))}
             </span>
           )}
         </div>
@@ -1585,7 +1556,7 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
       <div className="flex items-center gap-4 pt-3 border-t border-gray-50">
         <span className="flex items-center gap-1.5 text-xs text-gray-500">
           <Eye size={13} className="text-gray-400" />
-          {job.viewsCount.toLocaleString()} views
+          {tt.viewsSuffix.replace("{n}", formatNumber(job.viewsCount, lang))}
         </span>
         <Link
           href={`/school/applications?jobId=${job._id}`}
@@ -1594,13 +1565,13 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
         >
           <FileText size={13} className={job.applicationsCount > 0 ? "" : "text-gray-400"} />
           <span className={job.applicationsCount > 0 ? "" : "text-gray-500"}>
-            {job.applicationsCount.toLocaleString()} applications
+            {tt.applicationsSuffix.replace("{n}", formatNumber(job.applicationsCount, lang))}
           </span>
         </Link>
         {job.positions && job.positions > 1 && (
           <span className="flex items-center gap-1.5 text-xs text-gray-500">
             <Users size={13} className="text-gray-400" />
-            {job.positions} positions
+            {tt.positionsSuffix.replace("{n}", formatNumber(job.positions, lang))}
           </span>
         )}
       </div>
@@ -1611,6 +1582,8 @@ function JobCard({ job, onEdit, onPublish, onClose, onDelete, onExtendDeadline, 
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
+  const { t } = useTranslation();
+  const tt = t.school.jobs;
   return (
     <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
       <div
@@ -1619,9 +1592,9 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
       >
         <Briefcase size={36} className="text-white" />
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">No job postings yet</h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">{tt.emptyTitle}</h3>
       <p className="text-sm text-gray-500 max-w-xs mb-6">
-        Create your first job to start attracting qualified teachers and build your hiring pipeline.
+        {tt.emptyBody}
       </p>
       <button
         onClick={onCreateClick}
@@ -1629,7 +1602,7 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
         style={{ background: "var(--brand-gradient)" }}
       >
         <Plus size={16} />
-        Post Your First Job
+        {tt.emptyCta}
       </button>
     </div>
   );
@@ -1637,15 +1610,13 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-const STATUS_TABS: { value: StatusFilter; label: string }[] = [
-  { value: "all",     label: "All"     },
-  { value: "active",  label: "Active"  },
-  { value: "draft",   label: "Draft"   },
-  { value: "closed",  label: "Closed"  },
-  { value: "expired", label: "Expired" },
-];
+const STATUS_TAB_VALUES: StatusFilter[] = ["all", "active", "draft", "closed", "expired"];
 
 export default function JobsPage() {
+  const { t } = useTranslation();
+  const tt = t.school.jobs;
+  const common = t.school.common;
+
   const [jobs, setJobs]               = useState<SchoolJob[]>([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState<string | null>(null);
@@ -1670,11 +1641,11 @@ export default function JobsPage() {
       const res = await listSchoolJobs({ limit: 100 });
       setJobs(res.jobs ?? []);
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to load jobs");
+      setError((e as Error)?.message ?? tt.loadFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailedFallback]);
 
   useEffect(() => { loadJobs(); }, [loadJobs]);
 
@@ -1736,7 +1707,7 @@ export default function JobsPage() {
   };
 
   const handleDelete = async (jobId: string) => {
-    if (!confirm("Delete this draft job? This cannot be undone.")) return;
+    if (!confirm(tt.deleteConfirm)) return;
     setActionLoading(jobId);
     try {
       await deleteJob(jobId);
@@ -1772,7 +1743,7 @@ export default function JobsPage() {
         });
         return;
       }
-      const msg = e instanceof Error ? e.message : "Failed to extend deadline";
+      const msg = e instanceof Error ? e.message : tt.extendFailedFallback;
       alert(msg);
     } finally {
       setActionLoading(null);
@@ -1789,9 +1760,9 @@ export default function JobsPage() {
         <div>
           <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <Briefcase size={20} style={{ color: "var(--brand-primary)" }} />
-            Job Postings
+            {tt.pageTitle}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage your open positions</p>
+          <p className="text-sm text-gray-500 mt-0.5">{tt.pageSubtitle}</p>
         </div>
         <button
           onClick={openCreate}
@@ -1799,15 +1770,16 @@ export default function JobsPage() {
           style={{ background: "var(--brand-gradient)" }}
         >
           <Plus size={16} />
-          Post a Job
+          {tt.postAJob}
         </button>
       </div>
 
       {/* ── Status filter tabs ───────────────────────────────────────── */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit flex-wrap">
-        {STATUS_TABS.map(({ value, label }) => {
+        {STATUS_TAB_VALUES.map((value) => {
           const active = filter === value;
           const count = counts[value];
+          const label = value === "all" ? common.all : tt.statusTabLabels[value];
           return (
             <button
               key={value}
@@ -1847,7 +1819,7 @@ export default function JobsPage() {
             className="px-4 py-2 text-sm font-medium text-white rounded-xl"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Retry
+            {common.retry}
           </button>
         </div>
       ) : filteredJobs.length === 0 ? (
@@ -1902,14 +1874,9 @@ export default function JobsPage() {
         fromKey={paywall?.fromKey}
         message={paywall?.message}
         title={paywall && paywall.limit
-          ? `Trial accounts can post ${paywall.limit} job at a time`
+          ? tt.paywallTitleTemplate.replace("{limit}", String(paywall.limit))
           : undefined}
-        bullets={[
-          "Unlimited active job posts",
-          "Unlimited candidate CV views",
-          "Bulk candidate export (PDF)",
-          "Best Match (AI) ranking",
-        ]}
+        bullets={tt.paywallBullets}
       />
     </div>
   );
@@ -1928,6 +1895,9 @@ function ExtendDeadlineDialog({
   onCancel: () => void;
   onConfirm: (deadline: string) => void;
 }) {
+  const { t } = useTranslation();
+  const tt = t.school.jobs;
+  const common: SchoolCommonTranslations = t.school.common;
   // Default to 14 days from today.
   const defaultDeadline = (() => {
     const d = new Date(); d.setDate(d.getDate() + 14);
@@ -1946,11 +1916,11 @@ function ExtendDeadlineDialog({
             <CalendarPlus size={16} />
           </span>
           <div>
-            <h3 className="text-base font-bold text-gray-900">Extend deadline</h3>
+            <h3 className="text-base font-bold text-gray-900">{tt.extendDialogTitle}</h3>
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{job.title}</p>
           </div>
         </div>
-        <label className="block text-sm font-semibold text-gray-800 mb-1.5">New deadline</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.extendDialogNewDeadlineLabel}</label>
         <input
           type="date"
           value={deadline}
@@ -1961,7 +1931,7 @@ function ExtendDeadlineDialog({
         />
         {job.status === "expired" && (
           <p className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            This job will be re-activated and visible to teachers again.
+            {tt.extendDialogReactivateNote}
           </p>
         )}
         <div className="flex justify-end gap-2 mt-5">
@@ -1971,7 +1941,7 @@ function ExtendDeadlineDialog({
             disabled={saving}
             className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
           >
-            Cancel
+            {common.cancel}
           </button>
           <button
             type="button"
@@ -1981,7 +1951,7 @@ function ExtendDeadlineDialog({
             style={{ background: "var(--brand-gradient)" }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : <CalendarPlus size={14} />}
-            Extend
+            {tt.extendDialogConfirmCta}
           </button>
         </div>
       </div>
