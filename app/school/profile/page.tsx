@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 import {
   Building2,
   MapPin,
@@ -16,6 +15,7 @@ import {
   Loader2,
   X,
   Upload,
+  ChevronLeft,
   ChevronRight,
   Info,
   Globe,
@@ -37,89 +37,42 @@ import type { SchoolProfile } from "@/lib/api/school";
 // SRD 3.1.1 — school logo capped at 2MB. Enforced server-side too (uploadLogo middleware).
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 import { useAuth } from "@/lib/auth/useAuth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate as formatDateIntl } from "@/lib/i18n/format";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SCHOOL_TYPES = [
-  { value: "government",    label: "Government" },
-  { value: "private",       label: "Private" },
-  { value: "international", label: "International" },
-  { value: "ahli",          label: "Ahli" },
-] as const;
-
-const EDUCATION_LEVELS = [
-  { value: "elementary", label: "Elementary" },
-  { value: "middle",     label: "Middle School" },
-  { value: "high",       label: "High School" },
-  { value: "k12",        label: "K-12" },
-  { value: "mixed",      label: "Mixed" },
-] as const;
-
+const SCHOOL_TYPES = ["government", "private", "international", "ahli"] as const;
+const EDUCATION_LEVELS = ["elementary", "middle", "high", "k12", "mixed"] as const;
 // SRD 3.1.1 — 5 curriculum options taught in KSA schools.
-const CURRICULA = [
-  { value: "saudi",     label: "Saudi National" },
-  { value: "british",   label: "British" },
-  { value: "american",  label: "American" },
-  { value: "ib",        label: "International Baccalaureate (IB)" },
-  { value: "cambridge", label: "Cambridge" },
-] as const;
-
-const GENDERS = [
-  { value: "male",   label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "mixed",  label: "Mixed" },
-] as const;
-
-const STUDENT_COUNTS = [
-  { value: "<100",       label: "Less than 100" },
-  { value: "100-500",    label: "100 – 500" },
-  { value: "500-1000",   label: "500 – 1,000" },
-  { value: "1000-5000",  label: "1,000 – 5,000" },
-  { value: ">5000",      label: "More than 5,000" },
-] as const;
-
-const SAUDI_CITIES = [
-  { value: "riyadh",  label: "Riyadh" },
-  { value: "jeddah",  label: "Jeddah" },
-  { value: "makkah",  label: "Makkah" },
-  { value: "madinah", label: "Madinah" },
-  { value: "dammam",  label: "Dammam" },
-  { value: "khobar",  label: "Khobar" },
-  { value: "jubail",  label: "Jubail" },
-  { value: "taif",    label: "Taif" },
-  { value: "tabuk",   label: "Tabuk" },
-  { value: "other",   label: "Other" },
-] as const;
+const CURRICULA = ["saudi", "british", "american", "ib", "cambridge"] as const;
+const GENDERS = ["male", "female", "mixed"] as const;
+const STUDENT_COUNTS = ["<100", "100-500", "500-1000", "1000-5000", ">5000"] as const;
+const SAUDI_CITIES = ["riyadh", "jeddah", "makkah", "madinah", "dammam", "khobar", "jubail", "taif", "tabuk", "other"] as const;
 
 // Completion score weights — kept in sync with school-profile.service.ts/calculateCompletion.
 const COMPLETION_WEIGHTS = [
-  { key: "nameAr",                 weight: 7,  label: "School Name (Arabic)" },
-  { key: "nameEn",                 weight: 8,  label: "School Name (English)" },
-  { key: "type",                   weight: 5,  label: "School Type" },
-  { key: "educationLevel",         weight: 5,  label: "Education Level" },
-  { key: "curriculum",             weight: 3,  label: "Curriculum" },
-  { key: "gender",                 weight: 5,  label: "Gender" },
-  { key: "city",                   weight: 5,  label: "City" },
-  { key: "logo",                   weight: 5,  label: "School Logo" },
-  { key: "adminContact",           weight: 10, label: "Admin Contact" },
-  { key: "headOfSchool",           weight: 5,  label: "Head of School" },
-  { key: "phone",                  weight: 3,  label: "Phone" },
-  { key: "email",                  weight: 2,  label: "Email" },
-  { key: "crNumber",               weight: 3,  label: "Commercial Registration #" },
-  { key: "licenseNumber",          weight: 3,  label: "Educational License #" },
-  { key: "commercialRegistration", weight: 18, label: "Commercial Registration (doc)" },
-  { key: "ministryLicense",        weight: 13, label: "Ministry License (doc)" },
+  { key: "nameAr",                 weight: 7  },
+  { key: "nameEn",                 weight: 8  },
+  { key: "type",                   weight: 5  },
+  { key: "educationLevel",         weight: 5  },
+  { key: "curriculum",             weight: 3  },
+  { key: "gender",                 weight: 5  },
+  { key: "city",                   weight: 5  },
+  { key: "logo",                   weight: 5  },
+  { key: "adminContact",           weight: 10 },
+  { key: "headOfSchool",           weight: 5  },
+  { key: "phone",                  weight: 3  },
+  { key: "email",                  weight: 2  },
+  { key: "crNumber",               weight: 3  },
+  { key: "licenseNumber",          weight: 3  },
+  { key: "commercialRegistration", weight: 18 },
+  { key: "ministryLicense",        weight: 13 },
 ] as const;
 
 type SectionId = "basic" | "location" | "contact" | "admin" | "credentials" | "documents";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatUploadDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-  });
-}
 
 function sectionDone(profile: SchoolProfile | null, id: SectionId): boolean {
   if (!profile) return false;
@@ -177,6 +130,7 @@ function SectionHeader({
   subtitle?: string;
   done?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-start justify-between mb-6">
       <div>
@@ -186,7 +140,7 @@ function SectionHeader({
             <CheckCircle2 size={16} className="text-green-500" />
           ) : (
             <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-              Incomplete
+              {t.school.profile.incompleteBadge}
             </span>
           )}
         </h2>
@@ -203,6 +157,7 @@ function SaveButton({
   saving: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="mt-6 pt-5 border-t border-gray-100 flex justify-end">
       <button
@@ -212,7 +167,7 @@ function SaveButton({
         style={{ background: "var(--brand-gradient)" }}
       >
         {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-        {saving ? "Saving…" : "Save Changes"}
+        {saving ? t.school.common.saving : t.school.profile.saveChangesButton}
       </button>
     </div>
   );
@@ -233,6 +188,8 @@ function DocumentUploadZone({
   uploading: boolean;
   onFile: (file: File) => void;
 }) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.profile;
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -245,7 +202,7 @@ function DocumentUploadZone({
         {uploadedAt && (
           <span className="shrink-0 flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full font-medium">
             <CheckCircle2 size={11} />
-            Uploaded {formatUploadDate(uploadedAt)}
+            {tt.uploadedOnTemplate.replace("{date}", formatDateIntl(uploadedAt, lang, { month: "short", day: "numeric", year: "numeric" }))}
           </span>
         )}
       </div>
@@ -253,7 +210,7 @@ function DocumentUploadZone({
       {uploading ? (
         <div className="flex items-center justify-center gap-2 p-4 bg-gray-50 rounded-lg">
           <Loader2 size={16} className="animate-spin text-gray-400" />
-          <span className="text-xs text-gray-500">Uploading…</span>
+          <span className="text-xs text-gray-500">{tt.uploadingLabel}</span>
         </div>
       ) : (
         <div
@@ -263,11 +220,11 @@ function DocumentUploadZone({
           <Upload size={18} className="text-gray-400 mx-auto mb-1.5" />
           <p className="text-xs text-gray-500">
             <span className="font-medium" style={{ color: "var(--brand-primary)" }}>
-              {uploadedAt ? "Replace document" : "Click to upload"}
+              {uploadedAt ? tt.replaceDocumentLabel : tt.clickToUploadLabel}
             </span>
-            {" "}or drag & drop
+            {" "}{tt.orDragDrop}
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">PDF only — max 5MB</p>
+          <p className="text-xs text-gray-400 mt-0.5">{tt.pdfMaxSizeHint}</p>
         </div>
       )}
 
@@ -291,6 +248,8 @@ function DocumentUploadZone({
 // ─── Completion Banner ────────────────────────────────────────────────────────
 
 function CompletionBanner({ profile }: { profile: SchoolProfile }) {
+  const { t } = useTranslation();
+  const tt = t.school.profile;
   const missing = COMPLETION_WEIGHTS.filter(({ key }) => {
     switch (key) {
       case "nameAr":                 return !profile.nameAr;
@@ -320,15 +279,15 @@ function CompletionBanner({ profile }: { profile: SchoolProfile }) {
       <Info size={15} className="text-blue-500 shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-blue-800 mb-1.5">
-          Complete these sections to reach 60% and submit for verification:
+          {tt.completionBannerIntro}
         </p>
         <div className="flex flex-wrap gap-1.5">
-          {missing.map(({ key, label, weight }) => (
+          {missing.map(({ key, weight }) => (
             <span
               key={key}
               className="text-xs bg-white border border-blue-200 text-blue-700 px-2 py-0.5 rounded-full font-medium"
             >
-              +{weight}% {label}
+              {tt.completionBadgeTemplate.replace("{weight}", String(weight)).replace("{label}", tt.completionFieldLabels[key])}
             </span>
           ))}
         </div>
@@ -341,6 +300,8 @@ function CompletionBanner({ profile }: { profile: SchoolProfile }) {
 
 export default function SchoolProfilePage() {
   const { user } = useAuth();
+  const { t, isRTL } = useTranslation();
+  const tt = t.school.profile;
   const [profile, setProfile]           = useState<SchoolProfile | null>(null);
   const [loading, setLoading]           = useState(true);
   const [activeSection, setActiveSection] = useState<SectionId>("basic");
@@ -537,7 +498,7 @@ export default function SchoolProfilePage() {
   const handleLogoUpload = async (file: File) => {
     setLogoError(null);
     if (file.size > LOGO_MAX_BYTES) {
-      setLogoError(`Logo is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max size is 2 MB.`);
+      setLogoError(tt.logoTooLargeTemplate.replace("{size}", (file.size / 1024 / 1024).toFixed(1)));
       return;
     }
     try {
@@ -547,7 +508,7 @@ export default function SchoolProfilePage() {
       );
     } catch (err) {
       console.error(err);
-      setLogoError(err instanceof Error ? err.message : "Failed to upload logo.");
+      setLogoError(err instanceof Error ? err.message : t.school.common.somethingWentWrong);
     }
   };
 
@@ -598,17 +559,17 @@ export default function SchoolProfilePage() {
   const completion    = profile?.completionPercentage ?? 0;
   const profileStatus = profile?.profileStatus ?? "draft";
   const schoolName    = profile?.nameEn ?? profile?.nameAr ?? user?.schoolName ?? "School";
-  const initial       = schoolName[0]?.toUpperCase() ?? "S";
+  const initial        = schoolName[0]?.toUpperCase() ?? "S";
 
   const canSubmit     = completion >= 60 && profileStatus === "draft";
 
   const sectionList: { id: SectionId; label: string; icon: React.ElementType; done: boolean }[] = [
-    { id: "basic",       label: "Basic Info",     icon: Building2,  done: sectionDone(profile, "basic")       },
-    { id: "location",    label: "Location",       icon: MapPin,     done: sectionDone(profile, "location")    },
-    { id: "contact",     label: "Contact",        icon: Phone,      done: sectionDone(profile, "contact")     },
-    { id: "admin",       label: "Admin Contact",  icon: UserCog,    done: sectionDone(profile, "admin")       },
-    { id: "credentials", label: "Credentials",    icon: ShieldCheck, done: sectionDone(profile, "credentials") },
-    { id: "documents",   label: "Documents",      icon: FileText,   done: sectionDone(profile, "documents")   },
+    { id: "basic",       label: tt.sectionLabels.basic,       icon: Building2,   done: sectionDone(profile, "basic")       },
+    { id: "location",    label: tt.sectionLabels.location,    icon: MapPin,      done: sectionDone(profile, "location")    },
+    { id: "contact",     label: tt.sectionLabels.contact,     icon: Phone,       done: sectionDone(profile, "contact")     },
+    { id: "admin",       label: tt.sectionLabels.admin,       icon: UserCog,     done: sectionDone(profile, "admin")       },
+    { id: "credentials", label: tt.sectionLabels.credentials, icon: ShieldCheck, done: sectionDone(profile, "credentials") },
+    { id: "documents",   label: tt.sectionLabels.documents,   icon: FileText,    done: sectionDone(profile, "documents")   },
   ];
 
   const statusBadge = () => {
@@ -616,25 +577,25 @@ export default function SchoolProfilePage() {
       case "verified":
         return (
           <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
-            <CheckCircle2 size={11} /> Verified by Abjad
+            <CheckCircle2 size={11} /> {tt.statusVerified}
           </span>
         );
       case "pending":
         return (
           <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
-            <Loader2 size={11} className="animate-spin" /> Verification in progress
+            <Loader2 size={11} className="animate-spin" /> {tt.statusPending}
           </span>
         );
       case "rejected":
         return (
           <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium">
-            <X size={11} /> Rejected
+            <X size={11} /> {tt.statusRejected}
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">
-            <AlertCircle size={11} /> Draft
+            <AlertCircle size={11} /> {tt.statusDraft}
           </span>
         );
     }
@@ -658,9 +619,9 @@ export default function SchoolProfilePage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">School Profile</h1>
+          <h1 className="text-xl font-bold text-gray-900">{tt.pageTitle}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Manage your school information visible to teachers
+            {tt.pageSubtitle}
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -668,7 +629,7 @@ export default function SchoolProfilePage() {
             className="text-sm font-semibold px-3 py-1.5 rounded-lg"
             style={{ backgroundColor: "var(--brand-primary-light)", color: "var(--brand-primary)" }}
           >
-            {completion}% Complete
+            {tt.completePercentTemplate.replace("{n}", String(completion))}
           </div>
           {canSubmit && !submitSuccess && (
             <button
@@ -678,12 +639,12 @@ export default function SchoolProfilePage() {
               style={{ background: "var(--brand-gradient)" }}
             >
               {submitting ? <Loader2 size={14} className="animate-spin" /> : null}
-              Submit for Verification
+              {tt.submitForVerification}
             </button>
           )}
           {submitSuccess && (
             <span className="flex items-center gap-1.5 text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg font-medium">
-              <CheckCircle2 size={14} /> Submitted
+              <CheckCircle2 size={14} /> {tt.submitted}
             </span>
           )}
         </div>
@@ -713,7 +674,7 @@ export default function SchoolProfilePage() {
               )}
               <button
                 onClick={() => logoInputRef.current?.click()}
-                className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
+                className="absolute bottom-0 end-0 w-7 h-7 bg-white rounded-full border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
               >
                 <Camera size={13} className="text-gray-600" />
               </button>
@@ -732,7 +693,7 @@ export default function SchoolProfilePage() {
 
             <h3 className="font-semibold text-gray-900 text-sm leading-snug">{schoolName}</h3>
             <p className="text-xs text-gray-400 mt-0.5">{user?.email}</p>
-            <p className="text-[11px] text-gray-400 mt-1">PNG / JPG / WebP — max 2 MB</p>
+            <p className="text-[11px] text-gray-400 mt-1">{tt.logoHint}</p>
             {logoError && (
               <p className="mt-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2 py-1.5">
                 {logoError}
@@ -743,7 +704,7 @@ export default function SchoolProfilePage() {
             {/* Completion bar */}
             <div className="mt-4">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>Profile strength</span>
+                <span>{tt.profileStrengthLabel}</span>
                 <span className="font-medium" style={{ color: "var(--brand-primary)" }}>
                   {completion}%
                 </span>
@@ -763,7 +724,7 @@ export default function SchoolProfilePage() {
               <button
                 key={id}
                 onClick={() => setActiveSection(id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left mb-0.5
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-start mb-0.5
                   ${activeSection === id
                     ? "text-brand-primary-dark"
                     : "text-gray-600 hover:bg-gray-50"
@@ -801,96 +762,96 @@ export default function SchoolProfilePage() {
             {activeSection === "basic" && (
               <div>
                 <SectionHeader
-                  title="Basic Information"
-                  subtitle="Core details about your school"
+                  title={tt.basicSectionTitle}
+                  subtitle={tt.basicSectionSubtitle}
                   done={sectionDone(profile, "basic")}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="School Name (English)" required>
+                  <FormField label={tt.nameEnLabel} required>
                     <input
                       value={basic.nameEn}
                       onChange={(e) => setBasic((b) => ({ ...b, nameEn: e.target.value }))}
                       className={inputCls}
-                      placeholder="e.g. Al-Manar International School"
+                      placeholder={tt.nameEnPlaceholder}
                     />
                   </FormField>
-                  <FormField label="School Name (Arabic)" required>
+                  <FormField label={tt.nameArLabel} required>
                     <input
                       value={basic.nameAr}
                       onChange={(e) => setBasic((b) => ({ ...b, nameAr: e.target.value }))}
                       className={inputCls}
                       dir="rtl"
-                      placeholder="اسم المدرسة بالعربية"
+                      placeholder={tt.nameArPlaceholder}
                     />
                   </FormField>
-                  <FormField label="School Type" required>
+                  <FormField label={tt.schoolTypeLabel} required>
                     <select
                       value={basic.type}
                       onChange={(e) => setBasic((b) => ({ ...b, type: e.target.value as SchoolProfile["type"] }))}
                       className={selectCls}
                     >
-                      <option value="">Select type…</option>
-                      {SCHOOL_TYPES.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
+                      <option value="">{tt.schoolTypePlaceholder}</option>
+                      {SCHOOL_TYPES.map((value) => (
+                        <option key={value} value={value}>{tt.schoolTypeOptions[value]}</option>
                       ))}
                     </select>
                   </FormField>
-                  <FormField label="Education Level" required>
+                  <FormField label={tt.educationLevelLabel} required>
                     <select
                       value={basic.educationLevel}
                       onChange={(e) => setBasic((b) => ({ ...b, educationLevel: e.target.value as SchoolProfile["educationLevel"] }))}
                       className={selectCls}
                     >
-                      <option value="">Select level…</option>
-                      {EDUCATION_LEVELS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
+                      <option value="">{tt.educationLevelPlaceholder}</option>
+                      {EDUCATION_LEVELS.map((value) => (
+                        <option key={value} value={value}>{tt.educationLevelOptions[value]}</option>
                       ))}
                     </select>
                   </FormField>
-                  <FormField label="Curriculum">
+                  <FormField label={tt.curriculumLabel}>
                     <select
                       value={basic.curriculum}
                       onChange={(e) => setBasic((b) => ({ ...b, curriculum: e.target.value as SchoolProfile["curriculum"] }))}
                       className={selectCls}
                     >
-                      <option value="">Select curriculum…</option>
-                      {CURRICULA.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
+                      <option value="">{tt.curriculumPlaceholder}</option>
+                      {CURRICULA.map((value) => (
+                        <option key={value} value={value}>{tt.curriculumOptions[value]}</option>
                       ))}
                     </select>
                   </FormField>
-                  <FormField label="School Gender" required>
+                  <FormField label={tt.schoolGenderLabel} required>
                     <select
                       value={basic.gender}
                       onChange={(e) => setBasic((b) => ({ ...b, gender: e.target.value as SchoolProfile["gender"] }))}
                       className={selectCls}
                     >
-                      <option value="">Select…</option>
-                      {GENDERS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
+                      <option value="">{tt.selectPlaceholder}</option>
+                      {GENDERS.map((value) => (
+                        <option key={value} value={value}>{tt.genderOptions[value]}</option>
                       ))}
                     </select>
                   </FormField>
-                  <FormField label="Founded Year">
+                  <FormField label={tt.foundedYearLabel}>
                     <input
                       type="number"
                       value={basic.foundedYear}
                       onChange={(e) => setBasic((b) => ({ ...b, foundedYear: e.target.value }))}
                       className={inputCls}
-                      placeholder="e.g. 2005"
+                      placeholder={tt.foundedYearPlaceholder}
                       min={1900}
                       max={new Date().getFullYear()}
                     />
                   </FormField>
-                  <FormField label="Number of Students">
+                  <FormField label={tt.studentsCountLabel}>
                     <select
                       value={basic.studentsCount}
                       onChange={(e) => setBasic((b) => ({ ...b, studentsCount: e.target.value as SchoolProfile["studentsCount"] }))}
                       className={selectCls}
                     >
-                      <option value="">Select range…</option>
-                      {STUDENT_COUNTS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
+                      <option value="">{tt.studentsCountPlaceholder}</option>
+                      {STUDENT_COUNTS.map((value) => (
+                        <option key={value} value={value}>{tt.studentsCountOptions[value]}</option>
                       ))}
                     </select>
                   </FormField>
@@ -898,39 +859,39 @@ export default function SchoolProfilePage() {
 
                 {/* Salary defaults — prefill for new job posts */}
                 <div className="mt-6 pt-5 border-t border-gray-100">
-                  <p className="text-sm font-semibold text-gray-800 mb-1">Compensation defaults</p>
+                  <p className="text-sm font-semibold text-gray-800 mb-1">{tt.compensationDefaultsTitle}</p>
                   <p className="text-xs text-gray-500 mb-4">
-                    Used as defaults when posting a job. Teachers see these as the school&apos;s typical range.
+                    {tt.compensationDefaultsBody}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <FormField label="Min Monthly Salary (SAR)">
+                    <FormField label={tt.minSalaryLabel}>
                       <input
                         type="number"
                         min={0}
                         value={basic.defaultSalaryMin}
                         onChange={(e) => setBasic((b) => ({ ...b, defaultSalaryMin: e.target.value }))}
                         className={inputCls}
-                        placeholder="e.g. 6000"
+                        placeholder={tt.minSalaryPlaceholder}
                       />
                     </FormField>
-                    <FormField label="Max Monthly Salary (SAR)">
+                    <FormField label={tt.maxSalaryLabel}>
                       <input
                         type="number"
                         min={0}
                         value={basic.defaultSalaryMax}
                         onChange={(e) => setBasic((b) => ({ ...b, defaultSalaryMax: e.target.value }))}
                         className={inputCls}
-                        placeholder="e.g. 12000"
+                        placeholder={tt.maxSalaryPlaceholder}
                       />
                     </FormField>
-                    <FormField label="Default Daily Rate (SAR)">
+                    <FormField label={tt.defaultDailyRateLabel}>
                       <input
                         type="number"
                         min={0}
                         value={basic.defaultDailyRate}
                         onChange={(e) => setBasic((b) => ({ ...b, defaultDailyRate: e.target.value }))}
                         className={inputCls}
-                        placeholder="for substitute roles"
+                        placeholder={tt.defaultDailyRatePlaceholder}
                       />
                     </FormField>
                   </div>
@@ -944,38 +905,38 @@ export default function SchoolProfilePage() {
             {activeSection === "location" && (
               <div>
                 <SectionHeader
-                  title="Location"
-                  subtitle="Where your school is located"
+                  title={tt.locationSectionTitle}
+                  subtitle={tt.locationSectionSubtitle}
                   done={sectionDone(profile, "location")}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="City" required>
+                  <FormField label={tt.cityLabel} required>
                     <select
                       value={location.city}
                       onChange={(e) => setLocation((l) => ({ ...l, city: e.target.value }))}
                       className={selectCls}
                     >
-                      <option value="">Select city…</option>
-                      {SAUDI_CITIES.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
+                      <option value="">{tt.cityPlaceholder}</option>
+                      {SAUDI_CITIES.map((value) => (
+                        <option key={value} value={value}>{t.school.common.cityLabels[value]}</option>
                       ))}
                     </select>
                   </FormField>
-                  <FormField label="District / Neighbourhood">
+                  <FormField label={tt.districtLabel}>
                     <input
                       value={location.district}
                       onChange={(e) => setLocation((l) => ({ ...l, district: e.target.value }))}
                       className={inputCls}
-                      placeholder="e.g. Al Olaya"
+                      placeholder={tt.districtPlaceholder}
                     />
                   </FormField>
                   <div className="sm:col-span-2">
-                    <FormField label="Full Address">
+                    <FormField label={tt.addressLabel}>
                       <input
                         value={location.address}
                         onChange={(e) => setLocation((l) => ({ ...l, address: e.target.value }))}
                         className={inputCls}
-                        placeholder="Street name, building number…"
+                        placeholder={tt.addressPlaceholder}
                       />
                     </FormField>
                   </div>
@@ -988,52 +949,52 @@ export default function SchoolProfilePage() {
             {activeSection === "contact" && (
               <div>
                 <SectionHeader
-                  title="School Contact"
-                  subtitle="Public contact details for your school"
+                  title={tt.contactSectionTitle}
+                  subtitle={tt.contactSectionSubtitle}
                   done={sectionDone(profile, "contact")}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <FormField label="Website">
+                    <FormField label={tt.websiteLabel}>
                       <div className="flex">
-                        <span className="flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-xs text-gray-500 shrink-0">
+                        <span className="flex items-center px-3 bg-gray-50 border border-e-0 border-gray-200 rounded-s-lg text-xs text-gray-500 shrink-0">
                           <Globe size={13} />
                         </span>
                         <input
                           type="url"
                           value={contact.website}
                           onChange={(e) => setContact((c) => ({ ...c, website: e.target.value }))}
-                          className={`${inputCls} rounded-l-none`}
-                          placeholder="https://www.school.edu.sa"
+                          className={`${inputCls} rounded-s-none`}
+                          placeholder={tt.websitePlaceholder}
                         />
                       </div>
                     </FormField>
                   </div>
-                  <FormField label="Phone Number" required>
+                  <FormField label={tt.phoneLabel} required>
                     <div className="flex">
-                      <span className="flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-sm text-gray-600 shrink-0">
+                      <span className="flex items-center px-3 bg-gray-50 border border-e-0 border-gray-200 rounded-s-lg text-sm text-gray-600 shrink-0">
                         +966
                       </span>
                       <input
                         type="tel"
                         value={contact.phone}
                         onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value }))}
-                        className={`${inputCls} rounded-l-none`}
-                        placeholder="5XXXXXXXX"
+                        className={`${inputCls} rounded-s-none`}
+                        placeholder={tt.phonePlaceholder}
                       />
                     </div>
                   </FormField>
-                  <FormField label="Contact Email" required>
+                  <FormField label={tt.emailLabel} required>
                     <div className="flex">
-                      <span className="flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-xs text-gray-500 shrink-0">
+                      <span className="flex items-center px-3 bg-gray-50 border border-e-0 border-gray-200 rounded-s-lg text-xs text-gray-500 shrink-0">
                         <Mail size={13} />
                       </span>
                       <input
                         type="email"
                         value={contact.email}
                         onChange={(e) => setContact((c) => ({ ...c, email: e.target.value }))}
-                        className={`${inputCls} rounded-l-none`}
-                        placeholder="info@school.edu.sa"
+                        className={`${inputCls} rounded-s-none`}
+                        placeholder={tt.emailPlaceholder}
                       />
                     </div>
                   </FormField>
@@ -1046,48 +1007,48 @@ export default function SchoolProfilePage() {
             {activeSection === "admin" && (
               <div>
                 <SectionHeader
-                  title="Admin Contact"
-                  subtitle="The person responsible for hiring at your school"
+                  title={tt.adminSectionTitle}
+                  subtitle={tt.adminSectionSubtitle}
                   done={sectionDone(profile, "admin")}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Full Name" required>
+                  <FormField label={tt.fullNameLabel} required>
                     <input
                       value={adminContactForm.name}
                       onChange={(e) => setAdminContactForm((a) => ({ ...a, name: e.target.value }))}
                       className={inputCls}
-                      placeholder="e.g. Mohammed Al-Qahtani"
+                      placeholder={tt.fullNamePlaceholderAdmin}
                     />
                   </FormField>
-                  <FormField label="Job Title" required>
+                  <FormField label={tt.jobTitleLabel} required>
                     <input
                       value={adminContactForm.jobTitle}
                       onChange={(e) => setAdminContactForm((a) => ({ ...a, jobTitle: e.target.value }))}
                       className={inputCls}
-                      placeholder="e.g. HR Manager"
+                      placeholder={tt.jobTitlePlaceholderAdmin}
                     />
                   </FormField>
-                  <FormField label="Phone Number" required>
+                  <FormField label={tt.phoneLabel} required>
                     <div className="flex">
-                      <span className="flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-sm text-gray-600 shrink-0">
+                      <span className="flex items-center px-3 bg-gray-50 border border-e-0 border-gray-200 rounded-s-lg text-sm text-gray-600 shrink-0">
                         +966
                       </span>
                       <input
                         type="tel"
                         value={adminContactForm.phone}
                         onChange={(e) => setAdminContactForm((a) => ({ ...a, phone: e.target.value }))}
-                        className={`${inputCls} rounded-l-none`}
-                        placeholder="5XXXXXXXX"
+                        className={`${inputCls} rounded-s-none`}
+                        placeholder={tt.phonePlaceholder}
                       />
                     </div>
                   </FormField>
-                  <FormField label="Email Address" required>
+                  <FormField label={tt.emailAddressLabel} required>
                     <input
                       type="email"
                       value={adminContactForm.email}
                       onChange={(e) => setAdminContactForm((a) => ({ ...a, email: e.target.value }))}
                       className={inputCls}
-                      placeholder="admin@school.edu.sa"
+                      placeholder={tt.emailAddressPlaceholderAdmin}
                     />
                   </FormField>
                 </div>
@@ -1099,75 +1060,75 @@ export default function SchoolProfilePage() {
             {activeSection === "credentials" && (
               <div>
                 <SectionHeader
-                  title="Credentials & Leadership"
-                  subtitle="Registration numbers and the person in charge of your school"
+                  title={tt.credentialsSectionTitle}
+                  subtitle={tt.credentialsSectionSubtitle}
                   done={sectionDone(profile, "credentials")}
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Commercial Registration #" required>
+                  <FormField label={tt.crNumberLabel} required>
                     <input
                       value={credentialsForm.crNumber}
                       onChange={(e) => setCredentialsForm((c) => ({ ...c, crNumber: e.target.value }))}
                       className={inputCls}
-                      placeholder="e.g. 1010123456"
+                      placeholder={tt.crNumberPlaceholder}
                       dir="ltr"
                     />
                   </FormField>
-                  <FormField label="Educational License #" required>
+                  <FormField label={tt.licenseNumberLabel} required>
                     <input
                       value={credentialsForm.licenseNumber}
                       onChange={(e) => setCredentialsForm((c) => ({ ...c, licenseNumber: e.target.value }))}
                       className={inputCls}
-                      placeholder="MoE license number"
+                      placeholder={tt.licenseNumberPlaceholder}
                       dir="ltr"
                     />
                   </FormField>
                 </div>
 
                 <div className="mt-6 pt-5 border-t border-gray-100">
-                  <p className="text-sm font-semibold text-gray-800 mb-1">Head of School</p>
+                  <p className="text-sm font-semibold text-gray-800 mb-1">{tt.headOfSchoolTitle}</p>
                   <p className="text-xs text-gray-500 mb-4">
-                    Principal / Director. Distinct from the platform admin contact above.
+                    {tt.headOfSchoolSubtitle}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField label="Full Name" required>
+                    <FormField label={tt.fullNameLabel} required>
                       <input
                         value={credentialsForm.headOfSchoolName}
                         onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolName: e.target.value }))}
                         className={inputCls}
-                        placeholder="e.g. Dr. Sara Al-Mansour"
+                        placeholder={tt.headNamePlaceholder}
                       />
                     </FormField>
-                    <FormField label="Job Title">
+                    <FormField label={tt.jobTitleLabel}>
                       <input
                         value={credentialsForm.headOfSchoolJobTitle}
                         onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolJobTitle: e.target.value }))}
                         className={inputCls}
-                        placeholder="e.g. Principal"
+                        placeholder={tt.headJobTitlePlaceholder}
                       />
                     </FormField>
-                    <FormField label="Phone Number">
+                    <FormField label={tt.phoneLabel}>
                       <div className="flex">
-                        <span className="flex items-center px-3 bg-gray-50 border border-r-0 border-gray-200 rounded-l-lg text-sm text-gray-600 shrink-0">
+                        <span className="flex items-center px-3 bg-gray-50 border border-e-0 border-gray-200 rounded-s-lg text-sm text-gray-600 shrink-0">
                           +966
                         </span>
                         <input
                           type="tel"
                           value={credentialsForm.headOfSchoolPhone}
                           onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolPhone: e.target.value }))}
-                          className={`${inputCls} rounded-l-none`}
-                          placeholder="5XXXXXXXX"
+                          className={`${inputCls} rounded-s-none`}
+                          placeholder={tt.phonePlaceholder}
                         />
                       </div>
                     </FormField>
-                    <FormField label="Email">
+                    <FormField label={tt.emailAddressLabel}>
                       <input
                         type="email"
                         value={credentialsForm.headOfSchoolEmail}
                         onChange={(e) => setCredentialsForm((c) => ({ ...c, headOfSchoolEmail: e.target.value }))}
                         className={inputCls}
-                        placeholder="principal@school.edu.sa"
+                        placeholder={tt.headEmailPlaceholder}
                       />
                     </FormField>
                   </div>
@@ -1181,23 +1142,23 @@ export default function SchoolProfilePage() {
             {activeSection === "documents" && (
               <div>
                 <SectionHeader
-                  title="Verification Documents"
-                  subtitle="Required for Abjad to verify your school. Files are kept confidential."
+                  title={tt.documentsSectionTitle}
+                  subtitle={tt.documentsSectionSubtitle}
                   done={sectionDone(profile, "documents")}
                 />
 
                 <div className="space-y-4">
                   <DocumentUploadZone
-                    label="Commercial Registration (السجل التجاري)"
-                    description="Official commercial registration certificate — PDF, max 5MB"
+                    label={tt.crDocLabel}
+                    description={tt.crDocDescription}
                     uploadedAt={profile?.documents?.commercialRegistration?.uploadedAt ?? null}
                     uploading={uploadingCR}
                     onFile={(file) => handleDocumentUpload("commercialRegistration", file)}
                   />
 
                   <DocumentUploadZone
-                    label="Ministry of Education License (ترخيص وزارة التعليم)"
-                    description="Ministry of Education operating license — PDF, max 5MB"
+                    label={tt.licenseDocLabel}
+                    description={tt.licenseDocDescription}
                     uploadedAt={profile?.documents?.ministryLicense?.uploadedAt ?? null}
                     uploading={uploadingML}
                     onFile={(file) => handleDocumentUpload("ministryLicense", file)}
@@ -1208,9 +1169,7 @@ export default function SchoolProfilePage() {
                 <div className="mt-5 bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2.5">
                   <Info size={14} className="text-slate-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-slate-500">
-                    Documents are used exclusively for verification by the Abjad team and are
-                    never shared with teachers or third parties. Files are stored securely and
-                    encrypted at rest.
+                    {tt.securityNote}
                   </p>
                 </div>
               </div>
@@ -1228,7 +1187,7 @@ export default function SchoolProfilePage() {
               disabled={activeSection === sectionList[0].id}
               className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-white border border-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              ← Previous
+              {isRTL ? <ChevronRight size={14} /> : <ChevronLeft size={14} />} {tt.previous}
             </button>
             <button
               onClick={() => {
@@ -1243,7 +1202,7 @@ export default function SchoolProfilePage() {
                   : { color: "#9ca3af", borderColor: "#e5e7eb" }
               }
             >
-              Next <ChevronRight size={14} />
+              {tt.next} {isRTL ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>
           </div>
         </div>

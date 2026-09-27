@@ -1556,6 +1556,196 @@ export interface SchoolInterviewsTranslations {
   submitFeedbackButton: string;
 }
 
+/** app/school/shortlists/page.tsx — SRD 3.6 shortlist folders, teacher mini-cards, mini profile viewer. */
+export interface SchoolShortlistsTranslations {
+  pageTitle: string;
+  statusSummaryTemplate: string; // "{active} active · {archived} archived"
+  newShortlistButton: string;
+  filterActiveLabelTemplate: string; // "Active ({n})"
+  filterArchivedLabelTemplate: string; // "Archived ({n})"
+  loadFailedFallback: string;
+  emptyActiveTitle: string;
+  emptyArchivedTitle: string;
+  emptyActiveBody: string;
+  emptyArchivedBody: string;
+  createFirstButton: string;
+  teacherCountSingular: string; // "{n} teacher"
+  teacherCountPlural: string; // "{n} teachers"
+  archivedBadge: string;
+  hideTeachersLabel: string;
+  viewTeachersLabel: string;
+  noTeachersAddedYet: string;
+  addedAgoTemplate: string; // "Added {time}"
+  timeJustNow: string;
+  timeMinAgoTemplate: string; // "{n}m ago"
+  timeHoursAgoTemplate: string; // "{n}h ago"
+  timeDaysAgoTemplate: string; // "{n}d ago"
+  yearsExpSuffix: string; // "y exp"
+  viewProfileTitle: string;
+  removeFromShortlistTitle: string;
+  archiveTitle: string;
+  unarchiveTitle: string;
+  deleteShortlistTitle: string;
+  newModalTitle: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  descriptionLabel: string;
+  descriptionPlaceholder: string;
+  colorLabel: string;
+  linkToJobLabel: string;
+  noLinkedJobOption: string;
+  nameRequiredError: string;
+  createFailedFallback: string;
+  createButton: string;
+  deleteModalTitle: string;
+  deleteModalSubtitle: string;
+  deleteConfirmBodyTemplate: string; // "Are you sure you want to delete {name}? All teachers in this shortlist will be removed."
+  profileSubjectsLabel: string;
+  profileYearsExperienceSuffix: string;
+  profileEducationLabel: string;
+  profilePerMonthSuffix: string;
+}
+
+/** app/school/team/page.tsx — SRD 3.10 multi-user team & role management. */
+export interface SchoolTeamTranslations {
+  pageSubtitle: string;
+  addMemberButton: string;
+  loadFailedFallback: string;
+  emptyTitle: string;
+  emptyBody: string;
+  addFirstButton: string;
+  tableMemberHeader: string;
+  tableRoleHeader: string;
+  tableStatusHeader: string;
+  tableJoinedHeader: string;
+  tableActionsHeader: string;
+  statusActive: string;
+  statusInactive: string;
+  removeMemberTitle: string;
+  joinedPrefixTemplate: string; // "Joined {date}"
+  roleOptions: Record<string, string>; // admin/recruiter/interviewer/viewer
+  roleDescriptions: Record<string, string>;
+  rolePermissionsTitle: string;
+  addModalTitle: string;
+  fullNameLabel: string;
+  fullNamePlaceholder: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  roleLabel: string;
+  nameRequiredError: string;
+  emailRequiredError: string;
+  emailInvalidError: string;
+  createFailedFallback: string;
+  addButton: string;
+  removeModalTitle: string;
+  removeModalSubtitle: string;
+  removeConfirmBodyTemplate: string; // "Are you sure you want to remove {name} from the team? They will lose access immediately."
+  removeButton: string;
+}
+
+/** app/school/profile/page.tsx — SRD 3.1.1 school profile wizard (basic/location/contact/admin/credentials/documents). */
+export interface SchoolProfileTranslations {
+  pageTitle: string;
+  pageSubtitle: string;
+  completePercentTemplate: string; // "{n}% Complete"
+  submitForVerification: string;
+  submitted: string;
+  statusVerified: string;
+  statusPending: string;
+  statusRejected: string;
+  statusDraft: string;
+  logoHint: string;
+  logoTooLargeTemplate: string; // "Logo is too large ({size} MB). Max size is 2 MB."
+  profileStrengthLabel: string;
+  sectionLabels: Record<string, string>; // basic/location/contact/admin/credentials/documents
+  incompleteBadge: string;
+  saveChangesButton: string;
+  selectPlaceholder: string;
+  schoolTypeOptions: Record<string, string>;
+  educationLevelOptions: Record<string, string>;
+  curriculumOptions: Record<string, string>;
+  genderOptions: Record<string, string>;
+  studentsCountOptions: Record<string, string>;
+  completionFieldLabels: Record<string, string>;
+  completionBannerIntro: string;
+  completionBadgeTemplate: string; // "+{weight}% {label}"
+  uploadedOnTemplate: string; // "Uploaded {date}"
+  uploadingLabel: string;
+  replaceDocumentLabel: string;
+  clickToUploadLabel: string;
+  orDragDrop: string;
+  pdfMaxSizeHint: string;
+  securityNote: string;
+  previous: string;
+  next: string;
+  basicSectionTitle: string;
+  basicSectionSubtitle: string;
+  nameEnLabel: string;
+  nameEnPlaceholder: string;
+  nameArLabel: string;
+  nameArPlaceholder: string;
+  schoolTypeLabel: string;
+  schoolTypePlaceholder: string;
+  educationLevelLabel: string;
+  educationLevelPlaceholder: string;
+  curriculumLabel: string;
+  curriculumPlaceholder: string;
+  schoolGenderLabel: string;
+  foundedYearLabel: string;
+  foundedYearPlaceholder: string;
+  studentsCountLabel: string;
+  studentsCountPlaceholder: string;
+  compensationDefaultsTitle: string;
+  compensationDefaultsBody: string;
+  minSalaryLabel: string;
+  minSalaryPlaceholder: string;
+  maxSalaryLabel: string;
+  maxSalaryPlaceholder: string;
+  defaultDailyRateLabel: string;
+  defaultDailyRatePlaceholder: string;
+  locationSectionTitle: string;
+  locationSectionSubtitle: string;
+  cityLabel: string;
+  cityPlaceholder: string;
+  districtLabel: string;
+  districtPlaceholder: string;
+  addressLabel: string;
+  addressPlaceholder: string;
+  contactSectionTitle: string;
+  contactSectionSubtitle: string;
+  websiteLabel: string;
+  websitePlaceholder: string;
+  phoneLabel: string;
+  phonePlaceholder: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  adminSectionTitle: string;
+  adminSectionSubtitle: string;
+  fullNameLabel: string;
+  fullNamePlaceholderAdmin: string;
+  jobTitleLabel: string;
+  jobTitlePlaceholderAdmin: string;
+  emailAddressLabel: string;
+  emailAddressPlaceholderAdmin: string;
+  credentialsSectionTitle: string;
+  credentialsSectionSubtitle: string;
+  crNumberLabel: string;
+  crNumberPlaceholder: string;
+  licenseNumberLabel: string;
+  licenseNumberPlaceholder: string;
+  headOfSchoolTitle: string;
+  headOfSchoolSubtitle: string;
+  headNamePlaceholder: string;
+  headJobTitlePlaceholder: string;
+  headEmailPlaceholder: string;
+  documentsSectionTitle: string;
+  documentsSectionSubtitle: string;
+  crDocLabel: string;
+  crDocDescription: string;
+  licenseDocLabel: string;
+  licenseDocDescription: string;
+}
+
 export interface SchoolTranslations {
   common: SchoolCommonTranslations;
   layout: SchoolLayoutTranslations;
@@ -1567,6 +1757,9 @@ export interface SchoolTranslations {
   applications: SchoolApplicationsTranslations;
   offers: SchoolOffersTranslations;
   interviews: SchoolInterviewsTranslations;
+  shortlists: SchoolShortlistsTranslations;
+  team: SchoolTeamTranslations;
+  profile: SchoolProfileTranslations;
 }
 
 export interface Translations extends CommonTranslations {

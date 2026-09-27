@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Users, Plus, Loader2, AlertCircle, X, Trash2,
   ChevronDown, Shield, Eye, Briefcase, Mic2,
-  CheckCircle2,
 } from "lucide-react";
 import {
   listTeam,
@@ -13,61 +12,44 @@ import {
   removeTeamMember,
 } from "@/lib/api/school";
 import type { TeamMember } from "@/lib/api/school";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate as formatDateIntl, type Locale } from "@/lib/i18n/format";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 type Role = "admin" | "recruiter" | "interviewer" | "viewer";
 
-const ROLE_OPTIONS: { value: Role; label: string }[] = [
-  { value: "admin",       label: "Admin"       },
-  { value: "recruiter",   label: "Recruiter"   },
-  { value: "interviewer", label: "Interviewer" },
-  { value: "viewer",      label: "Viewer"      },
-];
+const ROLE_ORDER: Role[] = ["admin", "recruiter", "interviewer", "viewer"];
 
-const ROLE_INFO: Record<Role, { label: string; description: string; badgeCls: string; Icon: React.ElementType }> = {
-  admin: {
-    label:       "Admin",
-    description: "Full access — manage team, all features including billing and settings.",
-    badgeCls:    "bg-slate-800 text-white",
-    Icon:        Shield,
-  },
-  recruiter: {
-    label:       "Recruiter",
-    description: "Post jobs, manage applications, schedule interviews, extend offers.",
-    badgeCls:    "bg-blue-100 text-blue-700",
-    Icon:        Briefcase,
-  },
-  interviewer: {
-    label:       "Interviewer",
-    description: "View candidate profiles, complete interview feedback forms.",
-    badgeCls:    "bg-purple-100 text-purple-700",
-    Icon:        Mic2,
-  },
-  viewer: {
-    label:       "Viewer",
-    description: "Read-only access to all platform data. Cannot take any actions.",
-    badgeCls:    "bg-slate-100 text-slate-600",
-    Icon:        Eye,
-  },
+const ROLE_ICONS: Record<Role, React.ElementType> = {
+  admin: Shield,
+  recruiter: Briefcase,
+  interviewer: Mic2,
+  viewer: Eye,
+};
+
+const ROLE_BADGE_CLS: Record<Role, string> = {
+  admin: "bg-slate-800 text-white",
+  recruiter: "bg-blue-100 text-blue-700",
+  interviewer: "bg-purple-100 text-purple-700",
+  viewer: "bg-slate-100 text-slate-600",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-  });
+function formatJoinedDate(isoStr: string, locale: Locale): string {
+  return formatDateIntl(isoStr, locale, { month: "short", day: "numeric", year: "numeric" });
 }
 
 // ─── Role Badge ───────────────────────────────────────────────────────────────
 
 function RoleBadge({ role }: { role: Role }) {
-  const info = ROLE_INFO[role];
+  const { t } = useTranslation();
+  const Icon = ROLE_ICONS[role];
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${info.badgeCls}`}>
-      <info.Icon size={10} />
-      {info.label}
+    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${ROLE_BADGE_CLS[role]}`}>
+      <Icon size={10} />
+      {t.school.team.roleOptions[role]}
     </span>
   );
 }
@@ -75,10 +57,11 @@ function RoleBadge({ role }: { role: Role }) {
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: TeamMember["status"] }) {
+  const { t } = useTranslation();
   return status === "active" ? (
-    <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Active</span>
+    <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{t.school.team.statusActive}</span>
   ) : (
-    <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Inactive</span>
+    <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{t.school.team.statusInactive}</span>
   );
 }
 
@@ -90,6 +73,9 @@ interface AddMemberModalProps {
 }
 
 function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
+  const { t } = useTranslation();
+  const tt = t.school.team;
+  const common = t.school.common;
   const [name, setName]   = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole]   = useState<Role>("recruiter");
@@ -97,10 +83,10 @@ function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
   const [error, setError]   = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!name.trim())  { setError("Name is required."); return; }
-    if (!email.trim()) { setError("Email is required."); return; }
+    if (!name.trim())  { setError(tt.nameRequiredError); return; }
+    if (!email.trim()) { setError(tt.emailRequiredError); return; }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) { setError("Please enter a valid email address."); return; }
+    if (!emailRegex.test(email.trim())) { setError(tt.emailInvalidError); return; }
     setSaving(true);
     setError(null);
     try {
@@ -108,7 +94,7 @@ function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
       onAdded(member);
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to add team member.");
+      setError((e as Error)?.message ?? tt.createFailedFallback);
     } finally {
       setSaving(false);
     }
@@ -126,7 +112,7 @@ function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
             >
               <Plus size={18} className="text-white" />
             </div>
-            <h3 className="text-base font-bold text-gray-900">Add Team Member</h3>
+            <h3 className="text-base font-bold text-gray-900">{tt.addModalTitle}</h3>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
             <X size={16} />
@@ -142,13 +128,13 @@ function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Full Name <span className="text-red-500">*</span>
+              {tt.fullNameLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Sara Al-Rashidi"
+              placeholder={tt.fullNamePlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               autoFocus
@@ -156,34 +142,34 @@ function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Email Address <span className="text-red-500">*</span>
+              {tt.emailLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="sara@school.edu.sa"
+              placeholder={tt.emailPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Role</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.roleLabel}</label>
             <div className="relative">
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as Role)}
-                className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-9"
+                className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-9"
                 style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               >
-                {ROLE_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
+                {ROLE_ORDER.map((r) => (
+                  <option key={r} value={r}>{tt.roleOptions[r]}</option>
                 ))}
               </select>
-              <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
             {/* Role description */}
-            <p className="text-xs text-gray-400 mt-1.5">{ROLE_INFO[role].description}</p>
+            <p className="text-xs text-gray-400 mt-1.5">{tt.roleDescriptions[role]}</p>
           </div>
         </div>
 
@@ -193,7 +179,7 @@ function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
             disabled={saving}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {common.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -201,7 +187,7 @@ function AddMemberModal({ onClose, onAdded }: AddMemberModalProps) {
             className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60"
             style={{ background: "var(--brand-gradient)" }}
           >
-            {saving ? <Loader2 size={14} className="animate-spin" /> : "Add Member"}
+            {saving ? <Loader2 size={14} className="animate-spin" /> : tt.addButton}
           </button>
         </div>
       </div>
@@ -218,12 +204,17 @@ interface RemoveConfirmProps {
 }
 
 function RemoveConfirmModal({ memberName, onClose, onConfirm }: RemoveConfirmProps) {
+  const { t } = useTranslation();
+  const tt = t.school.team;
+  const common = t.school.common;
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
     setLoading(true);
     try { await onConfirm(); } finally { setLoading(false); }
   };
+
+  const [before, after] = tt.removeConfirmBodyTemplate.split("{name}");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -234,14 +225,14 @@ function RemoveConfirmModal({ memberName, onClose, onConfirm }: RemoveConfirmPro
             <Trash2 size={18} className="text-red-600" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900">Remove Member</h3>
-            <p className="text-xs text-gray-500">This will revoke platform access.</p>
+            <h3 className="text-base font-bold text-gray-900">{tt.removeModalTitle}</h3>
+            <p className="text-xs text-gray-500">{tt.removeModalSubtitle}</p>
           </div>
         </div>
         <p className="text-sm text-gray-600 mb-5">
-          Are you sure you want to remove{" "}
-          <span className="font-semibold text-gray-900">{memberName}</span> from the team?
-          They will lose access immediately.
+          {before}
+          <span className="font-semibold text-gray-900">{memberName}</span>
+          {after}
         </p>
         <div className="flex gap-3">
           <button
@@ -249,14 +240,14 @@ function RemoveConfirmModal({ memberName, onClose, onConfirm }: RemoveConfirmPro
             disabled={loading}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {common.cancel}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors disabled:opacity-60"
           >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : "Remove"}
+            {loading ? <Loader2 size={14} className="animate-spin" /> : tt.removeButton}
           </button>
         </div>
       </div>
@@ -271,6 +262,8 @@ function RoleSelect({ memberId, currentRole, onUpdated }: {
   currentRole: Role;
   onUpdated: (id: string, role: Role) => void;
 }) {
+  const { t } = useTranslation();
+  const tt = t.school.team;
   const [updating, setUpdating] = useState(false);
 
   const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -292,17 +285,17 @@ function RoleSelect({ memberId, currentRole, onUpdated }: {
         value={currentRole}
         onChange={handleChange}
         disabled={updating}
-        className="appearance-none text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 pr-6 bg-white focus:outline-none focus:ring-2 focus:border-transparent transition disabled:opacity-60 cursor-pointer"
+        className="appearance-none text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 pe-6 bg-white focus:outline-none focus:ring-2 focus:border-transparent transition disabled:opacity-60 cursor-pointer"
         style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
       >
-        {ROLE_OPTIONS.map(({ value, label }) => (
-          <option key={value} value={value}>{label}</option>
+        {ROLE_ORDER.map((r) => (
+          <option key={r} value={r}>{tt.roleOptions[r]}</option>
         ))}
       </select>
       {updating ? (
-        <Loader2 size={11} className="animate-spin absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <Loader2 size={11} className="animate-spin absolute end-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
       ) : (
-        <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <ChevronDown size={11} className="absolute end-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
       )}
     </div>
   );
@@ -311,26 +304,31 @@ function RoleSelect({ memberId, currentRole, onUpdated }: {
 // ─── Role Permissions Info ────────────────────────────────────────────────────
 
 function RolePermissionsSection() {
+  const { t } = useTranslation();
+  const tt = t.school.team;
   return (
     <div className="mt-8">
-      <h2 className="text-sm font-bold text-gray-800 mb-3">Role Permissions</h2>
+      <h2 className="text-sm font-bold text-gray-800 mb-3">{tt.rolePermissionsTitle}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        {(Object.entries(ROLE_INFO) as [Role, typeof ROLE_INFO[Role]][]).map(([role, info]) => (
-          <div key={role} className="bg-white rounded-2xl border border-gray-100 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                  role === "admin" ? "" : "bg-gray-100"
-                }`}
-                style={role === "admin" ? { background: "var(--brand-gradient)" } : {}}
-              >
-                <info.Icon size={15} className={role === "admin" ? "text-white" : "text-gray-500"} />
+        {ROLE_ORDER.map((role) => {
+          const Icon = ROLE_ICONS[role];
+          return (
+            <div key={role} className="bg-white rounded-2xl border border-gray-100 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    role === "admin" ? "" : "bg-gray-100"
+                  }`}
+                  style={role === "admin" ? { background: "var(--brand-gradient)" } : {}}
+                >
+                  <Icon size={15} className={role === "admin" ? "text-white" : "text-gray-500"} />
+                </div>
+                <RoleBadge role={role} />
               </div>
-              <RoleBadge role={role} />
+              <p className="text-xs text-gray-500 leading-relaxed">{tt.roleDescriptions[role]}</p>
             </div>
-            <p className="text-xs text-gray-500 leading-relaxed">{info.description}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -339,6 +337,9 @@ function RolePermissionsSection() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function TeamPage() {
+  const { t, lang } = useTranslation();
+  const tt = t.school.team;
+  const common = t.school.common;
   const [members, setMembers]       = useState<TeamMember[]>([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState<string | null>(null);
@@ -352,11 +353,11 @@ export default function TeamPage() {
       const res = await listTeam();
       setMembers(res ?? []);
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to load team members.");
+      setError((e as Error)?.message ?? tt.loadFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailedFallback]);
 
   useEffect(() => { loadTeam(); }, [loadTeam]);
 
@@ -384,7 +385,7 @@ export default function TeamPage() {
         <div>
           <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <Users size={20} style={{ color: "var(--brand-primary)" }} />
-            Team Members
+            {t.school.layout.navTeam}
             {!loading && (
               <span
                 className="text-sm font-semibold px-2.5 py-0.5 rounded-full text-white"
@@ -394,7 +395,7 @@ export default function TeamPage() {
               </span>
             )}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage who has access to your school's hiring platform</p>
+          <p className="text-sm text-gray-500 mt-0.5">{tt.pageSubtitle}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -402,7 +403,7 @@ export default function TeamPage() {
           style={{ background: "var(--brand-gradient)" }}
         >
           <Plus size={16} />
-          Add Member
+          {tt.addMemberButton}
         </button>
       </div>
 
@@ -420,7 +421,7 @@ export default function TeamPage() {
             className="px-4 py-2 text-sm font-medium text-white rounded-xl"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Retry
+            {common.retry}
           </button>
         </div>
       ) : members.length === 0 ? (
@@ -431,9 +432,9 @@ export default function TeamPage() {
           >
             <Users size={28} className="text-white" />
           </div>
-          <h3 className="text-base font-bold text-gray-900 mb-1">No team members yet</h3>
+          <h3 className="text-base font-bold text-gray-900 mb-1">{tt.emptyTitle}</h3>
           <p className="text-sm text-gray-400 max-w-xs mb-4">
-            Invite colleagues to collaborate on hiring.
+            {tt.emptyBody}
           </p>
           <button
             onClick={() => setShowAddModal(true)}
@@ -441,7 +442,7 @@ export default function TeamPage() {
             style={{ background: "var(--brand-gradient)" }}
           >
             <Plus size={15} />
-            Add First Member
+            {tt.addFirstButton}
           </button>
         </div>
       ) : (
@@ -451,11 +452,11 @@ export default function TeamPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-5 py-3.5">Member</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">Role</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">Status</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">Joined</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">Actions</th>
+                  <th className="text-start text-xs font-semibold text-gray-400 uppercase tracking-wide px-5 py-3.5">{tt.tableMemberHeader}</th>
+                  <th className="text-start text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">{tt.tableRoleHeader}</th>
+                  <th className="text-start text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">{tt.tableStatusHeader}</th>
+                  <th className="text-start text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">{tt.tableJoinedHeader}</th>
+                  <th className="text-start text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-3.5">{tt.tableActionsHeader}</th>
                 </tr>
               </thead>
               <tbody>
@@ -498,7 +499,7 @@ export default function TeamPage() {
 
                     {/* Joined */}
                     <td className="px-4 py-3.5">
-                      <span className="text-xs text-gray-400">{formatDate(m.joinedAt)}</span>
+                      <span className="text-xs text-gray-400">{formatJoinedDate(m.joinedAt, lang)}</span>
                     </td>
 
                     {/* Actions */}
@@ -506,7 +507,7 @@ export default function TeamPage() {
                       <button
                         onClick={() => setRemoveTarget(m)}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                        title="Remove member"
+                        title={tt.removeMemberTitle}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -548,7 +549,7 @@ export default function TeamPage() {
                     onUpdated={handleRoleUpdated}
                   />
                   <StatusBadge status={m.status} />
-                  <span className="text-xs text-gray-400">Joined {formatDate(m.joinedAt)}</span>
+                  <span className="text-xs text-gray-400">{tt.joinedPrefixTemplate.replace("{date}", formatJoinedDate(m.joinedAt, lang))}</span>
                 </div>
               </div>
             ))}

@@ -18,35 +18,22 @@ import {
 } from "@/lib/api/school";
 import type { Shortlist, SchoolJob, CandidateProfile } from "@/lib/api/school";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import type { SchoolShortlistsTranslations } from "@/lib/i18n/types";
+import { formatNumber } from "@/lib/i18n/format";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PRESET_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
 
-const SUBJECT_LABELS: Record<string, string> = {
-  islamic_studies: "Islamic Studies",
-  arabic:          "Arabic",
-  english:         "English",
-  math:            "Math",
-  science:         "Science",
-  physics:         "Physics",
-  chemistry:       "Chemistry",
-  biology:         "Biology",
-  computer_science:"Computer Science",
-  social_studies:  "Social Studies",
-  pe:              "PE",
-  art:             "Art",
-  other:           "Other",
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function timeAgo(isoStr: string): string {
+function timeAgo(isoStr: string, tt: SchoolShortlistsTranslations): string {
   const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 60)    return "just now";
-  if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-  return `${Math.floor(secs / 86400)}d ago`;
+  if (secs < 60)    return tt.timeJustNow;
+  if (secs < 3600)  return tt.timeMinAgoTemplate.replace("{n}", String(Math.floor(secs / 60)));
+  if (secs < 86400) return tt.timeHoursAgoTemplate.replace("{n}", String(Math.floor(secs / 3600)));
+  return tt.timeDaysAgoTemplate.replace("{n}", String(Math.floor(secs / 86400)));
 }
 
 function jobTitle(jobId: Shortlist["jobId"]): string | null {
@@ -60,8 +47,8 @@ function teacherIdStr(entry: Shortlist["teachers"][number]): string {
   return entry.teacherId;
 }
 
-function subjectLabel(v: string): string {
-  return SUBJECT_LABELS[v] ?? v;
+function subjectLabel(v: string, subjectLabels: Record<string, string>): string {
+  return subjectLabels[v] ?? v;
 }
 
 function candidateDisplayName(c: CandidateProfile): string {
@@ -84,6 +71,9 @@ interface NewShortlistModalProps {
 }
 
 function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps) {
+  const { t } = useTranslation();
+  const tt = t.school.shortlists;
+  const common = t.school.common;
   const [name, setName]         = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor]       = useState(PRESET_COLORS[0]);
@@ -94,7 +84,7 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
   const activeJobs = jobs.filter((j) => j.status === "active");
 
   const handleSubmit = async () => {
-    if (!name.trim()) { setError("Name is required."); return; }
+    if (!name.trim()) { setError(tt.nameRequiredError); return; }
     setSaving(true);
     setError(null);
     try {
@@ -107,7 +97,7 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
       onCreated(sl);
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to create shortlist.");
+      setError((e as Error)?.message ?? tt.createFailedFallback);
     } finally {
       setSaving(false);
     }
@@ -125,7 +115,7 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
             >
               <BookmarkCheck size={16} className="text-white" />
             </div>
-            <h3 className="text-base font-bold text-gray-900">New Shortlist</h3>
+            <h3 className="text-base font-bold text-gray-900">{tt.newModalTitle}</h3>
           </div>
           <button
             onClick={onClose}
@@ -145,13 +135,13 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
           {/* Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Name <span className="text-red-500">*</span>
+              {tt.nameLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Top Math Candidates"
+              placeholder={tt.namePlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               autoFocus
@@ -160,12 +150,12 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Description</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.descriptionLabel}</label>
             <textarea
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional notes about this shortlist…"
+              placeholder={tt.descriptionPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -173,7 +163,7 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
 
           {/* Color */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-2">Color</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-2">{tt.colorLabel}</label>
             <div className="flex items-center gap-2.5">
               {PRESET_COLORS.map((c) => (
                 <button
@@ -192,20 +182,20 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
           {/* Link to job */}
           {activeJobs.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-1.5">Link to Job (optional)</label>
+              <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.linkToJobLabel}</label>
               <div className="relative">
                 <select
                   value={linkedJobId}
                   onChange={(e) => setLinkedJobId(e.target.value)}
-                  className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-9"
+                  className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-9"
                   style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
                 >
-                  <option value="">No linked job</option>
+                  <option value="">{tt.noLinkedJobOption}</option>
                   {activeJobs.map((j) => (
                     <option key={j._id} value={j._id}>{j.title}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
             </div>
           )}
@@ -217,7 +207,7 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
             disabled={saving}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {common.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -225,7 +215,7 @@ function NewShortlistModal({ jobs, onClose, onCreated }: NewShortlistModalProps)
             className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-60"
             style={{ background: "var(--brand-gradient)" }}
           >
-            {saving ? <Loader2 size={14} className="animate-spin" /> : "Create Shortlist"}
+            {saving ? <Loader2 size={14} className="animate-spin" /> : tt.createButton}
           </button>
         </div>
       </div>
@@ -242,6 +232,9 @@ interface DeleteConfirmProps {
 }
 
 function DeleteConfirmModal({ shortlistName, onClose, onConfirm }: DeleteConfirmProps) {
+  const { t } = useTranslation();
+  const tt = t.school.shortlists;
+  const common = t.school.common;
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -262,14 +255,21 @@ function DeleteConfirmModal({ shortlistName, onClose, onConfirm }: DeleteConfirm
             <Trash2 size={18} className="text-red-600" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900">Delete Shortlist</h3>
-            <p className="text-xs text-gray-500">This action cannot be undone.</p>
+            <h3 className="text-base font-bold text-gray-900">{tt.deleteModalTitle}</h3>
+            <p className="text-xs text-gray-500">{tt.deleteModalSubtitle}</p>
           </div>
         </div>
         <p className="text-sm text-gray-600 mb-5">
-          Are you sure you want to delete{" "}
-          <span className="font-semibold text-gray-900">{shortlistName}</span>?
-          All teachers in this shortlist will be removed.
+          {(() => {
+            const [before, after] = tt.deleteConfirmBodyTemplate.split("{name}");
+            return (
+              <>
+                {before}
+                <span className="font-semibold text-gray-900">{shortlistName}</span>
+                {after}
+              </>
+            );
+          })()}
         </p>
         <div className="flex gap-3">
           <button
@@ -277,14 +277,14 @@ function DeleteConfirmModal({ shortlistName, onClose, onConfirm }: DeleteConfirm
             disabled={loading}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {common.cancel}
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors disabled:opacity-60"
           >
-            {loading ? <Loader2 size={14} className="animate-spin" /> : "Delete"}
+            {loading ? <Loader2 size={14} className="animate-spin" /> : common.delete}
           </button>
         </div>
       </div>
@@ -304,6 +304,9 @@ interface TeacherMiniCardProps {
 }
 
 function TeacherMiniCard({ teacherId, notes, addedAt, shortlistId, onRemoved, onViewProfile }: TeacherMiniCardProps) {
+  const { t } = useTranslation();
+  const tt = t.school.shortlists;
+  const common = t.school.common;
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [removing, setRemoving] = useState(false);
@@ -374,12 +377,12 @@ function TeacherMiniCard({ teacherId, notes, addedAt, shortlistId, onRemoved, on
           <div className="flex items-center flex-wrap gap-1 mt-0.5">
             {displaySubjects.map((s) => (
               <span key={s} className="text-xs text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">
-                {subjectLabel(s)}
+                {subjectLabel(s, common.subjectLabels)}
               </span>
             ))}
             {candidate.professional?.experienceRange && (
               <span className="text-xs text-gray-400">
-                {candidate.professional.experienceRange}y exp
+                {candidate.professional.experienceRange}{tt.yearsExpSuffix}
               </span>
             )}
           </div>
@@ -389,7 +392,7 @@ function TeacherMiniCard({ teacherId, notes, addedAt, shortlistId, onRemoved, on
               <span className="line-clamp-1">{notes}</span>
             </div>
           )}
-          <p className="text-xs text-gray-300 mt-1">Added {timeAgo(addedAt)}</p>
+          <p className="text-xs text-gray-300 mt-1">{tt.addedAgoTemplate.replace("{time}", timeAgo(addedAt, tt))}</p>
         </div>
 
         {/* Actions */}
@@ -397,7 +400,7 @@ function TeacherMiniCard({ teacherId, notes, addedAt, shortlistId, onRemoved, on
           <button
             onClick={() => onViewProfile(candidate)}
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-            title="View Profile"
+            title={tt.viewProfileTitle}
           >
             <Eye size={14} />
           </button>
@@ -405,7 +408,7 @@ function TeacherMiniCard({ teacherId, notes, addedAt, shortlistId, onRemoved, on
             onClick={handleRemove}
             disabled={removing}
             className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-            title="Remove from shortlist"
+            title={tt.removeFromShortlistTitle}
           >
             {removing ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
           </button>
@@ -436,6 +439,8 @@ function ShortlistCard({
   onTeacherRemoved,
   onViewProfile,
 }: ShortlistCardProps) {
+  const { t } = useTranslation();
+  const tt = t.school.shortlists;
   const [archiving, setArchiving] = useState(false);
   const linkedJob = jobTitle(sl.jobId);
 
@@ -463,7 +468,7 @@ function ShortlistCard({
         <div className="flex items-start justify-between gap-3 mb-3">
           <button
             onClick={onToggleExpand}
-            className="flex items-start gap-3 flex-1 text-left min-w-0"
+            className="flex items-start gap-3 flex-1 text-start min-w-0"
           >
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
@@ -489,7 +494,7 @@ function ShortlistCard({
               onClick={handleArchive}
               disabled={archiving}
               className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              title={sl.isArchived ? "Unarchive" : "Archive"}
+              title={sl.isArchived ? tt.unarchiveTitle : tt.archiveTitle}
             >
               {archiving ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -502,7 +507,7 @@ function ShortlistCard({
             <button
               onClick={() => onDelete(sl)}
               className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-              title="Delete shortlist"
+              title={tt.deleteShortlistTitle}
             >
               <Trash2 size={14} />
             </button>
@@ -513,7 +518,7 @@ function ShortlistCard({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
             <Users size={11} className="text-gray-400" />
-            {sl.teachers.length} teacher{sl.teachers.length !== 1 ? "s" : ""}
+            {(sl.teachers.length !== 1 ? tt.teacherCountPlural : tt.teacherCountSingular).replace("{n}", String(sl.teachers.length))}
           </span>
           {linkedJob && (
             <span className="flex items-center gap-1 text-xs text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full">
@@ -523,7 +528,7 @@ function ShortlistCard({
           )}
           {sl.isArchived && (
             <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">
-              Archived
+              {tt.archivedBadge}
             </span>
           )}
         </div>
@@ -535,7 +540,7 @@ function ShortlistCard({
             className="flex items-center gap-1.5 mt-3 text-xs font-medium transition-colors"
             style={{ color: "var(--brand-primary)" }}
           >
-            {isExpanded ? "Hide teachers" : "View teachers"}
+            {isExpanded ? tt.hideTeachersLabel : tt.viewTeachersLabel}
             <ChevronDown
               size={12}
               className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
@@ -566,7 +571,7 @@ function ShortlistCard({
         {isExpanded && sl.teachers.length === 0 && (
           <div className="mt-4 pt-4 border-t border-gray-50 text-center py-6">
             <GraduationCap size={24} className="text-gray-300 mx-auto mb-2" />
-            <p className="text-xs text-gray-400">No teachers added yet.</p>
+            <p className="text-xs text-gray-400">{tt.noTeachersAddedYet}</p>
           </div>
         )}
       </div>
@@ -582,6 +587,10 @@ interface ProfileViewModalProps {
 }
 
 function ProfileViewModal({ candidate: c, onClose }: ProfileViewModalProps) {
+  const { t, lang } = useTranslation();
+  const tt = t.school.shortlists;
+  const common = t.school.common;
+
   function initials() {
     const name = candidateDisplayName(c);
     const parts = name.trim().split(" ");
@@ -620,11 +629,11 @@ function ProfileViewModal({ candidate: c, onClose }: ProfileViewModalProps) {
         <div className="space-y-4 text-sm text-gray-700">
           {c.professional?.subjects && c.professional.subjects.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Subjects</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">{tt.profileSubjectsLabel}</p>
               <div className="flex flex-wrap gap-1.5">
                 {c.professional.subjects.map((s) => (
                   <span key={s} className="text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
-                    {subjectLabel(s)}
+                    {subjectLabel(s, common.subjectLabels)}
                   </span>
                 ))}
               </div>
@@ -633,20 +642,20 @@ function ProfileViewModal({ candidate: c, onClose }: ProfileViewModalProps) {
           {c.professional?.experienceRange && (
             <div className="flex items-center gap-2">
               <Briefcase size={13} className="text-gray-400" />
-              <span>{c.professional.experienceRange} years experience</span>
+              <span>{c.professional.experienceRange} {tt.profileYearsExperienceSuffix}</span>
             </div>
           )}
           {c.education && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Education</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{tt.profileEducationLabel}</p>
               <p className="capitalize">{c.education.degreeType ?? "–"}{c.education.major ? ` in ${c.education.major}` : ""}</p>
               {c.education.university && <p className="text-xs text-gray-400">{c.education.university}</p>}
             </div>
           )}
           {(c.salaryExpectations?.minMonthlySAR || c.salaryExpectations?.maxMonthlySAR) && (
             <div className="text-xs text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl">
-              <SARSymbol />{c.salaryExpectations.minMonthlySAR?.toLocaleString() ?? "–"}
-              {c.salaryExpectations.maxMonthlySAR ? `–${c.salaryExpectations.maxMonthlySAR.toLocaleString()}` : "+"} / month
+              <SARSymbol />{c.salaryExpectations.minMonthlySAR != null ? formatNumber(c.salaryExpectations.minMonthlySAR, lang) : "–"}
+              {c.salaryExpectations.maxMonthlySAR ? `–${formatNumber(c.salaryExpectations.maxMonthlySAR, lang)}` : "+"} {tt.profilePerMonthSuffix}
             </div>
           )}
         </div>
@@ -660,6 +669,9 @@ function ProfileViewModal({ candidate: c, onClose }: ProfileViewModalProps) {
 type ViewFilter = "active" | "archived";
 
 export default function ShortlistsPage() {
+  const { t } = useTranslation();
+  const tt = t.school.shortlists;
+  const common = t.school.common;
   const [shortlists, setShortlists] = useState<Shortlist[]>([]);
   const [jobs, setJobs]             = useState<SchoolJob[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -681,11 +693,11 @@ export default function ShortlistsPage() {
       setShortlists(slRes ?? []);
       setJobs(jobRes.jobs ?? []);
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to load shortlists.");
+      setError((e as Error)?.message ?? tt.loadFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailedFallback]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -715,7 +727,7 @@ export default function ShortlistsPage() {
         sl._id === shortlistId
           ? {
               ...sl,
-              teachers: sl.teachers.filter((t) => teacherIdStr(t) !== teacherId),
+              teachers: sl.teachers.filter((entry) => teacherIdStr(entry) !== teacherId),
             }
           : sl
       )
@@ -741,10 +753,10 @@ export default function ShortlistsPage() {
         <div>
           <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <BookmarkCheck size={20} style={{ color: "var(--brand-primary)" }} />
-            Shortlists
+            {tt.pageTitle}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {activeCount} active · {archivedCount} archived
+            {tt.statusSummaryTemplate.replace("{active}", String(activeCount)).replace("{archived}", String(archivedCount))}
           </p>
         </div>
         <button
@@ -753,15 +765,15 @@ export default function ShortlistsPage() {
           style={{ background: "var(--brand-gradient)" }}
         >
           <Plus size={16} />
-          New Shortlist
+          {tt.newShortlistButton}
         </button>
       </div>
 
       {/* Filter toggle */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit">
         {([
-          { value: "active",   label: `Active (${activeCount})`     },
-          { value: "archived", label: `Archived (${archivedCount})` },
+          { value: "active",   label: tt.filterActiveLabelTemplate.replace("{n}", String(activeCount))     },
+          { value: "archived", label: tt.filterArchivedLabelTemplate.replace("{n}", String(archivedCount)) },
         ] as { value: ViewFilter; label: string }[]).map(({ value, label }) => (
           <button
             key={value}
@@ -792,7 +804,7 @@ export default function ShortlistsPage() {
             className="px-4 py-2 text-sm font-medium text-white rounded-xl"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Retry
+            {common.retry}
           </button>
         </div>
       ) : filteredShortlists.length === 0 ? (
@@ -804,12 +816,10 @@ export default function ShortlistsPage() {
             <BookmarkCheck size={28} className="text-white" />
           </div>
           <h3 className="text-base font-bold text-gray-900 mb-1">
-            {viewFilter === "active" ? "No shortlists yet" : "No archived shortlists"}
+            {viewFilter === "active" ? tt.emptyActiveTitle : tt.emptyArchivedTitle}
           </h3>
           <p className="text-sm text-gray-400 max-w-xs mb-4">
-            {viewFilter === "active"
-              ? "Create shortlists to organise promising candidates for your open positions."
-              : "Archived shortlists will appear here."}
+            {viewFilter === "active" ? tt.emptyActiveBody : tt.emptyArchivedBody}
           </p>
           {viewFilter === "active" && (
             <button
@@ -818,7 +828,7 @@ export default function ShortlistsPage() {
               style={{ background: "var(--brand-gradient)" }}
             >
               <Plus size={15} />
-              Create First Shortlist
+              {tt.createFirstButton}
             </button>
           )}
         </div>
