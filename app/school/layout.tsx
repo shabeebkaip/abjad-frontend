@@ -9,29 +9,32 @@ import {
   Bell, LogOut, ChevronDown, Loader2, CreditCard, Lock,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getSchoolNotificationUnreadCount } from "@/lib/api/school";
 import { PlanBadge } from "@/components/billing/PlanBadge";
-
-const navItems = [
-  { href: "/school/dashboard",       icon: LayoutDashboard, label: "Dashboard"     },
-  { href: "/school/jobs",            icon: Briefcase,        label: "Jobs"          },
-  { href: "/school/applications",    icon: FileText,         label: "Applications"  },
-  { href: "/school/candidates",      icon: Users,            label: "Candidates"    },
-  { href: "/school/shortlists",      icon: BookMarked,       label: "Shortlists"    },
-  { href: "/school/interviews",      icon: Calendar,         label: "Interviews"    },
-  { href: "/school/offers",          icon: Gift,             label: "Offers"        },
-  { href: "/school/team",            icon: UserCog,          label: "Team"          },
-  { href: "/school/profile",         icon: Building2,        label: "School Profile"},
-  { href: "/school/billing",         icon: CreditCard,       label: "Billing"       },
-  { href: "/school/support",         icon: MessageSquare,    label: "Support"       },
-];
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export default function SchoolLayout({ children }: { children: React.ReactNode }) {
   const pathname  = usePathname();
   const router    = useRouter();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { t } = useTranslation();
   const [profileOpen, setProfileOpen]     = useState(false);
   const [unreadCount, setUnreadCount]     = useState(0);
+
+  const navItems = [
+    { href: "/school/dashboard",       icon: LayoutDashboard, label: t.school.layout.navDashboard },
+    { href: "/school/jobs",            icon: Briefcase,        label: t.school.layout.navJobs },
+    { href: "/school/applications",    icon: FileText,         label: t.school.layout.navApplications },
+    { href: "/school/candidates",      icon: Users,            label: t.school.layout.navCandidates },
+    { href: "/school/shortlists",      icon: BookMarked,       label: t.school.layout.navShortlists },
+    { href: "/school/interviews",      icon: Calendar,         label: t.school.layout.navInterviews },
+    { href: "/school/offers",          icon: Gift,             label: t.school.layout.navOffers },
+    { href: "/school/team",            icon: UserCog,          label: t.school.layout.navTeam },
+    { href: "/school/profile",         icon: Building2,        label: t.school.layout.navProfile },
+    { href: "/school/billing",         icon: CreditCard,       label: t.school.layout.navBilling },
+    { href: "/school/support",         icon: MessageSquare,    label: t.school.layout.navSupport },
+  ];
 
   // Poll unread notification count every 60 s while the school is active
   useEffect(() => {
@@ -64,7 +67,7 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
     router.push("/login");
   };
 
-  const schoolName = user?.schoolName ?? user?.email?.split("@")[0] ?? "School";
+  const schoolName = user?.schoolName ?? user?.email?.split("@")[0] ?? t.school.common.schoolFallback;
   const initial    = schoolName[0]?.toUpperCase() ?? "S";
 
   return (
@@ -82,12 +85,12 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
             <Link
               href="/school/notifications"
               className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-              aria-label="Notifications"
+              aria-label={t.school.layout.notifications}
             >
               <Bell size={20} />
               {unreadCount > 0 && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center text-white text-[9px] font-bold rounded-full px-1 leading-none"
+                  className="absolute -top-0.5 -end-0.5 min-w-[16px] h-4 flex items-center justify-center text-white text-[9px] font-bold rounded-full px-1 leading-none"
                   style={{ background: "var(--brand-gradient)" }}
                 >
                   {unreadCount > 99 ? "99+" : unreadCount}
@@ -95,11 +98,14 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
               )}
             </Link>
 
+            {/* DESIGN_SPEC §3.4 — language toggle sits just before the profile control */}
+            <LanguageToggle variant="inline" />
+
             {/* Profile dropdown */}
             <div className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors ml-1"
+                className="flex items-center gap-2 ps-2 pe-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors ms-1"
               >
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
@@ -114,20 +120,20 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
               {profileOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
+                  <div className="absolute end-0 top-full mt-1.5 w-52 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50">
                     <p className="px-4 py-2 text-xs text-slate-400 font-medium border-b border-slate-100 mb-1">{user?.email}</p>
                     <Link href="/school/profile" className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onClick={() => setProfileOpen(false)}>
-                      <Building2 size={14} className="text-slate-400" /> School Profile
+                      <Building2 size={14} className="text-slate-400" /> {t.school.layout.navProfile}
                     </Link>
                     <Link href="/school/team" className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onClick={() => setProfileOpen(false)}>
-                      <UserCog size={14} className="text-slate-400" /> Team
+                      <UserCog size={14} className="text-slate-400" /> {t.school.layout.navTeam}
                     </Link>
                     <Link href="/school/settings" className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onClick={() => setProfileOpen(false)}>
-                      <Lock size={14} className="text-slate-400" /> Settings
+                      <Lock size={14} className="text-slate-400" /> {t.school.layout.settings}
                     </Link>
                     <hr className="my-1 border-slate-100" />
                     <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
-                      <LogOut size={14} /> Sign out
+                      <LogOut size={14} /> {t.school.layout.signOut}
                     </button>
                   </div>
                 </>
@@ -150,6 +156,8 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
                 >
                   <span className={active ? "" : "text-slate-500 hover:text-slate-800"}>{label}</span>
                   {active && (
+                    // Symmetric full-width underline — intentionally NOT converted
+                    // to start-0/end-0 (DESIGN_SPEC §1.1 documented exception).
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full" style={{ backgroundColor: "var(--brand-primary)" }} />
                   )}
                 </Link>

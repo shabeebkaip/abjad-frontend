@@ -9,6 +9,7 @@ import {
   UserCheck,
   AlertCircle,
   ChevronRight,
+  ChevronLeft,
   Loader2,
   Video,
   Phone,
@@ -34,125 +35,109 @@ import type {
 } from "@/lib/api/school";
 import { useAuth } from "@/lib/auth/useAuth";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate, formatTime, formatNumber, type Locale } from "@/lib/i18n/format";
+
+type TT = ReturnType<typeof useTranslation>["t"]["school"]["dashboard"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function timeAgo(isoStr: string): string {
+function timeAgo(isoStr: string, tt: TT): string {
   const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 60)    return "just now";
-  if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-  if (secs < 172800) return "Yesterday";
-  return `${Math.floor(secs / 86400)}d ago`;
+  if (secs < 60)    return tt.justNow;
+  if (secs < 3600)  return tt.minAgo.replace("{n}", String(Math.floor(secs / 60)));
+  if (secs < 86400) return tt.hoursAgo.replace("{n}", String(Math.floor(secs / 3600)));
+  if (secs < 172800) return tt.yesterday;
+  return tt.daysAgo.replace("{n}", String(Math.floor(secs / 86400)));
 }
 
-function formatDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString("en-US", {
-    weekday: "short", month: "short", day: "numeric",
-  });
-}
-
-function formatTime(isoStr: string): string {
-  return new Date(isoStr).toLocaleTimeString("en-US", {
-    hour: "numeric", minute: "2-digit", hour12: true,
-  });
-}
-
-function formatDeadline(isoStr: string): string {
+function formatDeadline(isoStr: string, tt: TT, lang: Locale): string {
   const d = new Date(isoStr);
   const now = new Date();
   const days = Math.ceil((d.getTime() - now.getTime()) / 86_400_000);
-  if (days < 0)  return "Expired";
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  return `${days}d left`;
+  if (days < 0)  return tt.expired;
+  if (days === 0) return tt.today;
+  if (days === 1) return tt.tomorrow;
+  return tt.daysLeft.replace("{n}", formatNumber(days, lang));
 }
 
 function candidateName(
-  teacherId: SchoolApplication["teacherId"]
+  teacherId: SchoolApplication["teacherId"] | SchoolInterview["teacherId"] | SchoolOffer["teacherId"],
+  fallback: string,
 ): string {
-  if (typeof teacherId === "object" && teacherId.name) return teacherId.name;
-  return "Candidate";
+  if (typeof teacherId === "object" && teacherId?.name) return teacherId.name;
+  return fallback;
 }
 
 function jobTitle(
-  jobId: SchoolApplication["jobId"] | SchoolInterview["jobId"] | SchoolOffer["jobId"]
+  jobId: SchoolApplication["jobId"] | SchoolInterview["jobId"] | SchoolOffer["jobId"],
+  fallback: string,
 ): string {
   if (typeof jobId === "object" && "title" in jobId) return jobId.title;
-  return "Position";
+  return fallback;
 }
 
-function interviewCandidateName(teacherId: SchoolInterview["teacherId"]): string {
-  if (typeof teacherId === "object" && "name" in teacherId && teacherId.name) return teacherId.name;
-  return "Candidate";
-}
-
-function offerCandidateName(teacherId: SchoolOffer["teacherId"]): string {
-  if (typeof teacherId === "object" && "name" in teacherId && teacherId.name) return teacherId.name;
-  return "Candidate";
-}
-
-function ApplicationStatusBadge({ status }: { status: SchoolApplication["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    submitted:           { label: "Submitted",  cls: "bg-gray-100 text-gray-600" },
-    reviewing:           { label: "Reviewing",  cls: "bg-blue-100 text-blue-700" },
-    shortlisted:         { label: "Shortlisted",cls: "bg-green-100 text-green-700" },
-    interview_scheduled: { label: "Interview",  cls: "bg-purple-100 text-purple-700" },
-    offer_extended:      { label: "Offer Sent", cls: "bg-teal-100 text-teal-700" },
-    hired:               { label: "Hired",      cls: "bg-emerald-100 text-emerald-700" },
-    rejected:            { label: "Rejected",   cls: "bg-red-100 text-red-600" },
-    withdrawn:           { label: "Withdrawn",  cls: "bg-gray-100 text-gray-400" },
+function ApplicationStatusBadge({ status, labels }: { status: SchoolApplication["status"]; labels: Record<string, string> }) {
+  const clsMap: Record<string, string> = {
+    submitted:           "bg-gray-100 text-gray-600",
+    reviewing:           "bg-blue-100 text-blue-700",
+    shortlisted:         "bg-green-100 text-green-700",
+    interview_scheduled: "bg-purple-100 text-purple-700",
+    offer_extended:      "bg-teal-100 text-teal-700",
+    hired:               "bg-emerald-100 text-emerald-700",
+    rejected:            "bg-red-100 text-red-600",
+    withdrawn:           "bg-gray-100 text-gray-400",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600" };
+  const cls = clsMap[status] ?? "bg-gray-100 text-gray-600";
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
-      {label}
+      {labels[status] ?? status}
     </span>
   );
 }
 
-function InterviewStatusBadge({ status }: { status: SchoolInterview["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    pending:    { label: "Pending",    cls: "bg-amber-100 text-amber-700" },
-    accepted:   { label: "Confirmed",  cls: "bg-green-100 text-green-700" },
-    declined:   { label: "Declined",   cls: "bg-red-100 text-red-600" },
-    rescheduled:{ label: "Rescheduled",cls: "bg-blue-100 text-blue-700" },
-    completed:  { label: "Completed",  cls: "bg-gray-100 text-gray-500" },
-    cancelled:  { label: "Cancelled",  cls: "bg-gray-100 text-gray-400" },
+function InterviewStatusBadge({ status, labels }: { status: SchoolInterview["status"]; labels: Record<string, string> }) {
+  const clsMap: Record<string, string> = {
+    pending:     "bg-amber-100 text-amber-700",
+    accepted:    "bg-green-100 text-green-700",
+    declined:    "bg-red-100 text-red-600",
+    rescheduled: "bg-blue-100 text-blue-700",
+    completed:   "bg-gray-100 text-gray-500",
+    cancelled:   "bg-gray-100 text-gray-400",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-500" };
+  const cls = clsMap[status] ?? "bg-gray-100 text-gray-500";
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
-      {label}
+      {labels[status] ?? status}
     </span>
   );
 }
 
-function OfferStatusBadge({ status }: { status: SchoolOffer["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    sent:        { label: "Sent",        cls: "bg-blue-100 text-blue-700" },
-    viewed:      { label: "Viewed",      cls: "bg-indigo-100 text-indigo-700" },
-    accepted:    { label: "Accepted",    cls: "bg-emerald-100 text-emerald-700" },
-    declined:    { label: "Declined",    cls: "bg-red-100 text-red-600" },
-    negotiating: { label: "Negotiating", cls: "bg-amber-100 text-amber-700" },
-    expired:     { label: "Expired",     cls: "bg-gray-100 text-gray-400" },
+function OfferStatusBadge({ status, labels }: { status: SchoolOffer["status"]; labels: Record<string, string> }) {
+  const clsMap: Record<string, string> = {
+    sent:        "bg-blue-100 text-blue-700",
+    viewed:      "bg-indigo-100 text-indigo-700",
+    accepted:    "bg-emerald-100 text-emerald-700",
+    declined:    "bg-red-100 text-red-600",
+    negotiating: "bg-amber-100 text-amber-700",
+    expired:     "bg-gray-100 text-gray-400",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-500" };
+  const cls = clsMap[status] ?? "bg-gray-100 text-gray-500";
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
-      {label}
+      {labels[status] ?? status}
     </span>
   );
 }
 
-function MatchScoreBadge({ score }: { score: number }) {
+function MatchScoreBadge({ score, lang }: { score: number; lang: Locale }) {
   const cls =
     score >= 90 ? "bg-green-100 text-green-700" :
     score >= 75 ? "bg-blue-100 text-blue-700"   :
     "bg-gray-100 text-gray-500";
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>
-      {score}%
+      {formatNumber(score, lang)}%
     </span>
   );
 }
@@ -166,35 +151,37 @@ function InterviewTypeIcon({ type }: { type: SchoolInterview["type"] }) {
 
 // ─── Hiring Funnel Bar ────────────────────────────────────────────────────────
 
-const FUNNEL_STEPS: { key: keyof DashboardData["hiringFunnel"]; label: string; color: string }[] = [
-  { key: "total",       label: "Submitted",    color: "#6b7280" },
-  { key: "reviewing",   label: "Reviewing",    color: "#3b82f6" },
-  { key: "shortlisted", label: "Shortlisted",  color: "#8b5cf6" },
-  { key: "interviewed", label: "Interviewed",  color: "#f59e0b" },
-  { key: "offered",     label: "Offered",      color: "#14b8a6" },
-  { key: "hired",       label: "Hired",        color: "#10b981" },
-];
+function funnelSteps(tt: TT): { key: keyof DashboardData["hiringFunnel"]; label: string; color: string }[] {
+  return [
+    { key: "total",       label: tt.funnelSubmitted,   color: "#6b7280" },
+    { key: "reviewing",   label: tt.funnelReviewing,   color: "#3b82f6" },
+    { key: "shortlisted", label: tt.funnelShortlisted, color: "#8b5cf6" },
+    { key: "interviewed", label: tt.funnelInterviewed, color: "#f59e0b" },
+    { key: "offered",     label: tt.funnelOffered,     color: "#14b8a6" },
+    { key: "hired",       label: tt.funnelHired,       color: "#10b981" },
+  ];
+}
 
-function HiringFunnel({ funnel }: { funnel: DashboardData["hiringFunnel"] }) {
+function HiringFunnel({ funnel, tt, lang }: { funnel: DashboardData["hiringFunnel"]; tt: TT; lang: Locale }) {
   const maxVal = funnel.total || 1;
   return (
     <div className="space-y-2.5">
-      {FUNNEL_STEPS.map(({ key, label, color }) => {
+      {funnelSteps(tt).map(({ key, label, color }) => {
         const val = funnel[key] ?? 0;
         const pct = Math.round((val / maxVal) * 100);
         return (
           <div key={key} className="flex items-center gap-3">
-            <span className="text-xs text-gray-500 w-20 shrink-0 text-right">{label}</span>
+            <span className="text-xs text-gray-500 w-20 shrink-0 text-end">{label}</span>
             <div className="flex-1 bg-gray-100 rounded-full h-5 relative overflow-hidden">
               <div
-                className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                className="h-full rounded-full transition-all duration-500 flex items-center justify-end pe-2"
                 style={{ width: `${Math.max(pct, val > 0 ? 4 : 0)}%`, backgroundColor: color }}
               />
               <span className="absolute inset-0 flex items-center px-2 text-xs font-semibold text-gray-700">
-                {val}
+                {formatNumber(val, lang)}
               </span>
             </div>
-            <span className="text-xs text-gray-400 w-8 shrink-0">{pct}%</span>
+            <span className="text-xs text-gray-400 w-8 shrink-0">{formatNumber(pct, lang)}%</span>
           </div>
         );
       })}
@@ -206,6 +193,10 @@ function HiringFunnel({ funnel }: { funnel: DashboardData["hiringFunnel"] }) {
 
 export default function SchoolDashboardPage() {
   const { user } = useAuth();
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.school.dashboard;
+  const common = t.school.common;
+
   const [data, setData]       = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -213,9 +204,9 @@ export default function SchoolDashboardPage() {
   useEffect(() => {
     getSchoolDashboard()
       .then(setData)
-      .catch((err) => setError(err?.message ?? "Failed to load dashboard"))
+      .catch((err) => setError(err?.message ?? common.somethingWentWrong))
       .finally(() => setLoading(false));
-  }, []);
+  }, [common.somethingWentWrong]);
 
   if (loading) {
     return (
@@ -231,18 +222,18 @@ export default function SchoolDashboardPage() {
         <AlertCircle size={32} className="text-red-400" />
         <p className="text-sm text-gray-500">{error}</p>
         <button
-          onClick={() => { setError(null); setLoading(true); getSchoolDashboard().then(setData).catch((e) => setError(e?.message ?? "Error")).finally(() => setLoading(false)); }}
+          onClick={() => { setError(null); setLoading(true); getSchoolDashboard().then(setData).catch((e) => setError(e?.message ?? common.somethingWentWrong)).finally(() => setLoading(false)); }}
           className="px-4 py-2 text-sm font-medium text-white rounded-lg"
           style={{ background: "var(--brand-gradient)" }}
         >
-          Retry
+          {common.retry}
         </button>
       </div>
     );
   }
 
   const schoolDisplayName =
-    data?.profile.nameEn ?? data?.profile.nameAr ?? user?.schoolName ?? "School";
+    data?.profile.nameEn ?? data?.profile.nameAr ?? user?.schoolName ?? common.schoolFallback;
   const completion     = data?.profile.completionPercentage ?? 0;
   const profileStatus  = data?.profile.status ?? "draft";
   const isVerified     = profileStatus === "verified";
@@ -258,38 +249,40 @@ export default function SchoolDashboardPage() {
 
   const statCards = [
     {
-      label: "Active Jobs",
+      label: tt.statActiveJobs,
       value: data?.jobs.active ?? 0,
       icon: Briefcase,
       iconCls: "bg-blue-50 text-blue-600",
-      sub: `${data?.jobs.total ?? 0} total`,
+      sub: tt.statActiveJobsSub.replace("{n}", formatNumber(data?.jobs.total ?? 0, lang)),
       href: "/school/jobs",
     },
     {
-      label: "Applications",
+      label: tt.statApplications,
       value: totalAppsThisMonth,
       icon: FileText,
       iconCls: "bg-indigo-50 text-indigo-600",
-      sub: "this month",
+      sub: tt.statApplicationsSub,
       href: "/school/applications",
     },
     {
-      label: "Interviews This Week",
+      label: tt.statInterviewsThisWeek,
       value: upcoming.length,
       icon: Calendar,
       iconCls: "bg-purple-50 text-purple-600",
-      sub: "upcoming",
+      sub: tt.statInterviewsSub,
       href: "/school/interviews",
     },
     {
-      label: "Hired This Month",
+      label: tt.statHiredThisMonth,
       value: funnel.hired,
       icon: UserCheck,
       iconCls: "bg-emerald-50 text-emerald-600",
-      sub: "confirmed hires",
+      sub: tt.statHiredSub,
       href: "/school/offers",
     },
   ];
+
+  const ForwardChevron = isRTL ? ChevronLeft : ChevronRight;
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
@@ -301,10 +294,10 @@ export default function SchoolDashboardPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">
-            Welcome back, {schoolDisplayName}
+            {tt.welcomeBack.replace("{name}", schoolDisplayName)}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Here&apos;s your hiring overview for today
+            {tt.subtitle}
           </p>
         </div>
         <Link
@@ -313,7 +306,7 @@ export default function SchoolDashboardPage() {
           style={{ background: "var(--brand-gradient)" }}
         >
           <Plus size={15} />
-          Post a Job
+          {tt.postJob}
         </Link>
       </div>
 
@@ -327,13 +320,20 @@ export default function SchoolDashboardPage() {
             <div className="flex items-center gap-2 mb-1.5">
               <AlertCircle size={16} className="text-amber-500" />
               <p className="text-sm font-semibold text-gray-900">
-                Complete your school profile to attract top teachers
+                {tt.completeProfileTitle}
               </p>
             </div>
             <p className="text-xs text-gray-500 mb-2">
-              Verified schools with complete profiles receive{" "}
-              <span className="font-medium text-gray-700">4x more applications</span>.
-              You&apos;re {completion}% complete.
+              {(() => {
+                const [pre, rest] = tt.completeProfileBody.split("{bold}");
+                return (
+                  <>
+                    {pre}
+                    <span className="font-medium text-gray-700">{tt.moreApplications}</span>
+                    {rest.replace("{percent}", formatNumber(completion, lang))}
+                  </>
+                );
+              })()}
             </p>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
@@ -346,7 +346,7 @@ export default function SchoolDashboardPage() {
             href="/school/profile"
             className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            Complete Profile
+            {tt.completeProfileCta}
           </Link>
         </div>
       )}
@@ -359,9 +359,18 @@ export default function SchoolDashboardPage() {
               <CheckCircle2 size={16} className="text-teal-600" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">Get your school verified</p>
+              <p className="text-sm font-semibold text-gray-900">{tt.getVerifiedTitle}</p>
               <p className="text-xs text-gray-500 mt-0.5">
-                A <span className="text-teal-600 font-medium">Verified by Abjad</span> badge builds trust with teachers — you can post jobs freely while we verify.
+                {(() => {
+                  const [pre, rest] = tt.getVerifiedBody.split("{badge}");
+                  return (
+                    <>
+                      {pre}
+                      <span className="text-teal-600 font-medium">{tt.verifiedBadge}</span>
+                      {rest}
+                    </>
+                  );
+                })()}
               </p>
             </div>
           </div>
@@ -369,7 +378,7 @@ export default function SchoolDashboardPage() {
             href="/school/profile"
             className="shrink-0 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            Submit for Verification
+            {tt.submitForVerification}
           </Link>
         </div>
       )}
@@ -380,9 +389,9 @@ export default function SchoolDashboardPage() {
             <Loader2 size={16} className="text-amber-500 animate-spin" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">Verification in progress</p>
+            <p className="text-sm font-semibold text-gray-900">{tt.verificationInProgressTitle}</p>
             <p className="text-xs text-gray-500 mt-0.5">
-              Our team is reviewing your school profile. You can continue posting jobs and receiving applications in the meantime.
+              {tt.verificationInProgressBody}
             </p>
           </div>
         </div>
@@ -399,11 +408,11 @@ export default function SchoolDashboardPage() {
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconCls} mb-3`}>
               <Icon size={18} />
             </div>
-            <div className="text-2xl font-bold text-gray-900">{value}</div>
+            <div className="text-2xl font-bold text-gray-900">{formatNumber(value, lang)}</div>
             <div className="text-sm text-gray-600 mt-0.5">{label}</div>
             <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
               {sub}
-              <ArrowUpRight size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ArrowUpRight size={11} className="opacity-0 group-hover:opacity-100 transition-opacity rtl:rotate-180" />
             </div>
           </Link>
         ))}
@@ -421,20 +430,20 @@ export default function SchoolDashboardPage() {
               <div>
                 <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                   <BarChart2 size={16} className="text-indigo-500" />
-                  Hiring Funnel
+                  {tt.hiringFunnelTitle}
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">All-time pipeline breakdown</p>
+                <p className="text-xs text-gray-400 mt-0.5">{tt.hiringFunnelSubtitle}</p>
               </div>
               <Link
                 href="/school/applications"
                 className="text-xs font-medium hover:underline flex items-center gap-1"
                 style={{ color: "var(--brand-primary)" }}
               >
-                View All <ChevronRight size={13} />
+                {common.viewAll} <ForwardChevron size={13} />
               </Link>
             </div>
             <div className="p-5">
-              <HiringFunnel funnel={funnel} />
+              <HiringFunnel funnel={funnel} tt={tt} lang={lang} />
             </div>
           </div>
 
@@ -442,9 +451,9 @@ export default function SchoolDashboardPage() {
           <div className="grid grid-cols-3 gap-3">
             {(
               [
-                { key: "active",  label: "Active",  cls: "bg-green-50  border-green-100  text-green-700",  dot: "bg-green-400"  },
-                { key: "draft",   label: "Draft",   cls: "bg-gray-50   border-gray-100   text-gray-500",   dot: "bg-gray-300"   },
-                { key: "closed",  label: "Closed",  cls: "bg-slate-50  border-slate-100  text-slate-500",  dot: "bg-slate-300"  },
+                { key: "active",  label: tt.jobStatusActive, cls: "bg-green-50  border-green-100  text-green-700",  dot: "bg-green-400"  },
+                { key: "draft",   label: tt.jobStatusDraft,   cls: "bg-gray-50   border-gray-100   text-gray-500",   dot: "bg-gray-300"   },
+                { key: "closed",  label: tt.jobStatusClosed,  cls: "bg-slate-50  border-slate-100  text-slate-500",  dot: "bg-slate-300"  },
               ] as const
             ).map(({ key, label, cls, dot }) => (
               <Link
@@ -454,9 +463,9 @@ export default function SchoolDashboardPage() {
               >
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
-                  <span className="text-xs font-medium">{label} Jobs</span>
+                  <span className="text-xs font-medium">{label}</span>
                 </div>
-                <p className="text-2xl font-bold">{jobsByStatus[key] ?? 0}</p>
+                <p className="text-2xl font-bold">{formatNumber(jobsByStatus[key] ?? 0, lang)}</p>
               </Link>
             ))}
           </div>
@@ -466,20 +475,20 @@ export default function SchoolDashboardPage() {
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <FileText size={16} className="text-blue-500" />
-                Recent Applications
+                {tt.recentApplicationsTitle}
               </h2>
               <Link
                 href="/school/applications"
                 className="text-xs font-medium hover:underline flex items-center gap-1"
                 style={{ color: "var(--brand-primary)" }}
               >
-                All <ChevronRight size={13} />
+                {common.all} <ForwardChevron size={13} />
               </Link>
             </div>
             <div className="divide-y divide-gray-50">
               {recentApps.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-10">
-                  No applications yet. Post a job to start receiving applications.
+                  {tt.noApplicationsYet}
                 </p>
               ) : (
                 recentApps.map((app) => (
@@ -491,22 +500,22 @@ export default function SchoolDashboardPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
-                            {candidateName(app.teacherId)}
+                            {candidateName(app.teacherId, common.candidateFallback)}
                           </span>
                           {app.matchScore != null && (
-                            <MatchScoreBadge score={app.matchScore} />
+                            <MatchScoreBadge score={app.matchScore} lang={lang} />
                           )}
                           {!app.isRead && (
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                           )}
                         </div>
                         <p className="text-xs text-gray-500 mt-0.5 truncate">
-                          {jobTitle(app.jobId)}
+                          {jobTitle(app.jobId, common.positionFallback)}
                         </p>
                       </div>
                       <div className="shrink-0 flex flex-col items-end gap-1.5">
-                        <ApplicationStatusBadge status={app.status} />
-                        <span className="text-xs text-gray-400">{timeAgo(app.createdAt)}</span>
+                        <ApplicationStatusBadge status={app.status} labels={tt.applicationStatusLabels} />
+                        <span className="text-xs text-gray-400">{timeAgo(app.createdAt, tt)}</span>
                       </div>
                     </div>
                   </div>
@@ -521,21 +530,21 @@ export default function SchoolDashboardPage() {
               <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
                 <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                   <Gift size={16} className="text-teal-500" />
-                  Active Offers
+                  {tt.activeOffersTitle}
                 </h2>
                 <Link
                   href="/school/offers"
                   className="text-xs font-medium hover:underline flex items-center gap-1"
                   style={{ color: "var(--brand-primary)" }}
                 >
-                  All <ChevronRight size={13} />
+                  {common.all} <ForwardChevron size={13} />
                 </Link>
               </div>
               <div className="divide-y divide-gray-50">
                 {offers.map((offer) => {
-                  const deadlineLabel = formatDeadline(offer.deadline);
+                  const deadlineLabel = formatDeadline(offer.deadline, tt, lang);
                   const deadlineUrgent =
-                    !["Expired"].includes(deadlineLabel) &&
+                    ![tt.expired].includes(deadlineLabel) &&
                     parseInt(deadlineLabel) <= 2;
                   return (
                     <div
@@ -549,19 +558,19 @@ export default function SchoolDashboardPage() {
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-xs text-gray-500">
-                              {offerCandidateName(offer.teacherId)}
+                              {candidateName(offer.teacherId, common.candidateFallback)}
                             </span>
                             <span className="text-gray-300">·</span>
                             <span className="text-xs font-medium text-gray-700">
-                              <SARSymbol />{offer.salary.toLocaleString()}/mo
+                              <SARSymbol />{formatNumber(offer.salary, lang)}{tt.perMonthSuffix}
                             </span>
                           </div>
                         </div>
                         <div className="shrink-0 flex flex-col items-end gap-1.5">
-                          <OfferStatusBadge status={offer.status} />
+                          <OfferStatusBadge status={offer.status} labels={tt.offerStatusLabels} />
                           <span
                             className={`text-xs font-medium ${
-                              deadlineUrgent || deadlineLabel === "Expired"
+                              deadlineUrgent || deadlineLabel === tt.expired
                                 ? "text-red-500"
                                 : "text-gray-400"
                             }`}
@@ -586,20 +595,20 @@ export default function SchoolDashboardPage() {
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-50">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Calendar size={16} className="text-purple-500" />
-                Upcoming Interviews
+                {tt.upcomingInterviewsTitle}
               </h2>
               <Link
                 href="/school/interviews"
                 className="text-xs font-medium hover:underline flex items-center gap-1"
                 style={{ color: "var(--brand-primary)" }}
               >
-                All <ChevronRight size={13} />
+                {common.all} <ForwardChevron size={13} />
               </Link>
             </div>
             <div className="p-4 space-y-3">
               {upcoming.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-6">
-                  No upcoming interviews scheduled
+                  {tt.noInterviewsScheduled}
                 </p>
               ) : (
                 upcoming.map((interview) => (
@@ -611,21 +620,21 @@ export default function SchoolDashboardPage() {
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <InterviewTypeIcon type={interview.type} />
                         <p className="text-sm font-medium text-gray-900 truncate">
-                          {interviewCandidateName(interview.teacherId)}
+                          {candidateName(interview.teacherId, common.candidateFallback)}
                         </p>
                       </div>
-                      <InterviewStatusBadge status={interview.status} />
+                      <InterviewStatusBadge status={interview.status} labels={tt.interviewStatusLabels} />
                     </div>
                     <p className="text-xs text-gray-500 truncate mb-2">
-                      {jobTitle(interview.jobId)}
+                      {jobTitle(interview.jobId, common.positionFallback)}
                     </p>
                     <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 rounded-lg px-2.5 py-1.5">
                       <Clock size={11} className="shrink-0" style={{ color: "var(--brand-primary)" }} />
-                      <span>{formatDate(interview.scheduledAt)}</span>
+                      <span>{formatDate(interview.scheduledAt, lang, { weekday: "short", month: "short", day: "numeric" })}</span>
                       <span className="text-gray-300">·</span>
-                      <span>{formatTime(interview.scheduledAt)}</span>
-                      <span className="ml-auto capitalize text-xs font-medium text-gray-600">
-                        {interview.type.replace("_", " ")}
+                      <span>{formatTime(interview.scheduledAt, lang)}</span>
+                      <span className="ms-auto text-xs font-medium text-gray-600">
+                        {tt.interviewTypeLabels[interview.type] ?? interview.type}
                       </span>
                     </div>
                   </div>
@@ -636,13 +645,13 @@ export default function SchoolDashboardPage() {
 
           {/* Quick Actions */}
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <h2 className="font-semibold text-gray-900 text-sm mb-3">Quick Actions</h2>
+            <h2 className="font-semibold text-gray-900 text-sm mb-3">{tt.quickActionsTitle}</h2>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: "Post Job",         icon: Plus,        href: "/school/jobs/new",        iconCls: "bg-blue-50 text-blue-600" },
-                { label: "Search Teachers",  icon: Users,       href: "/school/candidates",      iconCls: "bg-indigo-50 text-indigo-600" },
-                { label: "View Pipeline",    icon: TrendingUp,  href: "/school/applications",    iconCls: "bg-green-50 text-green-600" },
-                { label: "Edit Profile",     icon: CircleDot,   href: "/school/profile",         iconCls: "bg-purple-50 text-purple-600" },
+                { label: tt.qaPostJob,        icon: Plus,        href: "/school/jobs/new",        iconCls: "bg-blue-50 text-blue-600" },
+                { label: tt.qaSearchTeachers,  icon: Users,       href: "/school/candidates",      iconCls: "bg-indigo-50 text-indigo-600" },
+                { label: tt.qaViewPipeline,    icon: TrendingUp,  href: "/school/applications",    iconCls: "bg-green-50 text-green-600" },
+                { label: tt.qaEditProfile,     icon: CircleDot,   href: "/school/profile",         iconCls: "bg-purple-50 text-purple-600" },
               ].map(({ label, icon: Icon, href, iconCls }) => (
                 <Link
                   key={label}
@@ -663,14 +672,14 @@ export default function SchoolDashboardPage() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-green-500" />
-                Pipeline Health
+                {tt.pipelineHealthTitle}
               </h2>
             </div>
             <div className="space-y-2.5">
               {[
-                { label: "Unreviewed",  value: data?.applications.byStatus?.submitted  ?? 0, cls: "bg-gray-400",   href: "/school/applications?status=submitted" },
-                { label: "Shortlisted", value: data?.applications.byStatus?.shortlisted ?? 0, cls: "bg-purple-500", href: "/school/applications?status=shortlisted" },
-                { label: "Offers Out",  value: data?.applications.byStatus?.offer_extended ?? 0, cls: "bg-teal-500", href: "/school/offers" },
+                { label: tt.pipelineUnreviewed,  value: data?.applications.byStatus?.submitted  ?? 0, cls: "bg-gray-400",   href: "/school/applications?status=submitted" },
+                { label: tt.pipelineShortlisted, value: data?.applications.byStatus?.shortlisted ?? 0, cls: "bg-purple-500", href: "/school/applications?status=shortlisted" },
+                { label: tt.pipelineOffersOut,   value: data?.applications.byStatus?.offer_extended ?? 0, cls: "bg-teal-500", href: "/school/offers" },
               ].map(({ label, value, cls, href }) => (
                 <Link
                   key={label}
@@ -679,8 +688,8 @@ export default function SchoolDashboardPage() {
                 >
                   <span className={`w-2 h-2 rounded-full shrink-0 ${cls}`} />
                   <span className="text-xs text-gray-600 flex-1">{label}</span>
-                  <span className="text-sm font-bold text-gray-900">{value}</span>
-                  <ChevronRight size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
+                  <span className="text-sm font-bold text-gray-900">{formatNumber(value, lang)}</span>
+                  <ChevronRight size={12} className="text-gray-300 group-hover:text-gray-500 transition-colors rtl:rotate-180" />
                 </Link>
               ))}
             </div>

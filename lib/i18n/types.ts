@@ -1048,7 +1048,153 @@ export interface BillingSharedTranslations {
   paywall: BillingPaywallTranslations;
 }
 
+/** Small set of strings reused across several school-panel pages. Mirrors TeacherCommonTranslations. */
+export interface SchoolCommonTranslations {
+  loading: string;
+  retry: string;
+  save: string;
+  saving: string;
+  cancel: string;
+  close: string;
+  delete: string;
+  back: string;
+  clearAll: string;
+  clearFilters: string;
+  somethingWentWrong: string;
+  viewAll: string;
+  all: string;
+  yes: string;
+  no: string;
+  selectPlaceholder: string;
+  switchToEnglish: string;
+  switchToArabic: string;
+  previousPage: string;
+  nextPage: string;
+  schoolFallback: string;
+  candidateFallback: string;
+  positionFallback: string;
+}
+
+export interface SchoolLayoutTranslations {
+  navDashboard: string;
+  navJobs: string;
+  navApplications: string;
+  navCandidates: string;
+  navShortlists: string;
+  navInterviews: string;
+  navOffers: string;
+  navTeam: string;
+  navProfile: string;
+  navBilling: string;
+  navSupport: string;
+  notifications: string;
+  settings: string;
+  signOut: string;
+}
+
+export interface SchoolDashboardTranslations {
+  welcomeBack: string;
+  subtitle: string;
+  postJob: string;
+  completeProfileTitle: string;
+  completeProfileBody: string;
+  moreApplications: string;
+  completeProfileCta: string;
+  getVerifiedTitle: string;
+  getVerifiedBody: string;
+  verifiedBadge: string;
+  submitForVerification: string;
+  verificationInProgressTitle: string;
+  verificationInProgressBody: string;
+  statActiveJobs: string;
+  statActiveJobsSub: string;
+  statApplications: string;
+  statApplicationsSub: string;
+  statInterviewsThisWeek: string;
+  statInterviewsSub: string;
+  statHiredThisMonth: string;
+  statHiredSub: string;
+  hiringFunnelTitle: string;
+  hiringFunnelSubtitle: string;
+  funnelSubmitted: string;
+  funnelReviewing: string;
+  funnelShortlisted: string;
+  funnelInterviewed: string;
+  funnelOffered: string;
+  funnelHired: string;
+  jobStatusActive: string;
+  jobStatusDraft: string;
+  jobStatusClosed: string;
+  recentApplicationsTitle: string;
+  noApplicationsYet: string;
+  activeOffersTitle: string;
+  perMonthSuffix: string;
+  upcomingInterviewsTitle: string;
+  noInterviewsScheduled: string;
+  quickActionsTitle: string;
+  qaPostJob: string;
+  qaSearchTeachers: string;
+  qaViewPipeline: string;
+  qaEditProfile: string;
+  pipelineHealthTitle: string;
+  pipelineUnreviewed: string;
+  pipelineShortlisted: string;
+  pipelineOffersOut: string;
+  justNow: string;
+  minAgo: string;
+  hoursAgo: string;
+  yesterday: string;
+  daysAgo: string;
+  expired: string;
+  today: string;
+  tomorrow: string;
+  daysLeft: string;
+  applicationStatusLabels: Record<string, string>;
+  interviewStatusLabels: Record<string, string>;
+  offerStatusLabels: Record<string, string>;
+  interviewTypeLabels: Record<string, string>;
+}
+
+export interface SchoolSettingsTranslations {
+  title: string;
+  subtitle: string;
+  backToDashboard: string;
+}
+
+export interface SchoolNotificationsTranslations {
+  title: string;
+  subtitle: string;
+  newBadge: string;
+  refresh: string;
+  markAllAsRead: string;
+  filterLabel: string;
+  filterLabels: Record<string, string>;
+  unreadOnly: string;
+  minAgo: string;
+  hoursAgo: string;
+  yesterday: string;
+  emptyAllCaughtUp: string;
+  emptyNoUnread: string;
+  emptyTitle: string;
+  emptyBody: string;
+  showAllNotifications: string;
+  markAsRead: string;
+  dismissLabel: string;
+  teaserTitle: string;
+  teaserBody: string;
+  manage: string;
+}
+
+export interface SchoolTranslations {
+  common: SchoolCommonTranslations;
+  layout: SchoolLayoutTranslations;
+  dashboard: SchoolDashboardTranslations;
+  settings: SchoolSettingsTranslations;
+  notifications: SchoolNotificationsTranslations;
+}
+
 export interface Translations extends CommonTranslations {
   teacher: TeacherTranslations;
+  school: SchoolTranslations;
   billingShared: BillingSharedTranslations;
 }

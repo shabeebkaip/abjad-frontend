@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Bell, FileText, Calendar, Award, MessageSquare,
   Building2, Info, Trash2, Check, Filter, Loader2,
-  CheckCircle2, ChevronRight, RefreshCw,
+  CheckCircle2, ChevronRight, ChevronLeft, RefreshCw,
 } from "lucide-react";
 import {
   listSchoolNotifications,
@@ -13,6 +13,8 @@ import {
   deleteSchoolNotification,
 } from "@/lib/api/school";
 import type { SchoolNotification } from "@/lib/api/school";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate } from "@/lib/i18n/format";
 
 // ─── Type mapping ──────────────────────────────────────────────────────────────
 
@@ -31,67 +33,33 @@ function uiType(apiType: SchoolNotification["type"]): UIType {
   return map[apiType] ?? "system";
 }
 
-const TYPE_CONFIG: Record<UIType, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
-  applications: {
-    label: "Applications",
-    icon: <FileText className="w-4 h-4" />,
-    color: "text-blue-600",
-    bg: "bg-blue-100",
-  },
-  interviews: {
-    label: "Interviews",
-    icon: <Calendar className="w-4 h-4" />,
-    color: "text-purple-600",
-    bg: "bg-purple-100",
-  },
-  offers: {
-    label: "Offers",
-    icon: <Award className="w-4 h-4" />,
-    color: "text-teal-600",
-    bg: "bg-teal-100",
-  },
-  messages: {
-    label: "Messages",
-    icon: <MessageSquare className="w-4 h-4" />,
-    color: "text-indigo-600",
-    bg: "bg-indigo-100",
-  },
-  account: {
-    label: "Account",
-    icon: <Building2 className="w-4 h-4" />,
-    color: "text-amber-600",
-    bg: "bg-amber-100",
-  },
-  system: {
-    label: "System",
-    icon: <Info className="w-4 h-4" />,
-    color: "text-slate-600",
-    bg: "bg-slate-100",
-  },
+const TYPE_STYLE: Record<UIType, { icon: React.ReactNode; color: string; bg: string }> = {
+  applications: { icon: <FileText className="w-4 h-4" />,      color: "text-blue-600",   bg: "bg-blue-100" },
+  interviews:   { icon: <Calendar className="w-4 h-4" />,       color: "text-purple-600", bg: "bg-purple-100" },
+  offers:       { icon: <Award className="w-4 h-4" />,          color: "text-teal-600",   bg: "bg-teal-100" },
+  messages:     { icon: <MessageSquare className="w-4 h-4" />, color: "text-indigo-600", bg: "bg-indigo-100" },
+  account:      { icon: <Building2 className="w-4 h-4" />,     color: "text-amber-600",  bg: "bg-amber-100" },
+  system:       { icon: <Info className="w-4 h-4" />,           color: "text-slate-600",  bg: "bg-slate-100" },
 };
 
-const FILTER_OPTIONS: { value: UIType | "all"; label: string }[] = [
-  { value: "all",          label: "All"          },
-  { value: "applications", label: "Applications" },
-  { value: "interviews",   label: "Interviews"   },
-  { value: "offers",       label: "Offers"       },
-  { value: "messages",     label: "Messages"     },
-  { value: "account",      label: "Account"      },
-  { value: "system",       label: "System"       },
-];
+const FILTER_VALUES: (UIType | "all")[] = ["all", "applications", "interviews", "offers", "messages", "account", "system"];
 
-function timeAgo(isoStr: string): string {
+type TT = ReturnType<typeof useTranslation>["t"]["school"]["notifications"];
+
+function timeAgo(isoStr: string, tt: TT, lang: "en" | "ar"): string {
   const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 60)     return "Just now";
-  if (secs < 3600)   return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400)  return `${Math.floor(secs / 3600)}h ago`;
-  if (secs < 172800) return "Yesterday";
-  return new Date(isoStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  if (secs < 3600)   return tt.minAgo.replace("{n}", String(Math.floor(secs / 60)));
+  if (secs < 86400)  return tt.hoursAgo.replace("{n}", String(Math.floor(secs / 3600)));
+  if (secs < 172800) return tt.yesterday;
+  return formatDate(isoStr, lang, { month: "short", day: "numeric", year: "numeric" });
 }
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function SchoolNotificationsPage() {
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.school.notifications;
+
   const [notifications, setNotifications] = useState<SchoolNotification[]>([]);
   const [loading, setLoading]             = useState(true);
   const [filter, setFilter]               = useState<UIType | "all">("all");
@@ -140,7 +108,7 @@ export default function SchoolNotificationsPage() {
     return true;
   });
 
-  const countByUIType = (t: UIType) => notifications.filter((n) => uiType(n.type) === t).length;
+  const countByUIType = (t2: UIType) => notifications.filter((n) => uiType(n.type) === t2).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -149,25 +117,24 @@ export default function SchoolNotificationsPage() {
         <div className="max-w-4xl mx-auto flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold text-slate-800">Notifications</h1>
+              <h1 className="text-2xl font-bold text-slate-800">{tt.title}</h1>
               {unreadCount > 0 && (
                 <span
                   className="text-white text-xs font-bold px-2 py-0.5 rounded-full"
                   style={{ backgroundColor: "var(--brand-primary)" }}
                 >
-                  {unreadCount} new
+                  {tt.newBadge.replace("{n}", String(unreadCount))}
                 </span>
               )}
             </div>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Stay updated on applications, interviews, and hiring activity
-            </p>
+            <p className="text-sm text-slate-500 mt-0.5">{tt.subtitle}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={load}
               className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-              title="Refresh"
+              title={tt.refresh}
+              aria-label={tt.refresh}
             >
               <RefreshCw size={15} />
             </button>
@@ -178,7 +145,7 @@ export default function SchoolNotificationsPage() {
                 style={{ color: "var(--brand-primary)" }}
               >
                 <Check className="w-4 h-4" />
-                Mark all read
+                {tt.markAllAsRead}
               </button>
             )}
           </div>
@@ -192,24 +159,22 @@ export default function SchoolNotificationsPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5 text-sm text-slate-500 shrink-0">
               <Filter className="w-4 h-4" />
-              <span className="font-medium">Filter:</span>
+              <span className="font-medium">{tt.filterLabel}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap flex-1">
-              {FILTER_OPTIONS.map((opt) => {
-                const count = opt.value === "all"
-                  ? notifications.length
-                  : countByUIType(opt.value);
-                const active = filter === opt.value;
+              {FILTER_VALUES.map((val) => {
+                const count = val === "all" ? notifications.length : countByUIType(val);
+                const active = filter === val;
                 return (
                   <button
-                    key={opt.value}
-                    onClick={() => setFilter(opt.value)}
+                    key={val}
+                    onClick={() => setFilter(val)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl border transition-colors ${
                       active ? "text-white border-transparent" : "border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                     style={active ? { backgroundColor: "var(--brand-primary)" } : {}}
                   >
-                    {opt.label}
+                    {tt.filterLabels[val]}
                     <span className={`text-[10px] font-semibold ${active ? "text-white/70" : "text-slate-400"}`}>
                       {count}
                     </span>
@@ -225,7 +190,7 @@ export default function SchoolNotificationsPage() {
                 className="w-4 h-4 rounded"
                 style={{ accentColor: "var(--brand-primary)" }}
               />
-              Unread only
+              {tt.unreadOnly}
             </label>
           </div>
         </div>
@@ -242,12 +207,10 @@ export default function SchoolNotificationsPage() {
                 <Bell className="w-7 h-7 text-slate-300" />
               </div>
               <p className="font-semibold text-slate-500">
-                {showUnreadOnly ? "All caught up!" : "No notifications yet"}
+                {showUnreadOnly ? tt.emptyAllCaughtUp : tt.emptyTitle}
               </p>
               <p className="text-sm text-slate-400 mt-1">
-                {showUnreadOnly
-                  ? "No unread notifications at the moment."
-                  : "Notifications about applications, interviews, and offers will appear here."}
+                {showUnreadOnly ? tt.emptyNoUnread : tt.emptyBody}
               </p>
               {showUnreadOnly && (
                 <button
@@ -255,7 +218,7 @@ export default function SchoolNotificationsPage() {
                   className="mt-3 text-sm font-medium"
                   style={{ color: "var(--brand-primary)" }}
                 >
-                  Show all notifications
+                  {tt.showAllNotifications}
                 </button>
               )}
             </div>
@@ -267,6 +230,8 @@ export default function SchoolNotificationsPage() {
                   notification={notif}
                   onRead={handleMarkRead}
                   onDismiss={handleDismiss}
+                  tt={tt}
+                  lang={lang}
                 />
               ))}
             </div>
@@ -280,14 +245,12 @@ export default function SchoolNotificationsPage() {
               <Bell className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="font-semibold text-white text-sm">Notification Preferences</p>
-              <p className="text-white/60 text-xs mt-0.5">
-                Control which updates you receive via email and WhatsApp
-              </p>
+              <p className="font-semibold text-white text-sm">{tt.teaserTitle}</p>
+              <p className="text-white/60 text-xs mt-0.5">{tt.teaserBody}</p>
             </div>
           </div>
           <button className="flex items-center gap-1.5 px-4 py-2 bg-white/15 hover:bg-white/25 text-white text-sm font-medium rounded-xl transition-colors shrink-0">
-            Manage <ChevronRight className="w-4 h-4" />
+            {tt.manage} {isRTL ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
         </div>
 
@@ -302,12 +265,17 @@ function NotificationItem({
   notification: n,
   onRead,
   onDismiss,
+  tt,
+  lang,
 }: {
   notification: SchoolNotification;
   onRead: (id: string) => void;
   onDismiss: (id: string) => void;
+  tt: TT;
+  lang: "en" | "ar";
 }) {
-  const cfg = TYPE_CONFIG[uiType(n.type)];
+  const type = uiType(n.type);
+  const style = TYPE_STYLE[type];
 
   return (
     <div
@@ -319,14 +287,14 @@ function NotificationItem({
       {/* Unread indicator */}
       {!n.isRead && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-0.5 rounded-r-full"
+          className="absolute start-0 top-0 bottom-0 w-0.5 rounded-e-full"
           style={{ backgroundColor: "var(--brand-primary)" }}
         />
       )}
 
       {/* Icon */}
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${cfg.bg} ${cfg.color}`}>
-        {cfg.icon}
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${style.bg} ${style.color}`}>
+        {style.icon}
       </div>
 
       {/* Content */}
@@ -337,18 +305,19 @@ function NotificationItem({
               <p className={`text-sm font-semibold ${n.isRead ? "text-slate-700" : "text-slate-900"}`}>
                 {n.title}
               </p>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${cfg.bg} ${cfg.color}`}>
-                {cfg.label}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${style.bg} ${style.color}`}>
+                {tt.filterLabels[type]}
               </span>
             </div>
             <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{n.body}</p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(n.createdAt)}</span>
+            <span className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(n.createdAt, tt, lang)}</span>
             <button
               onClick={(e) => { e.stopPropagation(); onDismiss(n._id); }}
-              className="p-1 text-slate-300 hover:text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-1"
-              title="Dismiss"
+              className="p-1 text-slate-300 hover:text-red-400 rounded-lg opacity-0 group-hover:opacity-100 transition-all ms-1"
+              title={tt.dismissLabel}
+              aria-label={tt.dismissLabel}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -359,7 +328,7 @@ function NotificationItem({
             onClick={(e) => { e.stopPropagation(); onRead(n._id); }}
             className="mt-1.5 text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1"
           >
-            <CheckCircle2 className="w-3 h-3" /> Mark as read
+            <CheckCircle2 className="w-3 h-3" /> {tt.markAsRead}
           </button>
         )}
       </div>
