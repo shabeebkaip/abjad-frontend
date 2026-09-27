@@ -4,15 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { Loader2, AlertCircle, ArrowLeft, Sparkles } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { Loader2, AlertCircle, ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getPricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
 import { getMySubscription, startTrial, type MySubscription } from "@/lib/api/billing";
 import { PlanCard } from "@/components/billing/PlanCard";
 
 export default function SchoolPlansPage() {
-  const { lang } = useLanguage();
-  const locale = lang === "ar" ? "ar" : "en";
+  const { t, lang, isRTL } = useTranslation();
+  const tt = t.school.billingPlans;
+  const locale = lang;
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselected = searchParams.get("selected") ?? undefined;
@@ -38,13 +39,13 @@ export default function SchoolPlansPage() {
         setPlans([...pl.plans.school].sort((a, b) => a.durationMonths - b.durationMonths));
         setSub(me.subscription);
       } catch (e) {
-        if (alive) setError(e instanceof Error ? e.message : "Failed to load");
+        if (alive) setError(e instanceof Error ? e.message : tt.loadFailedFallback);
       } finally {
         if (alive) setLoading(false);
       }
     })();
     return () => { alive = false; };
-  }, [locale]);
+  }, [locale, tt.loadFailedFallback]);
 
   // Default-selected duration: preselected query param > highlighted plan > last (annual)
   const defaultIdx = useMemo(() => {
@@ -71,7 +72,7 @@ export default function SchoolPlansPage() {
       await startTrial();
       router.push("/school/billing");
     } catch (e) {
-      setTrialError(e instanceof Error ? e.message : "Failed to start trial");
+      setTrialError(e instanceof Error ? e.message : tt.trialFailedFallback);
     } finally {
       setTrialBusy(false);
     }
@@ -81,18 +82,16 @@ export default function SchoolPlansPage() {
     <div className="p-4 lg:p-6 space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3">
         <Link href="/school/billing" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700">
-          <ArrowLeft size={12} /> {locale === "ar" ? "إلى الفوترة" : "Back to billing"}
+          {isRTL ? <ArrowRight size={12} /> : <ArrowLeft size={12} />} {tt.backToBilling}
         </Link>
       </div>
 
       <div className="text-center">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-          {locale === "ar" ? "اختر مدة الفوترة" : "Choose your billing cycle"}
+          {tt.title}
         </h1>
         <p className="text-sm text-gray-500">
-          {locale === "ar"
-            ? "نفس الميزات في كل الباقات — تختار المدة فقط."
-            : "Same features in every plan — you choose the commitment length."}
+          {tt.subtitle}
         </p>
       </div>
 
@@ -110,12 +109,10 @@ export default function SchoolPlansPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-amber-900">
-                {locale === "ar" ? "ابدأ تجربتك المجانية 5 أيام" : "Start your 5-day free trial"}
+                {tt.trialBannerTitle}
               </p>
               <p className="text-xs text-amber-700 mt-0.5">
-                {locale === "ar"
-                  ? "جرّب جميع ميزات المنصة بدون أي رسوم. لا حاجة لبطاقة."
-                  : "Try all platform features for free. No card required."}
+                {tt.trialBannerBody}
               </p>
             </div>
           </div>
@@ -127,7 +124,7 @@ export default function SchoolPlansPage() {
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 transition-colors"
             >
               {trialBusy && <Loader2 size={14} className="animate-spin" />}
-              {locale === "ar" ? "ابدأ التجربة المجانية" : "Start free trial"}
+              {tt.startFreeTrial}
             </button>
             {trialError && <p className="text-xs text-red-600">{trialError}</p>}
           </div>
@@ -139,7 +136,7 @@ export default function SchoolPlansPage() {
           <Loader2 className="animate-spin text-gray-400" size={24} />
         </div>
       ) : plans.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-10">No plans available right now.</p>
+        <p className="text-sm text-gray-400 text-center py-10">{tt.noPlans}</p>
       ) : activePlan ? (
         <>
           {/* Duration toggle */}

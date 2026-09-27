@@ -3,13 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  CreditCard, Sparkles, ArrowRight, ReceiptText, Clock, CheckCircle2,
-  XCircle, AlertCircle, Loader2, Download, RefreshCw, ExternalLink,
+  Sparkles, ArrowRight, ReceiptText, Clock, CheckCircle2,
+  XCircle, AlertCircle, Loader2, Download, RefreshCw,
 } from "lucide-react";
 import { getMySubscription, listMyInvoices, startTrial, cancelMySubscription, type MySubscription, type MyInvoice } from "@/lib/api/billing";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getAccessToken, doRefresh } from "@/lib/api/client";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { formatDate } from "@/lib/i18n/format";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
@@ -33,16 +35,19 @@ async function downloadReceipt(invoiceId: string, filename: string) {
 // state with the right CTA for that state (start trial / upgrade / manage /
 // view past invoices) plus the 5 most recent invoices.
 
-const STATUS_META: Record<MySubscription["status"], { label: string; tone: string; Icon: React.ElementType }> = {
-  trialing:  { label: "On Trial",   tone: "bg-amber-50 text-amber-700 border-amber-200",       Icon: Clock },
-  active:    { label: "Active",     tone: "bg-emerald-50 text-emerald-700 border-emerald-200", Icon: CheckCircle2 },
-  past_due:  { label: "Past Due",   tone: "bg-rose-50 text-rose-700 border-rose-200",          Icon: AlertCircle },
-  cancelled: { label: "Cancelled",  tone: "bg-slate-100 text-slate-700 border-slate-200",      Icon: XCircle },
-  expired:   { label: "Expired",    tone: "bg-slate-100 text-slate-500 border-slate-200",      Icon: XCircle },
+type TT = ReturnType<typeof useTranslation>["t"]["school"]["billing"];
+
+const STATUS_ICON: Record<MySubscription["status"], { tone: string; Icon: React.ElementType }> = {
+  trialing:  { tone: "bg-amber-50 text-amber-700 border-amber-200",       Icon: Clock },
+  active:    { tone: "bg-emerald-50 text-emerald-700 border-emerald-200", Icon: CheckCircle2 },
+  past_due:  { tone: "bg-rose-50 text-rose-700 border-rose-200",          Icon: AlertCircle },
+  cancelled: { tone: "bg-slate-100 text-slate-700 border-slate-200",      Icon: XCircle },
+  expired:   { tone: "bg-slate-100 text-slate-500 border-slate-200",      Icon: XCircle },
 };
 
+// Money is always Western digits (Decision 3a) regardless of UI locale.
 function halalaToSAR(h: number): string {
-  return (h / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (h / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function daysUntil(iso?: string): number | null {
@@ -51,6 +56,8 @@ function daysUntil(iso?: string): number | null {
 }
 
 export default function SchoolBillingPage() {
+  const { t, lang } = useTranslation();
+  const tt = t.school.billing;
   const { user } = useAuth();
   const [sub, setSub]           = useState<MySubscription | null>(null);
   const [isLegacy, setIsLegacy] = useState(false);
@@ -72,25 +79,25 @@ export default function SchoolBillingPage() {
       setIsLegacy(meRes.isLegacy);
       setInvoices(invRes.invoices);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load billing");
+      setError(e instanceof Error ? e.message : tt.loadFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tt.loadFailedFallback]);
 
   useEffect(() => { load(); }, [load]);
 
   async function handleStartTrial() {
     setBusy(true);
     try { await startTrial(); await load(); }
-    catch (e) { setError(e instanceof Error ? e.message : "Failed to start trial"); }
+    catch (e) { setError(e instanceof Error ? e.message : tt.startTrialFailedFallback); }
     finally { setBusy(false); }
   }
 
   async function handleCancel() {
     setBusy(true);
     try { await cancelMySubscription("User requested via billing page"); await load(); setCancelOpen(false); }
-    catch (e) { setError(e instanceof Error ? e.message : "Failed to cancel"); }
+    catch (e) { setError(e instanceof Error ? e.message : tt.cancelFailedFallback); }
     finally { setBusy(false); }
   }
 
@@ -99,8 +106,8 @@ export default function SchoolBillingPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Billing</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage your subscription, plans, and invoices.</p>
+          <h1 className="text-xl font-bold text-gray-900">{tt.title}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{tt.subtitle}</p>
         </div>
         <button
           type="button"
@@ -109,7 +116,7 @@ export default function SchoolBillingPage() {
           className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 bg-white"
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
-          Refresh
+          {tt.refresh}
         </button>
       </div>
 
@@ -117,7 +124,7 @@ export default function SchoolBillingPage() {
         <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 p-3 text-sm text-red-600">
           <AlertCircle size={16} className="shrink-0" />
           {error}
-          <button onClick={() => setError(null)} className="ml-auto text-xs underline">dismiss</button>
+          <button onClick={() => setError(null)} className="ms-auto text-xs underline">{tt.dismiss}</button>
         </div>
       )}
 
@@ -131,16 +138,17 @@ export default function SchoolBillingPage() {
         <>
           {/* Current state card */}
           {isLegacy ? (
-            <LegacyCard />
+            <LegacyCard tt={tt} />
           ) : sub ? (
             <CurrentSubCard
               sub={sub}
               onChangePlanHref="/school/billing/plans"
               onCancel={() => setCancelOpen(true)}
               busy={busy}
+              tt={tt}
             />
           ) : (
-            <NoSubscriptionCard onStartTrial={handleStartTrial} busy={busy} />
+            <NoSubscriptionCard onStartTrial={handleStartTrial} busy={busy} tt={tt} />
           )}
 
           {/* Invoices */}
@@ -148,14 +156,14 @@ export default function SchoolBillingPage() {
             <div className="px-5 pt-5 pb-4 border-b border-gray-50 flex items-center justify-between">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <ReceiptText size={16} className="text-slate-500" />
-                Recent invoices
+                {tt.recentInvoices}
               </h2>
             </div>
             {invoices.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-10">No invoices yet.</p>
+              <p className="text-sm text-gray-400 text-center py-10">{tt.noInvoices}</p>
             ) : (
               <ul className="divide-y divide-gray-50">
-                {invoices.map((inv) => <InvoiceRow key={inv._id} inv={inv} />)}
+                {invoices.map((inv) => <InvoiceRow key={inv._id} inv={inv} tt={tt} lang={lang} />)}
               </ul>
             )}
           </section>
@@ -164,15 +172,15 @@ export default function SchoolBillingPage() {
           {cancelOpen && sub && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setCancelOpen(false)}>
               <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">Cancel subscription?</h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-2">{tt.cancelModalTitle}</h3>
                 <p className="text-sm text-gray-600 mb-5">
-                  Your plan stays active until{" "}
-                  <strong>{sub.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString() : "the end of the current period"}</strong>.
-                  After that, you won&apos;t be billed again. You can re-subscribe anytime.
+                  {tt.cancelModalBodyPrefix}{" "}
+                  <strong>{sub.currentPeriodEnd ? formatDate(sub.currentPeriodEnd, lang) : tt.endOfPeriod}</strong>.{" "}
+                  {tt.cancelModalBodySuffix}
                 </p>
                 <div className="flex items-center justify-end gap-2">
                   <button onClick={() => setCancelOpen(false)} className="px-3 py-1.5 text-xs text-gray-600 rounded-lg hover:bg-gray-100">
-                    Keep subscription
+                    {tt.keepSubscription}
                   </button>
                   <button
                     onClick={handleCancel}
@@ -180,7 +188,7 @@ export default function SchoolBillingPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-white rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-60"
                   >
                     {busy ? <Loader2 size={12} className="animate-spin" /> : null}
-                    Cancel at period end
+                    {tt.cancelAtPeriodEnd}
                   </button>
                 </div>
               </div>
@@ -188,7 +196,7 @@ export default function SchoolBillingPage() {
           )}
 
           <p className="text-[11px] text-gray-400 text-center">
-            Signed in as <span className="font-mono">{user?.email}</span> · School account
+            {tt.signedInAs} <span className="font-mono" dir="ltr">{user?.email}</span> · {tt.schoolAccount}
           </p>
         </>
       )}
@@ -198,13 +206,14 @@ export default function SchoolBillingPage() {
 
 // ── Current sub card ─────────────────────────────────────────────────────
 
-function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
+function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy, tt }: {
   sub: MySubscription;
   onChangePlanHref: string;
   onCancel: () => void;
   busy: boolean;
+  tt: TT;
 }) {
-  const meta = STATUS_META[sub.status];
+  const meta = STATUS_ICON[sub.status];
   const trialDays = sub.status === "trialing" ? daysUntil(sub.trialEndsAt) : null;
   const periodDays = sub.status === "active" ? daysUntil(sub.currentPeriodEnd) : null;
 
@@ -215,26 +224,26 @@ function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
           <div>
             <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-full border px-2 py-1 ${meta.tone}`}>
               <meta.Icon size={11} />
-              {meta.label}
-              {sub.cancelAtPeriodEnd && " · cancels at period end"}
+              {tt.statusLabels[sub.status] ?? sub.status}
+              {sub.cancelAtPeriodEnd && tt.cancelsAtPeriodEnd}
             </span>
             <h2 className="text-2xl font-bold text-gray-900 mt-3 capitalize">
               {sub.planCode.replace(/_/g, " ")}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              <SARSymbol />{halalaToSAR(sub.pricePerPeriodHalala)} / {sub.durationMonths} {sub.durationMonths === 1 ? "month" : "months"} · excl. 15% VAT
+              <SARSymbol />{halalaToSAR(sub.pricePerPeriodHalala)} / {sub.durationMonths} {sub.durationMonths === 1 ? tt.monthSingular : tt.monthsPlural} · {tt.exclVat}
             </p>
           </div>
-          <div className="text-right rtl:text-left">
+          <div className="text-end">
             {trialDays != null && trialDays >= 0 && (
               <>
-                <p className="text-xs text-gray-400">Trial ends in</p>
+                <p className="text-xs text-gray-400">{tt.trialEndsIn}</p>
                 <p className="text-2xl font-bold text-amber-600 tabular-nums">{trialDays}d</p>
               </>
             )}
             {periodDays != null && (
               <>
-                <p className="text-xs text-gray-400">Renews in</p>
+                <p className="text-xs text-gray-400">{tt.renewsIn}</p>
                 <p className="text-2xl font-bold text-gray-800 tabular-nums">{periodDays}d</p>
               </>
             )}
@@ -243,7 +252,7 @@ function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
 
         {sub.status === "trialing" && (
           <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 mb-4 text-sm text-amber-800">
-            Pick a paid plan before your trial ends to keep posting jobs and viewing CVs without limits.
+            {tt.trialBannerBody}
           </div>
         )}
 
@@ -254,8 +263,8 @@ function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all"
               style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
             >
-              {sub.status === "trialing" ? "Choose a plan" : "Change plan"}
-              <ArrowRight size={14} />
+              {sub.status === "trialing" ? tt.choosePlan : tt.changePlan}
+              <ArrowRight size={14} className="rtl:rotate-180" />
             </Link>
           )}
           {(sub.status === "trialing" || sub.status === "active") && !sub.cancelAtPeriodEnd && (
@@ -265,7 +274,7 @@ function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
               disabled={busy}
               className="text-xs text-gray-500 hover:text-red-500 transition-colors px-2 py-1"
             >
-              Cancel subscription
+              {tt.cancelSubscription}
             </button>
           )}
           {(sub.status === "cancelled" || sub.status === "expired") && (
@@ -274,8 +283,8 @@ function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white rounded-xl shadow-sm hover:shadow-md transition-all"
               style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
             >
-              Re-subscribe
-              <ArrowRight size={14} />
+              {tt.resubscribe}
+              <ArrowRight size={14} className="rtl:rotate-180" />
             </Link>
           )}
         </div>
@@ -286,7 +295,7 @@ function CurrentSubCard({ sub, onChangePlanHref, onCancel, busy }: {
 
 // ── No subscription ──────────────────────────────────────────────────────
 
-function NoSubscriptionCard({ onStartTrial, busy }: { onStartTrial: () => void; busy: boolean }) {
+function NoSubscriptionCard({ onStartTrial, busy, tt }: { onStartTrial: () => void; busy: boolean; tt: TT }) {
   return (
     <section className="bg-white rounded-2xl border border-gray-100 p-6">
       <div className="flex items-start gap-4 mb-5">
@@ -294,9 +303,9 @@ function NoSubscriptionCard({ onStartTrial, busy }: { onStartTrial: () => void; 
           <Sparkles size={20} className="text-amber-600" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Start a 5-day free trial</h2>
+          <h2 className="text-lg font-bold text-gray-900">{tt.noSubTitle}</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Post one job and view up to 3 candidate CVs per day. No card required. Convert anytime to keep your data.
+            {tt.noSubBody}
           </p>
         </div>
       </div>
@@ -309,10 +318,10 @@ function NoSubscriptionCard({ onStartTrial, busy }: { onStartTrial: () => void; 
           style={{ background: "var(--brand-gradient, var(--brand-primary))" }}
         >
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          Start free trial
+          {tt.startFreeTrial}
         </button>
         <Link href="/school/billing/plans" className="text-sm text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
-          Browse plans <ArrowRight size={13} />
+          {tt.browsePlans} <ArrowRight size={13} className="rtl:rotate-180" />
         </Link>
       </div>
     </section>
@@ -321,7 +330,7 @@ function NoSubscriptionCard({ onStartTrial, busy }: { onStartTrial: () => void; 
 
 // ── Legacy (grandfathered) ───────────────────────────────────────────────
 
-function LegacyCard() {
+function LegacyCard({ tt }: { tt: TT }) {
   return (
     <section className="bg-white rounded-2xl border border-emerald-100 p-6">
       <div className="flex items-start gap-4">
@@ -329,10 +338,9 @@ function LegacyCard() {
           <CheckCircle2 size={20} className="text-emerald-600" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Full access — grandfathered</h2>
+          <h2 className="text-lg font-bold text-gray-900">{tt.legacyTitle}</h2>
           <p className="text-sm text-gray-600 mt-1 max-w-xl">
-            Your school joined Abjad before paid subscriptions launched, so you have full access at no charge.
-            No billing required — you can keep using every feature.
+            {tt.legacyBody}
           </p>
         </div>
       </div>
@@ -350,13 +358,13 @@ const INVOICE_STATUS_TONE: Record<string, string> = {
   draft:     "bg-slate-100 text-slate-500",
 };
 
-function InvoiceRow({ inv }: { inv: MyInvoice }) {
+function InvoiceRow({ inv, tt, lang }: { inv: MyInvoice; tt: TT; lang: "en" | "ar" }) {
   return (
     <li className="flex items-center justify-between gap-3 px-5 py-3">
       <div className="min-w-0">
-        <p className="text-sm font-mono text-gray-700">{inv.number}</p>
+        <p className="text-sm font-mono text-gray-700" dir="ltr">{inv.number}</p>
         <p className="text-xs text-gray-400 mt-0.5">
-          {new Date(inv.issuedAt).toLocaleDateString()} · {inv.paymentMethod?.replace(/_/g, " ") ?? "—"}
+          {formatDate(inv.issuedAt, lang)} · {inv.paymentMethod?.replace(/_/g, " ") ?? "—"}
         </p>
       </div>
       <div className="flex items-center gap-3 shrink-0">
@@ -364,13 +372,13 @@ function InvoiceRow({ inv }: { inv: MyInvoice }) {
           <SARSymbol />{halalaToSAR(inv.totalHalala)}
         </p>
         <span className={`text-[10px] font-semibold uppercase tracking-wider rounded-full px-2 py-1 ${INVOICE_STATUS_TONE[inv.status] ?? "bg-slate-100 text-slate-500"}`}>
-          {inv.status}
+          {tt.invoiceStatusLabels[inv.status] ?? inv.status}
         </span>
         <button
           type="button"
           onClick={() => downloadReceipt(inv._id, `${inv.number}.pdf`)}
           className="text-gray-400 hover:text-gray-700 transition-colors"
-          aria-label="Download receipt"
+          aria-label={tt.downloadReceiptAria}
         >
           <Download size={14} />
         </button>

@@ -1746,6 +1746,104 @@ export interface SchoolProfileTranslations {
   licenseDocDescription: string;
 }
 
+export interface SchoolSupportTranslations {
+  title: string;
+  subtitle: string;
+  newTicket: string;
+  categoryLabels: Record<string, string>;
+  statusLabels: Record<string, string>;
+  priorityLabels: Record<string, string>;
+  ticketCountSingular: string; // "{n} ticket"
+  ticketCountPlural: string; // "{n} tickets"
+  emptyStateTitle: string;
+  emptyStateBody: string;
+  listFailedFallback: string;
+  retry: string;
+  modalTitle: string;
+  categoryLabel: string;
+  subjectLabel: string;
+  subjectRequiredError: string;
+  subjectPlaceholder: string;
+  descriptionLabel: string;
+  descriptionRequiredError: string;
+  descriptionPlaceholder: string;
+  submitTicket: string;
+  cancel: string;
+  createFailedFallback: string;
+  timeJustNow: string;
+  timeMinutesAgo: string; // "{n}m ago"
+  timeHoursAgo: string; // "{n}h ago"
+  timeYesterday: string;
+  timeDaysAgo: string; // "{n}d ago"
+  openedPrefix: string; // "Opened {time}"
+  closedTicketNotice: string; // "This ticket is {status}. No further replies can be sent."
+  replyPlaceholder: string;
+  markResolved: string;
+  confirmResolve: string;
+  replyFailedFallback: string;
+  senderYou: string;
+  senderSupport: string;
+  selectTicketPrompt: string;
+  feedbackTitle: string;
+  feedbackSubtitle: string;
+  feedbackThanks: string;
+  ratingLabels: string[];
+  feedbackCommentPlaceholder: string;
+  submitFeedback: string;
+}
+
+export interface SchoolBillingTranslations {
+  title: string;
+  subtitle: string;
+  refresh: string;
+  dismiss: string;
+  loadFailedFallback: string;
+  startTrialFailedFallback: string;
+  cancelFailedFallback: string;
+  statusLabels: Record<string, string>;
+  cancelsAtPeriodEnd: string;
+  monthSingular: string;
+  monthsPlural: string;
+  exclVat: string;
+  trialEndsIn: string;
+  renewsIn: string;
+  trialBannerBody: string;
+  choosePlan: string;
+  changePlan: string;
+  cancelSubscription: string;
+  resubscribe: string;
+  noSubTitle: string;
+  noSubBody: string;
+  startFreeTrial: string;
+  browsePlans: string;
+  legacyTitle: string;
+  legacyBody: string;
+  recentInvoices: string;
+  noInvoices: string;
+  invoiceStatusLabels: Record<string, string>;
+  downloadReceiptAria: string;
+  cancelModalTitle: string;
+  cancelModalBodyPrefix: string;
+  cancelModalBodySuffix: string;
+  endOfPeriod: string;
+  keepSubscription: string;
+  cancelAtPeriodEnd: string;
+  signedInAs: string;
+  schoolAccount: string;
+}
+
+export interface SchoolBillingPlansTranslations {
+  backToBilling: string;
+  title: string;
+  subtitle: string;
+  loadFailedFallback: string;
+  noPlans: string;
+  trialBannerTitle: string;
+  trialBannerBody: string;
+  startFreeTrial: string;
+  trialFailedFallback: string;
+}
+
 export interface SchoolTranslations {
   common: SchoolCommonTranslations;
   layout: SchoolLayoutTranslations;
@@ -1760,6 +1858,9 @@ export interface SchoolTranslations {
   shortlists: SchoolShortlistsTranslations;
   team: SchoolTeamTranslations;
   profile: SchoolProfileTranslations;
+  support: SchoolSupportTranslations;
+  billing: SchoolBillingTranslations;
+  billingPlans: SchoolBillingPlansTranslations;
 }
 
 export interface Translations extends CommonTranslations {

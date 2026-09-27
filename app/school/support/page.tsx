@@ -13,65 +13,57 @@ import {
   closeSupportTicket,
 } from "@/lib/api/school";
 import type { SupportTicket } from "@/lib/api/school";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+const CATEGORY_VALUES = ["technical", "profile_application", "payment", "report", "general", "other"] as const;
 
-const CATEGORY_OPTIONS = [
-  { label: "Technical",             value: "technical"           },
-  { label: "Profile & Applications",value: "profile_application" },
-  { label: "Payment",               value: "payment"             },
-  { label: "Report",                value: "report"              },
-  { label: "General",               value: "general"             },
-  { label: "Other",                 value: "other"               },
-];
+type TT = ReturnType<typeof useTranslation>["t"]["school"]["support"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function timeAgo(isoStr: string): string {
+function timeAgo(isoStr: string, tt: TT): string {
   const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
-  if (secs < 60)    return "just now";
-  if (secs < 3600)  return `${Math.floor(secs / 60)}m ago`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
-  if (secs < 172800) return "Yesterday";
-  return `${Math.floor(secs / 86400)}d ago`;
-}
-
-function categoryLabel(val: string): string {
-  return CATEGORY_OPTIONS.find((c) => c.value === val)?.label ?? val;
+  if (secs < 60)    return tt.timeJustNow;
+  if (secs < 3600)  return tt.timeMinutesAgo.replace("{n}", String(Math.floor(secs / 60)));
+  if (secs < 86400) return tt.timeHoursAgo.replace("{n}", String(Math.floor(secs / 3600)));
+  if (secs < 172800) return tt.timeYesterday;
+  return tt.timeDaysAgo.replace("{n}", String(Math.floor(secs / 86400)));
 }
 
 // ─── Badges ───────────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: SupportTicket["status"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    open:        { label: "Open",        cls: "bg-blue-100 text-blue-700 border-blue-200"     },
-    in_progress: { label: "In Progress", cls: "bg-amber-100 text-amber-700 border-amber-200"  },
-    resolved:    { label: "Resolved",    cls: "bg-green-100 text-green-700 border-green-200"  },
-    closed:      { label: "Closed",      cls: "bg-slate-100 text-slate-500 border-slate-200"  },
+function StatusBadge({ status, tt }: { status: SupportTicket["status"]; tt: TT }) {
+  const cls: Record<string, string> = {
+    open:        "bg-blue-100 text-blue-700 border-blue-200",
+    in_progress: "bg-amber-100 text-amber-700 border-amber-200",
+    resolved:    "bg-green-100 text-green-700 border-green-200",
+    closed:      "bg-slate-100 text-slate-500 border-slate-200",
   };
-  const { label, cls } = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600 border-gray-200" };
   return (
-    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${cls}`}>{label}</span>
+    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${cls[status] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}>
+      {tt.statusLabels[status] ?? status}
+    </span>
   );
 }
 
-function PriorityBadge({ priority }: { priority: SupportTicket["priority"] }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    low:    { label: "Low",    cls: "bg-slate-100 text-slate-500"  },
-    medium: { label: "Medium", cls: "bg-blue-100 text-blue-600"    },
-    high:   { label: "High",   cls: "bg-amber-100 text-amber-700"  },
-    urgent: { label: "Urgent", cls: "bg-red-100 text-red-600"      },
+function PriorityBadge({ priority, tt }: { priority: SupportTicket["priority"]; tt: TT }) {
+  const cls: Record<string, string> = {
+    low:    "bg-slate-100 text-slate-500",
+    medium: "bg-blue-100 text-blue-600",
+    high:   "bg-amber-100 text-amber-700",
+    urgent: "bg-red-100 text-red-600",
   };
-  const { label, cls } = map[priority] ?? { label: priority, cls: "bg-gray-100 text-gray-600" };
   return (
-    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
+    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cls[priority] ?? "bg-gray-100 text-gray-600"}`}>
+      {tt.priorityLabels[priority] ?? priority}
+    </span>
   );
 }
 
-function CategoryBadge({ category }: { category: string }) {
+function CategoryBadge({ category, tt }: { category: string; tt: TT }) {
   return (
     <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-      {categoryLabel(category)}
+      {tt.categoryLabels[category] ?? category}
     </span>
   );
 }
@@ -81,9 +73,10 @@ function CategoryBadge({ category }: { category: string }) {
 interface CreateTicketModalProps {
   onClose: () => void;
   onCreated: (ticket: SupportTicket) => void;
+  tt: TT;
 }
 
-function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
+function CreateTicketModal({ onClose, onCreated, tt }: CreateTicketModalProps) {
   const [category, setCategory]     = useState("general");
   const [subject, setSubject]       = useState("");
   const [description, setDescription] = useState("");
@@ -91,8 +84,8 @@ function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
   const [error, setError]           = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!subject.trim())      { setError("Subject is required."); return; }
-    if (!description.trim())  { setError("Description is required."); return; }
+    if (!subject.trim())      { setError(tt.subjectRequiredError); return; }
+    if (!description.trim())  { setError(tt.descriptionRequiredError); return; }
     setSaving(true);
     setError(null);
     try {
@@ -104,7 +97,7 @@ function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
       onCreated(ticket);
       onClose();
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to create ticket.");
+      setError((e as Error)?.message ?? tt.createFailedFallback);
     } finally {
       setSaving(false);
     }
@@ -122,7 +115,7 @@ function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
             >
               <Ticket size={18} className="text-white" />
             </div>
-            <h3 className="text-base font-bold text-gray-900">New Support Ticket</h3>
+            <h3 className="text-base font-bold text-gray-900">{tt.modalTitle}</h3>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
             <X size={16} />
@@ -138,32 +131,32 @@ function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
         <div className="space-y-4">
           {/* Category */}
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1.5">Category</label>
+            <label className="block text-sm font-semibold text-gray-800 mb-1.5">{tt.categoryLabel}</label>
             <div className="relative">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pr-9"
+                className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition bg-white pe-9"
                 style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               >
-                {CATEGORY_OPTIONS.map(({ label, value }) => (
-                  <option key={value} value={value}>{label}</option>
+                {CATEGORY_VALUES.map((value) => (
+                  <option key={value} value={value}>{tt.categoryLabels[value] ?? value}</option>
                 ))}
               </select>
-              <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <ChevronDown size={14} className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
 
           {/* Subject */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Subject <span className="text-red-500">*</span>
+              {tt.subjectLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Brief summary of your issue"
+              placeholder={tt.subjectPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
               autoFocus
@@ -173,13 +166,13 @@ function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
           {/* Description */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-1.5">
-              Description <span className="text-red-500">*</span>
+              {tt.descriptionLabel} <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={5}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your issue in detail. Include any relevant steps to reproduce, error messages, or screenshots…"
+              placeholder={tt.descriptionPlaceholder}
               className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
               style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
             />
@@ -192,7 +185,7 @@ function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
             disabled={saving}
             className="flex-1 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
-            Cancel
+            {tt.cancel}
           </button>
           <button
             onClick={handleSubmit}
@@ -201,7 +194,7 @@ function CreateTicketModal({ onClose, onCreated }: CreateTicketModalProps) {
             style={{ background: "var(--brand-gradient)" }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : (
-              <><Send size={14} /> Submit Ticket</>
+              <><Send size={14} /> {tt.submitTicket}</>
             )}
           </button>
         </div>
@@ -216,18 +209,19 @@ interface TicketListItemProps {
   ticket: SupportTicket;
   isSelected: boolean;
   onSelect: () => void;
+  tt: TT;
 }
 
-function TicketListItem({ ticket: t, isSelected, onSelect }: TicketListItemProps) {
+function TicketListItem({ ticket: t, isSelected, onSelect, tt }: TicketListItemProps) {
   const unreadMessages = t.messages.filter((m) => m.sender === "admin").length;
 
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left px-4 py-3.5 border-b border-gray-100 transition-colors ${
-        isSelected ? "bg-blue-50 border-l-2" : "hover:bg-gray-50 border-l-2 border-l-transparent"
+      className={`w-full text-start px-4 py-3.5 border-b border-gray-100 transition-colors ${
+        isSelected ? "bg-blue-50 border-s-2" : "hover:bg-gray-50 border-s-2 border-s-transparent"
       }`}
-      style={isSelected ? { borderLeftColor: "var(--brand-primary)" } : {}}
+      style={isSelected ? { borderInlineStartColor: "var(--brand-primary)" } : {}}
     >
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <p className={`text-sm font-semibold truncate flex-1 ${isSelected ? "" : "text-gray-900"}`}
@@ -242,13 +236,13 @@ function TicketListItem({ ticket: t, isSelected, onSelect }: TicketListItemProps
         )}
       </div>
       <div className="flex items-center gap-1.5 flex-wrap">
-        <CategoryBadge category={t.category} />
-        <StatusBadge status={t.status} />
-        <PriorityBadge priority={t.priority} />
+        <CategoryBadge category={t.category} tt={tt} />
+        <StatusBadge status={t.status} tt={tt} />
+        <PriorityBadge priority={t.priority} tt={tt} />
       </div>
       <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
         <Clock size={10} />
-        {timeAgo(t.createdAt)}
+        {timeAgo(t.createdAt, tt)}
       </p>
     </button>
   );
@@ -259,9 +253,10 @@ function TicketListItem({ ticket: t, isSelected, onSelect }: TicketListItemProps
 interface TicketDetailProps {
   ticket: SupportTicket;
   onUpdated: (ticket: SupportTicket) => void;
+  tt: TT;
 }
 
-function TicketDetail({ ticket: t, onUpdated }: TicketDetailProps) {
+function TicketDetail({ ticket: t, onUpdated, tt }: TicketDetailProps) {
   const [replyText, setReplyText]     = useState("");
   const [sending, setSending]         = useState(false);
   const [closing, setClosing]         = useState(false);
@@ -281,14 +276,14 @@ function TicketDetail({ ticket: t, onUpdated }: TicketDetailProps) {
       onUpdated(updated);
       setReplyText("");
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to send reply.");
+      setError((e as Error)?.message ?? tt.replyFailedFallback);
     } finally {
       setSending(false);
     }
   };
 
   const handleClose = async () => {
-    if (!confirm("Mark this ticket as resolved?")) return;
+    if (!confirm(tt.confirmResolve)) return;
     setClosing(true);
     try {
       const updated = await closeSupportTicket(t._id);
@@ -319,14 +314,14 @@ function TicketDetail({ ticket: t, onUpdated }: TicketDetailProps) {
             <p className="text-xs text-gray-400">#{t.ticketNumber}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <StatusBadge status={t.status} />
-            <PriorityBadge priority={t.priority} />
+            <StatusBadge status={t.status} tt={tt} />
+            <PriorityBadge priority={t.priority} tt={tt} />
           </div>
         </div>
         <div className="flex items-center gap-2 mt-2 flex-wrap">
-          <CategoryBadge category={t.category} />
+          <CategoryBadge category={t.category} tt={tt} />
           <span className="text-xs text-gray-400">
-            Opened {timeAgo(t.createdAt)}
+            {tt.openedPrefix.replace("{time}", timeAgo(t.createdAt, tt))}
           </span>
         </div>
       </div>
@@ -348,10 +343,10 @@ function TicketDetail({ ticket: t, onUpdated }: TicketDetailProps) {
                 <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 <p
                   className={`text-xs mt-1.5 ${
-                    isUser ? "text-white/60 text-right" : "text-gray-400"
+                    isUser ? "text-white/60 text-end" : "text-gray-400"
                   }`}
                 >
-                  {isUser ? "You" : "Abjad Support"} · {timeAgo(msg.createdAt)}
+                  {isUser ? tt.senderYou : tt.senderSupport} · {timeAgo(msg.createdAt, tt)}
                 </p>
               </div>
             </div>
@@ -373,7 +368,7 @@ function TicketDetail({ ticket: t, onUpdated }: TicketDetailProps) {
               rows={3}
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Write a reply…"
+              placeholder={tt.replyPlaceholder}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleReply();
               }}
@@ -396,14 +391,14 @@ function TicketDetail({ ticket: t, onUpdated }: TicketDetailProps) {
               className="flex items-center gap-1.5 mt-2 text-xs font-medium text-green-600 hover:text-green-700 transition-colors"
             >
               {closing ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
-              Mark as Resolved
+              {tt.markResolved}
             </button>
           )}
         </div>
       ) : (
         <div className="px-5 py-3 border-t border-gray-100 shrink-0">
           <p className="text-xs text-gray-400 text-center">
-            This ticket is {t.status}. No further replies can be sent.
+            {tt.closedTicketNotice.replace("{status}", tt.statusLabels[t.status] ?? t.status)}
           </p>
         </div>
       )}
@@ -413,7 +408,7 @@ function TicketDetail({ ticket: t, onUpdated }: TicketDetailProps) {
 
 // ─── Feedback Section ─────────────────────────────────────────────────────────
 
-function FeedbackSection() {
+function FeedbackSection({ tt }: { tt: TT }) {
   const [rating, setRating]   = useState(0);
   const [hover, setHover]     = useState(0);
   const [comment, setComment] = useState("");
@@ -426,15 +421,15 @@ function FeedbackSection() {
 
   return (
     <div className="mt-8 bg-white rounded-2xl border border-gray-100 p-6">
-      <h2 className="text-sm font-bold text-gray-900 mb-1">Rate Your Experience</h2>
+      <h2 className="text-sm font-bold text-gray-900 mb-1">{tt.feedbackTitle}</h2>
       <p className="text-xs text-gray-400 mb-4">
-        How satisfied are you with our support service?
+        {tt.feedbackSubtitle}
       </p>
 
       {submitted ? (
         <div className="flex items-center gap-2 text-green-600">
           <CheckCircle2 size={18} />
-          <p className="text-sm font-semibold">Thank you for your feedback!</p>
+          <p className="text-sm font-semibold">{tt.feedbackThanks}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -460,8 +455,8 @@ function FeedbackSection() {
               </button>
             ))}
             {rating > 0 && (
-              <span className="text-sm text-gray-500 ml-1">
-                {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][rating]}
+              <span className="text-sm text-gray-500 ms-1">
+                {tt.ratingLabels[rating]}
               </span>
             )}
           </div>
@@ -471,7 +466,7 @@ function FeedbackSection() {
             rows={3}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Any additional comments? (optional)"
+            placeholder={tt.feedbackCommentPlaceholder}
             className="w-full max-w-lg px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition resize-none"
             style={{ ["--tw-ring-color" as string]: "var(--brand-primary)" }}
           />
@@ -483,7 +478,7 @@ function FeedbackSection() {
             style={{ background: "var(--brand-gradient)" }}
           >
             <Send size={13} />
-            Submit Feedback
+            {tt.submitFeedback}
           </button>
         </div>
       )}
@@ -494,6 +489,9 @@ function FeedbackSection() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SupportPage() {
+  const { t } = useTranslation();
+  const tt = t.school.support;
+
   const [tickets, setTickets]           = useState<SupportTicket[]>([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
@@ -511,11 +509,11 @@ export default function SupportPage() {
         setSelectedId(loaded[0]._id);
       }
     } catch (e: unknown) {
-      setError((e as Error)?.message ?? "Failed to load tickets.");
+      setError((e as Error)?.message ?? tt.listFailedFallback);
     } finally {
       setLoading(false);
     }
-  }, [selectedId]);
+  }, [selectedId, tt.listFailedFallback]);
 
   useEffect(() => { loadTickets(); }, [loadTickets]);
 
@@ -537,9 +535,9 @@ export default function SupportPage() {
         <div>
           <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <MessageSquare size={20} style={{ color: "var(--brand-primary)" }} />
-            Support
+            {tt.title}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Get help from the Abjad support team</p>
+          <p className="text-sm text-gray-500 mt-0.5">{tt.subtitle}</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -547,7 +545,7 @@ export default function SupportPage() {
           style={{ background: "var(--brand-gradient)" }}
         >
           <Plus size={16} />
-          New Ticket
+          {tt.newTicket}
         </button>
       </div>
 
@@ -565,17 +563,17 @@ export default function SupportPage() {
             className="px-4 py-2 text-sm font-medium text-white rounded-xl"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Retry
+            {tt.retry}
           </button>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ height: "calc(100vh - 20rem)", minHeight: "500px" }}>
           <div className="flex h-full">
             {/* Left: ticket list */}
-            <div className="w-full sm:w-80 xl:w-96 shrink-0 border-r border-gray-100 flex flex-col h-full">
+            <div className="w-full sm:w-80 xl:w-96 shrink-0 border-e border-gray-100 flex flex-col h-full">
               <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                 <p className="text-xs font-semibold text-gray-500">
-                  {tickets.length} ticket{tickets.length !== 1 ? "s" : ""}
+                  {(tickets.length === 1 ? tt.ticketCountSingular : tt.ticketCountPlural).replace("{n}", String(tickets.length))}
                 </p>
               </div>
               <div className="flex-1 overflow-y-auto">
@@ -587,14 +585,14 @@ export default function SupportPage() {
                     >
                       <Ticket size={20} className="text-white" />
                     </div>
-                    <p className="text-sm font-semibold text-gray-800 mb-1">No tickets yet</p>
-                    <p className="text-xs text-gray-400 mb-4">Need help? Open a support ticket.</p>
+                    <p className="text-sm font-semibold text-gray-800 mb-1">{tt.emptyStateTitle}</p>
+                    <p className="text-xs text-gray-400 mb-4">{tt.emptyStateBody}</p>
                     <button
                       onClick={() => setShowCreateModal(true)}
                       className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white rounded-xl"
                       style={{ background: "var(--brand-gradient)" }}
                     >
-                      <Plus size={12} /> New Ticket
+                      <Plus size={12} /> {tt.newTicket}
                     </button>
                   </div>
                 ) : (
@@ -604,6 +602,7 @@ export default function SupportPage() {
                       ticket={t}
                       isSelected={selectedId === t._id}
                       onSelect={() => setSelectedId(t._id)}
+                      tt={tt}
                     />
                   ))
                 )}
@@ -617,13 +616,14 @@ export default function SupportPage() {
                   key={selectedTicket._id}
                   ticket={selectedTicket}
                   onUpdated={handleUpdated}
+                  tt={tt}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center px-6">
                   <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
                     <Circle size={24} className="text-gray-300" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-500">Select a ticket to view details</p>
+                  <p className="text-sm font-semibold text-gray-500">{tt.selectTicketPrompt}</p>
                 </div>
               )}
             </div>
@@ -632,13 +632,14 @@ export default function SupportPage() {
       )}
 
       {/* Feedback section */}
-      <FeedbackSection />
+      <FeedbackSection tt={tt} />
 
       {/* Create ticket modal */}
       {showCreateModal && (
         <CreateTicketModal
           onClose={() => setShowCreateModal(false)}
           onCreated={handleCreated}
+          tt={tt}
         />
       )}
     </div>
