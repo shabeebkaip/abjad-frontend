@@ -7,11 +7,13 @@ import {
   Sparkles, Clock, ShieldCheck, CheckCircle2, ChevronDown, Star,
   GraduationCap, Building2, Loader2, AlertCircle,
 } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useAuth } from "@/lib/auth/useAuth";
 import { getPricingPagePayload, type PricingPagePayload, type PricingPlan } from "@/lib/api/pricing-page";
-import { resolveCheckoutTarget } from "@/lib/auth/checkout-target";
+import { resolveCheckoutTarget, type CheckoutTarget } from "@/lib/auth/checkout-target";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+
+type T = ReturnType<typeof useTranslation>["t"];
 
 // Public /pricing page. Single round-trip to /api/pricing/page?locale=...
 // then renders top-to-bottom. Architecture matches the strategy doc:
@@ -35,30 +37,31 @@ const ICONS: Record<string, React.ComponentType<{ className?: string; size?: num
   Clock, ShieldCheck, Sparkles, GraduationCap, Building2, CheckCircle2, Star,
 };
 
-// Localised copy for the dynamic CTA strings produced by resolveCheckoutTarget.
-// Kept inline since the strings are short and the page already has bilingual
-// content elsewhere as direct ternaries — adding a full i18n key just for
-// these would be overkill.
-function translateCtaToAr(s: string): string {
-  if (s === "Login to continue")              return "سجّل الدخول للمتابعة";
-  if (s === "Manage subscription")            return "إدارة الاشتراك";
-  if (s === "View Teacher Premium")           return "تصفّح باقة المعلمين المميزة";
-  if (s === "View School plans")              return "تصفّح باقات المدارس";
-  if (s === "Not available for admins")       return "غير متاح للمسؤولين";
-  return s;
-}
-function translateWarningToAr(s: string): string {
-  if (s.startsWith("Admins manage"))     return "المسؤولون يديرون الاشتراكات للآخرين — لا يشترون بأنفسهم.";
-  if (s.startsWith("School plans are")) return "باقات المدارس مخصصة لحسابات المدارس. تصفّح باقة المعلمين المميزة بدلاً من ذلك.";
-  if (s.startsWith("Teacher Premium")) return "باقة المعلمين المميزة مخصصة لحسابات المعلمين. تصفّح باقات المدارس بدلاً من ذلك.";
-  if (s.startsWith("You already have")) return "لديك اشتراك فعّال بالفعل. أدِر اشتراكك أو غيّر الباقة من صفحة الفوترة.";
-  return s;
+// Localised copy for the dynamic CTA + warning produced by resolveCheckoutTarget.
+// Keyed by `target.kind` (not by matching the English fallback string —
+// that broke the moment the fallback text changed). "wrong-role" needs the
+// plan's own audience to know which sibling plan to point at.
+function ctaCopyFor(target: CheckoutTarget, planAudience: PricingPlan["audience"], t: T): { ctaLabel?: string; warning?: string } {
+  switch (target.kind) {
+    case "login":
+      return { ctaLabel: t.pricingPage.loginToContinue };
+    case "admin-blocked":
+      return { ctaLabel: t.pricingPage.notAvailableForAdmins, warning: t.pricingPage.adminsManageWarning };
+    case "wrong-role":
+      return planAudience === "school"
+        ? { ctaLabel: t.pricingPage.viewTeacherPremium, warning: t.pricingPage.schoolPlansWarning }
+        : { ctaLabel: t.pricingPage.viewSchoolPlans, warning: t.pricingPage.teacherPremiumWarning };
+    case "already-subscribed":
+      return { ctaLabel: t.pricingPage.manageSubscription, warning: t.pricingPage.alreadySubscribedWarning };
+    default:
+      return {};
+  }
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────
 
 export default function PricingPage() {
-  const { lang, isRTL } = useLanguage();
+  const { t, lang, isRTL } = useTranslation();
   const locale = lang === "ar" ? "ar" : "en";
   const [payload, setPayload] = useState<PricingPagePayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,11 +74,11 @@ export default function PricingPage() {
       const data = await getPricingPagePayload(locale);
       setPayload(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load pricing");
+      setError(e instanceof Error ? e.message : t.pricingPage.failedToLoad);
     } finally {
       setLoading(false);
     }
-  }, [locale]);
+  }, [locale, t.pricingPage.failedToLoad]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -92,9 +95,9 @@ export default function PricingPage() {
       <div className="min-h-screen flex items-center justify-center p-8">
         <div className="max-w-md text-center">
           <AlertCircle className="mx-auto text-red-500 mb-3" size={32} />
-          <p className="text-sm text-gray-700 mb-3">{error ?? "Failed to load pricing page"}</p>
+          <p className="text-sm text-gray-700 mb-3">{error ?? t.pricingPage.failedToLoad}</p>
           <button onClick={load} className="text-sm text-[var(--brand-primary)] underline">
-            {locale === "ar" ? "حاول مرة أخرى" : "Try again"}
+            {t.pricingPage.tryAgain}
           </button>
         </div>
       </div>
@@ -105,16 +108,16 @@ export default function PricingPage() {
     <div className={isRTL ? "rtl" : "ltr"} dir={isRTL ? "rtl" : "ltr"}>
       <FaqSchema items={payload.faq} />
       <Hero hero={payload.hero} reassurance={payload.hero.reassurance} />
-      <TrustStrip strip={payload.trustStrip} locale={locale} />
+      <TrustStrip strip={payload.trustStrip} t={t} />
       <WhyAbjad reasons={payload.whyAbjad} />
-      <PricingSection payload={payload} locale={locale} />
-      <ComparisonSection comparison={payload.comparison} locale={locale} />
+      <PricingSection payload={payload} locale={locale} t={t} />
+      <ComparisonSection comparison={payload.comparison} t={t} />
       {payload.testimonials.length > 0 && (
         <TestimonialsSection items={payload.testimonials} />
       )}
-      <FaqSection items={payload.faq} locale={locale} />
-      <FinalCta hero={payload.hero} locale={locale} />
-      <FooterLegal legal={payload.footerLegal} locale={locale} />
+      <FaqSection items={payload.faq} t={t} />
+      <FinalCta hero={payload.hero} t={t} />
+      <FooterLegal legal={payload.footerLegal} t={t} />
     </div>
   );
 }
@@ -163,9 +166,9 @@ function Hero({ hero, reassurance }: { hero: PricingPagePayload["hero"]; reassur
 
 // ── Trust Strip ──────────────────────────────────────────────────────────
 
-function TrustStrip({ strip, locale }: { strip: PricingPagePayload["trustStrip"]; locale: "en" | "ar" }) {
-  const schoolsLabel  = locale === "ar" ? "مدارس مشتركة" : "schools onboarded";
-  const teachersLabel = locale === "ar" ? "معلم مسجّل" : "verified teachers";
+function TrustStrip({ strip, t }: { strip: PricingPagePayload["trustStrip"]; t: T }) {
+  const schoolsLabel  = t.pricingPage.schoolsOnboarded;
+  const teachersLabel = t.pricingPage.verifiedTeachers;
   return (
     <section className="bg-white border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-4 text-center">
@@ -200,7 +203,7 @@ function TrustStrip({ strip, locale }: { strip: PricingPagePayload["trustStrip"]
 
 function Stat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="text-left rtl:text-right">
+    <div className="text-start">
       <p className="text-2xl font-bold tabular-nums text-gray-900">{value.toLocaleString()}+</p>
       <p className="text-xs text-gray-500 mt-0.5">{label}</p>
     </div>
@@ -235,7 +238,7 @@ function WhyAbjad({ reasons }: { reasons: PricingPagePayload["whyAbjad"] }) {
 
 // ── Pricing Section ──────────────────────────────────────────────────────
 
-function PricingSection({ payload, locale }: { payload: PricingPagePayload; locale: "en" | "ar" }) {
+function PricingSection({ payload, locale, t }: { payload: PricingPagePayload; locale: "en" | "ar"; t: T }) {
   const { user } = useAuth();
   const schoolPlans = useMemo(
     () => [...payload.plans.school].sort((a, b) => a.durationMonths - b.durationMonths),
@@ -255,8 +258,6 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
   const activeList = audience === "school" ? schoolPlans : teacherPlans;
   const activePlan: PricingPlan | undefined = activeList[activePlanIdx] ?? activeList[0];
 
-  const monthlyLabel = locale === "ar" ? "/شهر" : "/month";
-
   return (
     <section className="bg-[#fbfcfe] border-y border-gray-100">
       <div className="max-w-5xl mx-auto px-6 py-16">
@@ -272,7 +273,7 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                 }`}
               >
                 <Building2 size={13} />
-                {locale === "ar" ? "للمدارس" : "For Schools"}
+                {t.pricingPage.forSchools}
               </button>
               <button
                 type="button"
@@ -282,7 +283,7 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                 }`}
               >
                 <GraduationCap size={13} />
-                {locale === "ar" ? "للمعلمين" : "For Teachers"}
+                {t.pricingPage.forTeachers}
               </button>
             </div>
           </div>
@@ -290,12 +291,10 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
 
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            {locale === "ar" ? "اختر مدة الفوترة" : "Choose your billing cycle"}
+            {t.pricingPage.chooseBillingCycle}
           </h2>
           <p className="text-sm text-gray-500">
-            {locale === "ar"
-              ? "نفس الميزات في كل الباقات — تختار المدة فقط."
-              : "Same features in every plan — you choose the commitment length."}
+            {t.pricingPage.sameFeaturesEveryPlan}
           </p>
         </div>
 
@@ -336,7 +335,7 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                 <div className="flex justify-center -mt-12 mb-6">
                   <span className="inline-flex items-center gap-1 text-xs font-bold tracking-wide uppercase text-white px-3 py-1.5 rounded-full shadow-sm" style={{ background: "var(--brand-gradient, var(--brand-primary))" }}>
                     <Star size={11} fill="currentColor" />
-                    {locale === "ar" ? "الأكثر شعبية" : "Most Popular"}
+                    {t.pricingPage.mostPopular}
                   </span>
                 </div>
               )}
@@ -347,21 +346,19 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                   <span className="text-5xl font-bold text-gray-900 tabular-nums">
                     {halalaToSAR(activePlan.effectiveMonthlyHalala)}
                   </span>
-                  <span className="text-base font-medium text-gray-500"><SARSymbol />{monthlyLabel}</span>
+                  <span className="text-base font-medium text-gray-500"><SARSymbol />{t.pricingPage.perMonth}</span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  {locale === "ar"
-                    ? `يُفوتر ${activePlan.durationLabel} كـ ${halalaToSARDecimal(activePlan.priceHalala)} ر.س · لا تشمل 15% ضريبة قيمة مضافة`
-                    : `Billed ${activePlan.durationLabel.toLowerCase()} as ${halalaToSARDecimal(activePlan.priceHalala)} SAR · excl. 15% VAT`}
+                  {t.pricingPage.billedAs
+                    .replace("{duration}", locale === "ar" ? activePlan.durationLabel : activePlan.durationLabel.toLowerCase())
+                    .replace("{amount}", halalaToSARDecimal(activePlan.priceHalala))}
                 </p>
               </div>
 
               {activePlan.savings && (
                 <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-6 text-center">
                   <p className="text-sm font-semibold text-emerald-700">
-                    {locale === "ar"
-                      ? <>💰 {`توفّر ${halalaToSAR(activePlan.savings.vsMonthlyHalala)} ر.س مقارنةً بالدفع شهرياً`}</>
-                      : <>💰 Save <SARSymbol />{halalaToSAR(activePlan.savings.vsMonthlyHalala)} vs paying monthly</>}
+                    {t.pricingPage.saveAmount.replace("{amount}", halalaToSAR(activePlan.savings.vsMonthlyHalala))}
                   </p>
                 </div>
               )}
@@ -376,18 +373,17 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                   user: user ?? null,
                 });
 
-                const baseCta = activePlan.ctaText ?? (locale === "ar" ? "ابدأ التجربة المجانية" : "Start free trial");
-                const ctaLabel = target.ctaText
-                  ? (locale === "ar" ? translateCtaToAr(target.ctaText) : target.ctaText)
-                  : baseCta;
+                const baseCta = activePlan.ctaText ?? t.pricingPage.startFreeTrial;
+                const { ctaLabel: kindCtaLabel, warning } = ctaCopyFor(target, activePlan.audience, t);
+                const ctaLabel = kindCtaLabel ?? baseCta;
 
                 const isDisabled = target.kind === "admin-blocked";
 
                 return (
                   <>
-                    {target.warning && (
+                    {warning && (
                       <div className="mb-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-2.5 text-xs text-amber-800 text-center">
-                        {locale === "ar" ? translateWarningToAr(target.warning) : target.warning}
+                        {warning}
                       </div>
                     )}
                     {isDisabled ? (
@@ -419,7 +415,7 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                 <>
                   <div className="border-t border-gray-100 my-4" />
                   <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center mb-3">
-                    {locale === "ar" ? "كل ما هو مشمول" : "Everything included"}
+                    {t.pricingPage.everythingIncluded}
                   </p>
                   <ul className="space-y-2.5">
                     {activePlan.bullets.map((b, i) => (
@@ -432,16 +428,16 @@ function PricingSection({ payload, locale }: { payload: PricingPagePayload; loca
                 </>
               )}
 
-              <PaymentMarks methods={payload.paymentMethods} locale={locale} />
+              <PaymentMarks methods={payload.paymentMethods} locale={locale} t={t} />
             </div>
           </div>
         )}
 
         {/* Enterprise escape */}
         <p className="text-center text-sm text-gray-500 mt-8">
-          {locale === "ar" ? "تحتاج إلى توظيف لأكثر من 100 معلم أو لفروع متعددة؟ " : "Need to hire 100+ teachers or across multiple campuses? "}
+          {t.pricingPage.enterpriseCta}
           <Link href="/contact?intent=enterprise" className="text-[var(--brand-primary-dark)] font-semibold hover:underline">
-            {locale === "ar" ? "تحدّث مع فريق المبيعات →" : "Talk to enterprise sales →"}
+            {t.pricingPage.talkToSales}
           </Link>
         </p>
       </div>
@@ -466,13 +462,13 @@ const PAYMENT_LABELS_AR: Record<string, string> = {
   bank_transfer: "تحويل بنكي",
 };
 
-function PaymentMarks({ methods, locale }: { methods: PricingPagePayload["paymentMethods"]; locale: "en" | "ar" }) {
+function PaymentMarks({ methods, locale, t }: { methods: PricingPagePayload["paymentMethods"]; locale: "en" | "ar"; t: T }) {
   if (methods.length === 0) return null;
   const labels = locale === "ar" ? PAYMENT_LABELS_AR : PAYMENT_LABELS_EN;
   return (
     <div className="mt-6 pt-5 border-t border-gray-100">
       <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center mb-3">
-        {locale === "ar" ? "طرق الدفع المقبولة" : "Accepted payments"}
+        {t.pricingPage.acceptedPayments}
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {methods.map((m) => (
@@ -487,28 +483,26 @@ function PaymentMarks({ methods, locale }: { methods: PricingPagePayload["paymen
 
 // ── Comparison Section ──────────────────────────────────────────────────
 
-function ComparisonSection({ comparison, locale }: {
+function ComparisonSection({ comparison, t }: {
   comparison: PricingPagePayload["comparison"];
-  locale: "en" | "ar";
+  t: T;
 }) {
   return (
     <section className="bg-white">
       <div className="max-w-5xl mx-auto px-6 py-16">
         <div className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-            {locale === "ar" ? "ماذا تحصل عليه في الباقة المدفوعة" : "What you get on the paid plan"}
+            {t.pricingPage.comparisonTitle}
           </h2>
           <p className="text-sm text-gray-500">
-            {locale === "ar"
-              ? "مقارنة سريعة بين تجربة 5 أيام والباقة المدفوعة."
-              : "Quick comparison: 5-day trial vs paid plan."}
+            {t.pricingPage.comparisonSubtitle}
           </p>
         </div>
 
         <div className="rounded-2xl border border-gray-100 overflow-hidden">
           {/* Header row */}
           <div className="grid grid-cols-[1fr_auto_auto] gap-4 sm:gap-8 px-5 sm:px-6 py-3 bg-gray-50 border-b border-gray-100 text-[10px] font-bold tracking-wider text-gray-500 uppercase">
-            <span>{locale === "ar" ? "الميزة" : "Feature"}</span>
+            <span>{t.pricingPage.featureColumnLabel}</span>
             <span className="text-center w-20 sm:w-32">{comparison.columns[0]}</span>
             <span className="text-center w-20 sm:w-32">{comparison.columns[1]}</span>
           </div>
@@ -528,7 +522,7 @@ function ComparisonGroup({ group }: { group: PricingPagePayload["comparison"]["g
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full grid grid-cols-[1fr_auto] gap-4 sm:gap-8 px-5 sm:px-6 py-3 bg-gray-50/30 hover:bg-gray-50 text-left"
+        className="w-full grid grid-cols-[1fr_auto] gap-4 sm:gap-8 px-5 sm:px-6 py-3 bg-gray-50/30 hover:bg-gray-50 text-start"
       >
         <span className="text-sm font-semibold text-gray-800">▾ {group.label}</span>
         <ChevronDown size={14} className={`text-gray-400 transition-transform ${open ? "" : "-rotate-90"}`} />
@@ -607,12 +601,12 @@ function TestimonialsSection({ items }: { items: PricingPagePayload["testimonial
 
 // ── FAQ Section ──────────────────────────────────────────────────────────
 
-function FaqSection({ items, locale }: { items: PricingPagePayload["faq"]; locale: "en" | "ar" }) {
+function FaqSection({ items, t }: { items: PricingPagePayload["faq"]; t: T }) {
   return (
     <section className="bg-white">
       <div className="max-w-3xl mx-auto px-6 py-16">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
-          {locale === "ar" ? "الأسئلة الشائعة" : "Frequently asked questions"}
+          {t.pricingPage.faqTitle}
         </h2>
         <div className="space-y-2">
           {items.map((item, i) => (
@@ -631,7 +625,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-4 text-left px-5 py-4 hover:bg-gray-50"
+        className="w-full flex items-center justify-between gap-4 text-start px-5 py-4 hover:bg-gray-50"
       >
         <span className="text-sm font-semibold text-gray-900">{q}</span>
         <ChevronDown size={16} className={`text-gray-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -667,15 +661,15 @@ function FaqSchema({ items }: { items: PricingPagePayload["faq"] }) {
 
 // ── Final CTA ────────────────────────────────────────────────────────────
 
-function FinalCta({ hero, locale }: { hero: PricingPagePayload["hero"]; locale: "en" | "ar" }) {
+function FinalCta({ hero, t }: { hero: PricingPagePayload["hero"]; t: T }) {
   return (
     <section className="bg-[#fbfcfe] border-y border-gray-100">
       <div className="max-w-3xl mx-auto px-6 py-16 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-          {locale === "ar" ? "جاهز لتوظيف معلميك القادمين؟" : "Ready to hire your next teachers?"}
+          {t.pricingPage.finalCtaTitle}
         </h2>
         <p className="text-sm text-gray-500 mb-8">
-          {locale === "ar" ? "ابدأ تجربة مجانية لمدة 5 أيام أو احجز عرضاً توضيحياً مع فريق المبيعات." : "Start your 5-day free trial — or book a quick demo with our team."}
+          {t.pricingPage.finalCtaSubtitle}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -699,10 +693,10 @@ function FinalCta({ hero, locale }: { hero: PricingPagePayload["hero"]; locale: 
 
 // ── Footer Legal ─────────────────────────────────────────────────────────
 
-function FooterLegal({ legal, locale }: { legal: PricingPagePayload["footerLegal"]; locale: "en" | "ar" }) {
+function FooterLegal({ legal, t }: { legal: PricingPagePayload["footerLegal"]; t: T }) {
   const parts: string[] = [];
-  if (legal.vatNumber) parts.push(`${locale === "ar" ? "الرقم الضريبي" : "VAT"}: ${legal.vatNumber}`);
-  if (legal.crNumber)  parts.push(`${locale === "ar" ? "السجل التجاري" : "CR"}: ${legal.crNumber}`);
+  if (legal.vatNumber) parts.push(`${t.pricingPage.vatLabel}: ${legal.vatNumber}`);
+  if (legal.crNumber)  parts.push(`${t.pricingPage.crLabel}: ${legal.crNumber}`);
   if (legal.address)   parts.push(legal.address);
   if (parts.length === 0) return null;
   return (

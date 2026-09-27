@@ -320,6 +320,33 @@ export interface CommonTranslations {
     resendFailedFallback: string; backToSignIn: string;
   };
   footer: string;
+  /** Shared marketing footer (CtaAndFooter.tsx) — "footer" above is a legacy single line, kept separate to avoid a breaking rename. */
+  footerNav: {
+    ctaEyebrow: string; ctaBadge: string; ctaHeadline: string; ctaBody: string; ctaButton: string;
+    platformGroup: string; companyGroup: string; supportGroup: string;
+    forTeachers: string; forSchools: string; howItWorks: string; pricing: string;
+    aboutUs: string; careers: string; blogs: string;
+    helpCenter: string; contactUs: string; privacyPolicy: string; termsOfService: string;
+    brandBlurb: string; addressLine: string;
+    socialTwitter: string; socialLinkedin: string; socialInstagram: string;
+    stayUpdated: string; newsletterBody: string; emailPlaceholder: string; subscribe: string;
+    copyright: string; builtInSaudi: string;
+    privacy: string; terms: string; cookies: string;
+  };
+  pricingPage: {
+    loginToContinue: string; manageSubscription: string; viewTeacherPremium: string; viewSchoolPlans: string;
+    notAvailableForAdmins: string; adminsManageWarning: string; schoolPlansWarning: string;
+    teacherPremiumWarning: string; alreadySubscribedWarning: string;
+    failedToLoad: string; tryAgain: string;
+    schoolsOnboarded: string; verifiedTeachers: string;
+    perMonth: string; forSchools: string; forTeachers: string;
+    chooseBillingCycle: string; sameFeaturesEveryPlan: string; mostPopular: string;
+    billedAs: string; saveAmount: string; startFreeTrial: string; everythingIncluded: string;
+    enterpriseCta: string; talkToSales: string; acceptedPayments: string;
+    comparisonTitle: string; comparisonSubtitle: string; featureColumnLabel: string;
+    faqTitle: string; finalCtaTitle: string; finalCtaSubtitle: string;
+    vatLabel: string; crLabel: string;
+  };
 }
 
 /** Small set of strings reused across several teacher-panel pages. */
