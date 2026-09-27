@@ -1,37 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, X, Zap, ShieldCheck, Bell } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const hiringChallenges = [
-  "Long hiring cycles that delay classroom readiness",
-  "Limited access to verified, pre-screened teachers",
-  "High turnover rates disrupting student progress",
-];
-
-const solutions = [
-  {
-    icon: Zap,
-    color: "var(--brand-accent)",
-    bg: "rgba(0,172,211,0.1)",
-    title: "Smart Matching System",
-    desc: "Quickly connects schools with qualified teachers who meet their subject, level, and availability requirements.",
-  },
-  {
-    icon: ShieldCheck,
-    color: "#10b981",
-    bg: "rgba(16,185,129,0.1)",
-    title: "Pre-Verified Profiles",
-    desc: "Schools skip the screening stage — every teacher on Abjad has verified credentials, experience, and references.",
-  },
-  {
-    icon: Bell,
-    color: "#6366f1",
-    bg: "rgba(99,102,241,0.1)",
-    title: "Instant Notifications",
-    desc: "Schools receive immediate alerts when a qualified teacher becomes available, cutting hiring time from weeks to days.",
-  },
+const SOLUTION_STYLES = [
+  { icon: Zap, color: "var(--brand-accent)", bg: "rgba(0,172,211,0.1)" },
+  { icon: ShieldCheck, color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+  { icon: Bell, color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
 ];
 
 export default function TeachersForSchools() {
+  const { t, isRTL } = useTranslation();
+  const solutions = t.teachersPage.forSchools.solutions.map((s, i) => ({ ...s, ...SOLUTION_STYLES[i] }));
+
   return (
     <section className="bg-[#f8fafc] overflow-hidden">
 
@@ -42,38 +24,37 @@ export default function TeachersForSchools() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-primary)" }}
           >
-            For Schools
+            {t.teachersPage.forSchools.kicker}
           </span>
-          <span className="text-xs text-gray-400">Hire educators that fit your values</span>
+          <span className="text-xs text-gray-400">{t.teachersPage.forSchools.kickerSub}</span>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12 sm:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
 
-          {/* Left */}
+          {/* Start */}
           <div className="lg:col-span-5">
             <h2
               className="font-extrabold text-gray-950 leading-tight mb-4"
-              style={{ fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)", letterSpacing: "-0.04em" }}
+              style={{ fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
             >
-              Build a Strong{" "}
-              <span style={{ color: "var(--brand-accent)" }}>Teaching Team</span>
+              {t.teachersPage.forSchools.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.forSchools.headlineAccent}</span>
             </h2>
             <p className="text-gray-500 text-base leading-relaxed mb-4">
-              From kindergarten to high school, Abjad helps schools find passionate educators.
+              {t.teachersPage.forSchools.sub1}
             </p>
             <p className="text-gray-500 text-sm leading-relaxed mb-10">
-              Instantly connect with certified teachers, substitute teachers, and experienced staff
-              who can elevate classroom performance — all verified and ready to teach.
+              {t.teachersPage.forSchools.sub2}
             </p>
 
             {/* Hiring challenges */}
             <p className="text-xs font-black tracking-widest uppercase text-gray-400 mb-4">
-              Common Hiring Challenges:
+              {t.teachersPage.forSchools.challengesLabel}
             </p>
             <div className="space-y-3 mb-8">
-              {hiringChallenges.map((c, i) => (
+              {t.teachersPage.forSchools.challenges.map((c, i) => (
                 <div
                   key={i}
                   className="flex items-start gap-3 p-4 rounded-xl border border-red-100 bg-red-50"
@@ -91,14 +72,14 @@ export default function TeachersForSchools() {
               className="inline-flex items-center gap-2 font-bold text-sm px-8 py-3.5 rounded-full text-white transition-all hover:opacity-90 hover:-translate-y-0.5"
               style={{ backgroundColor: "var(--brand-primary)" }}
             >
-              Post Jobs <ArrowRight size={16} />
+              {t.teachersPage.forSchools.ctaPost} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
             </Link>
           </div>
 
-          {/* Right — Abjad's solutions */}
+          {/* End — Abjad's solutions */}
           <div className="lg:col-span-7">
             <p className="text-xs font-black tracking-widest uppercase text-gray-400 mb-6">
-              Abjad&apos;s Solution:
+              {t.teachersPage.forSchools.solutionLabel}
             </p>
             <div className="space-y-5 mb-8">
               {solutions.map((s, i) => (
@@ -126,13 +107,12 @@ export default function TeachersForSchools() {
               style={{ background: "var(--brand-gradient)" }}
             >
               <p className="text-xs font-black tracking-widest uppercase text-white/50 mb-2">
-                The Result
+                {t.teachersPage.forSchools.resultLabel}
               </p>
               <p className="text-white font-semibold text-sm leading-relaxed">
-                Faster onboarding and minimal disruption to classes — schools report filling
-                vacancies up to{" "}
-                <span style={{ color: "var(--brand-accent)" }}>70% faster</span>{" "}
-                than traditional recruitment methods.
+                {t.teachersPage.forSchools.resultPre}{" "}
+                <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.forSchools.resultHighlight}</span>{" "}
+                {t.teachersPage.forSchools.resultPost}
               </p>
             </div>
           </div>

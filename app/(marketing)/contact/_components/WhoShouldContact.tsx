@@ -1,16 +1,10 @@
-const schoolNeeds = [
-  "Need to fill an urgent substitute teacher vacancy quickly",
-  "Looking to hire permanent teachers for private or international schools",
-  "Seeking vetted educators who meet NEOM, MOE, or international curriculum standards",
-];
+"use client";
 
-const teacherNeeds = [
-  "A teacher or substitute teacher seeking placements in Saudi schools",
-  "An international educator interested in relocating or remote opportunities",
-  "A specialist educator seeking part-time or project-based assignments",
-];
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function WhoShouldContact() {
+  const { t } = useTranslation();
+
   return (
     <section className="overflow-hidden">
       <div className="grid lg:grid-cols-2 min-h-115">
@@ -24,19 +18,19 @@ export default function WhoShouldContact() {
             className="text-xs font-black tracking-widest uppercase mb-6"
             style={{ color: "var(--brand-accent)" }}
           >
-            Schools & Administrators
+            {t.contactPage.whoShouldContact.schoolsBadge}
           </p>
           <h2
             className="font-extrabold text-white leading-tight mb-4"
             style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)", letterSpacing: "-0.04em" }}
           >
-            Reach out if your school needs teaching talent — fast.
+            {t.contactPage.whoShouldContact.schoolsHeadline}
           </h2>
           <p className="text-white/50 text-sm mb-8">
-            Ideal for principals, HR managers, and hiring administrators who:
+            {t.contactPage.whoShouldContact.schoolsSub}
           </p>
           <ul className="space-y-5">
-            {schoolNeeds.map((t, i) => (
+            {t.contactPage.whoShouldContact.schoolsNeeds.map((need, i) => (
               <li key={i} className="flex items-start gap-4">
                 <span
                   className="w-5 h-5 rounded-full shrink-0 mt-0.5 flex items-center justify-center text-[10px] font-black text-white"
@@ -44,7 +38,7 @@ export default function WhoShouldContact() {
                 >
                   {i + 1}
                 </span>
-                <span className="text-sm text-white/70 leading-relaxed">{t}</span>
+                <span className="text-sm text-white/70 leading-relaxed">{need}</span>
               </li>
             ))}
           </ul>
@@ -56,19 +50,19 @@ export default function WhoShouldContact() {
             className="text-xs font-black tracking-widest uppercase mb-6"
             style={{ color: "var(--brand-primary)" }}
           >
-            Teachers & Substitute Teachers
+            {t.contactPage.whoShouldContact.teachersBadge}
           </p>
           <h2
             className="font-extrabold leading-tight mb-4"
             style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)", letterSpacing: "-0.04em", color: "var(--brand-primary)" }}
           >
-            Reach out if you are an educator ready for your next placement.
+            {t.contactPage.whoShouldContact.teachersHeadline}
           </h2>
           <p className="text-gray-400 text-sm mb-8">
-            Ideal for educators looking for new opportunities and who are:
+            {t.contactPage.whoShouldContact.teachersSub}
           </p>
           <ul className="space-y-5">
-            {teacherNeeds.map((t, i) => (
+            {t.contactPage.whoShouldContact.teachersNeeds.map((need, i) => (
               <li key={i} className="flex items-start gap-4">
                 <span
                   className="w-5 h-5 rounded-full shrink-0 mt-0.5 flex items-center justify-center text-[10px] font-black text-white"
@@ -76,7 +70,7 @@ export default function WhoShouldContact() {
                 >
                   {i + 1}
                 </span>
-                <span className="text-sm text-gray-600 leading-relaxed">{t}</span>
+                <span className="text-sm text-gray-600 leading-relaxed">{need}</span>
               </li>
             ))}
           </ul>

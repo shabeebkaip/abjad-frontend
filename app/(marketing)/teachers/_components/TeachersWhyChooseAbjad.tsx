@@ -1,31 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Zap, ShieldCheck, MapPin } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const reasons = [
-  {
-    icon: Zap,
-    color: "var(--brand-accent)",
-    bg: "rgba(0,172,211,0.1)",
-    title: "Fast Matches",
-    desc: "AI-powered matching connects teachers and schools within minutes, no waiting, no guesswork.",
-  },
-  {
-    icon: ShieldCheck,
-    color: "#10b981",
-    bg: "rgba(16,185,129,0.1)",
-    title: "Verified Profiles",
-    desc: "Each teacher and school undergoes a simple but thorough screening process to ensure quality on both sides.",
-  },
-  {
-    icon: MapPin,
-    color: "#6366f1",
-    bg: "rgba(99,102,241,0.1)",
-    title: "Local Focus",
-    desc: "Specialized for Riyadh schools, Jeddah schools, and Dammam schools, we know the Saudi education landscape.",
-  },
+const REASON_STYLES = [
+  { icon: Zap, color: "var(--brand-accent)", bg: "rgba(0,172,211,0.1)" },
+  { icon: ShieldCheck, color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+  { icon: MapPin, color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
 ];
 
 export default function TeachersWhyChooseAbjad() {
+  const { t, isRTL } = useTranslation();
+  const reasons = t.teachersPage.whyChoose.reasons.map((r, i) => ({ ...r, ...REASON_STYLES[i] }));
+
   return (
     <section className="bg-white overflow-hidden">
 
@@ -36,9 +24,9 @@ export default function TeachersWhyChooseAbjad() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-accent)" }}
           >
-            Why Abjad
+            {t.teachersPage.whyChoose.kicker}
           </span>
-          <span className="text-xs text-gray-400">Because education deserves better</span>
+          <span className="text-xs text-gray-400">{t.teachersPage.whyChoose.kickerSub}</span>
         </div>
       </div>
 
@@ -48,14 +36,13 @@ export default function TeachersWhyChooseAbjad() {
         <div className="text-center mb-8 lg:mb-16 max-w-2xl mx-auto">
           <h2
             className="font-extrabold text-gray-950 leading-tight mb-4"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: "-0.04em" }}
+            style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
           >
-            Why Schools and Teachers{" "}
-            <span style={{ color: "var(--brand-accent)" }}>Choose Abjad</span>
+            {t.teachersPage.whyChoose.headlinePre}{" "}
+            <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.whyChoose.headlineAccent}</span>
           </h2>
           <p className="text-gray-500 text-base leading-relaxed">
-            Because education deserves better. We&apos;ve built a platform that respects the time,
-            expertise, and goals of both teachers and schools.
+            {t.teachersPage.whyChoose.sub}
           </p>
         </div>
 
@@ -84,7 +71,7 @@ export default function TeachersWhyChooseAbjad() {
             className="inline-flex items-center gap-2 font-bold text-sm px-9 py-4 rounded-full text-white transition-all hover:shadow-lg hover:-translate-y-0.5"
             style={{ background: "var(--brand-gradient)" }}
           >
-            Start Hiring <ArrowRight size={16} />
+            {t.teachersPage.whyChoose.cta} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </Link>
         </div>
       </div>

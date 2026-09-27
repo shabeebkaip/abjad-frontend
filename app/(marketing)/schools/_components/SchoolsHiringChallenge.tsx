@@ -1,14 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, X, CheckCircle2 } from "lucide-react";
-
-const problems = [
-  "Endless screening that delays classes",
-  "Difficulty finding substitute teachers or qualified educators on short notice",
-  "Growing competition among schools for top teaching talent across Saudi Arabia",
-  "Limited visibility for your job postings in a nationwide market",
-];
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function SchoolsHiringChallenge() {
+  const { t, isRTL } = useTranslation();
+
   return (
     <section className="relative bg-white overflow-hidden">
 
@@ -19,39 +17,37 @@ export default function SchoolsHiringChallenge() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-accent)" }}
           >
-            The Challenge
+            {t.schoolsPage.hiringChallenge.kicker}
           </span>
-          <span className="text-xs text-gray-400">Abjad solves what slows schools down</span>
+          <span className="text-xs text-gray-400">{t.schoolsPage.hiringChallenge.kickerSub}</span>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-14 lg:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
 
-          {/* Left — headline + problem cards */}
+          {/* Start — headline + problem cards */}
           <div>
             <h2
               className="font-extrabold text-gray-950 leading-tight mb-6"
-              style={{ fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)", letterSpacing: "-0.04em" }}
+              style={{ fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
             >
-              Hire Teachers Who Match{" "}
-              <span style={{ color: "var(--brand-accent)" }}>Your School&apos;s Standards</span>
+              {t.schoolsPage.hiringChallenge.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.hiringChallenge.headlineAccent}</span>
             </h2>
             <p className="text-gray-500 text-base leading-relaxed mb-4">
-              Recruiting teachers and educators in Saudi Arabia should not be complicated.
+              {t.schoolsPage.hiringChallenge.sub1}
             </p>
             <p className="text-gray-500 text-sm leading-relaxed mb-10">
-              Abjad simplifies the entire hiring process; connecting schools across the Kingdom with
-              verified educators, including substitute teachers, part-time instructors, and full-time
-              professionals ready to join classrooms anywhere in Saudi Arabia.
+              {t.schoolsPage.hiringChallenge.sub2}
             </p>
 
             {/* Problem list */}
             <p className="text-xs font-black tracking-widest uppercase text-gray-400 mb-4">
-              We are problem solvers:
+              {t.schoolsPage.hiringChallenge.problemsLabel}
             </p>
             <div className="space-y-3">
-              {problems.map((p, i) => (
+              {t.schoolsPage.hiringChallenge.problems.map((p, i) => (
                 <div
                   key={i}
                   className="flex items-start gap-3 p-4 rounded-xl border border-red-100 bg-red-50"
@@ -65,31 +61,27 @@ export default function SchoolsHiringChallenge() {
             </div>
           </div>
 
-          {/* Right — solution card + stat badge */}
+          {/* End — solution card + stat badge */}
           <div className="lg:pt-16">
             {/* Solution card */}
             <div
               className="rounded-3xl p-7 sm:p-10 relative overflow-hidden mb-5"
               style={{ background: "var(--brand-gradient)" }}
             >
-              <div className="absolute -bottom-10 -right-10 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
+              <div className="absolute -bottom-10 -end-10 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
               <div className="relative z-10">
                 <span className="inline-block text-xs font-black tracking-widest uppercase px-3.5 py-1.5 rounded-full bg-white/10 text-white/60 mb-6">
-                  The Solution
+                  {t.schoolsPage.hiringChallenge.solutionBadge}
                 </span>
                 <h3
                   className="font-extrabold text-white leading-tight mb-5"
                   style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)" }}
                 >
-                  Abjad helps schools hire{" "}
-                  <span style={{ color: "var(--brand-accent)" }}>better, faster, smarter.</span>
+                  {t.schoolsPage.hiringChallenge.solutionHeadlinePre}{" "}
+                  <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.hiringChallenge.solutionHeadlineAccent}</span>
                 </h3>
                 <div className="space-y-3 mb-8">
-                  {[
-                    "Smart AI matching to verified educators",
-                    "Nationwide reach across all KSA regions",
-                    "Real-time substitutes for urgent needs",
-                  ].map((s) => (
+                  {t.schoolsPage.hiringChallenge.solutionPoints.map((s) => (
                     <div key={s} className="flex items-center gap-3">
                       <CheckCircle2 size={16} style={{ color: "var(--brand-accent)" }} className="shrink-0" />
                       <span className="text-white/70 text-sm">{s}</span>
@@ -101,7 +93,7 @@ export default function SchoolsHiringChallenge() {
                   className="inline-flex items-center gap-2 bg-white font-bold text-sm px-7 py-3 rounded-full transition-all hover:shadow-xl hover:shadow-black/20 hover:-translate-y-0.5"
                   style={{ color: "var(--brand-primary-dark)" }}
                 >
-                  Post Jobs <ArrowRight size={15} />
+                  {t.schoolsPage.hiringChallenge.ctaPost} <ArrowRight size={15} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
                 </Link>
               </div>
             </div>
@@ -112,9 +104,9 @@ export default function SchoolsHiringChallenge() {
               style={{ borderColor: "var(--brand-accent-light)", backgroundColor: "var(--brand-accent-light)" }}
             >
               <p className="text-sm font-semibold leading-snug" style={{ color: "var(--brand-primary)" }}>
-                Schools using Abjad report filling vacancies up to{" "}
-                <span style={{ color: "var(--brand-accent)" }}>70% faster</span>{" "}
-                than traditional recruitment methods.
+                {t.schoolsPage.hiringChallenge.quickWinPre}{" "}
+                <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.hiringChallenge.quickWinHighlight}</span>{" "}
+                {t.schoolsPage.hiringChallenge.quickWinPost}
               </p>
             </div>
           </div>

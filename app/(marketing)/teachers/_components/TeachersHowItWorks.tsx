@@ -1,28 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, UserPlus, BellRing, Handshake } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const steps = [
-  {
-    num: "01",
-    icon: UserPlus,
-    title: "Create Your Profile",
-    desc: "Build a free, verified teacher profile in minutes — highlight your subjects, experience, and curriculum expertise.",
-  },
-  {
-    num: "02",
-    icon: BellRing,
-    title: "Get Matched Instantly",
-    desc: "Receive instant job alerts from verified schools across Saudi Arabia that match your skills and availability.",
-  },
-  {
-    num: "03",
-    icon: Handshake,
-    title: "Apply & Get Hired",
-    desc: "Apply with one click, interview directly through the platform, and start teaching faster than ever before.",
-  },
-];
+const STEP_ICONS = [UserPlus, BellRing, Handshake];
 
 export default function TeachersHowItWorks() {
+  const { t, isRTL } = useTranslation();
+  const steps = t.teachersPage.howItWorks.steps.map((s, i) => ({ ...s, icon: STEP_ICONS[i] }));
+
   return (
     <section className="bg-[#f8fafc] overflow-hidden">
 
@@ -37,7 +24,8 @@ export default function TeachersHowItWorks() {
         />
         {/* Large watermark */}
         <div
-          className="absolute right-0 top-0 bottom-0 flex items-center pointer-events-none select-none overflow-hidden"
+          aria-hidden="true"
+          className="absolute end-0 top-0 bottom-0 flex items-center pointer-events-none select-none overflow-hidden"
           style={{ fontSize: "18rem", fontWeight: 900, lineHeight: 1, color: "rgba(255,255,255,0.02)" }}
         >
           03
@@ -47,20 +35,19 @@ export default function TeachersHowItWorks() {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
             <div>
               <span className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-white/10 text-white/60 mb-4">
-                How It Works
+                {t.teachersPage.howItWorks.kicker}
               </span>
               <h2
                 className="font-extrabold text-white leading-tight"
-                style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: "-0.04em" }}
+                style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
               >
-                Simple.{" "}
-                <span style={{ color: "var(--brand-accent)" }}>Smart.</span>
-                {" "}Seamless.
+                {t.teachersPage.howItWorks.headlinePre}{" "}
+                <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.howItWorks.headlineMid}</span>
+                {" "}{t.teachersPage.howItWorks.headlinePost}
               </h2>
             </div>
             <p className="text-white/50 text-sm leading-relaxed max-w-sm">
-              Abjad connects schools and qualified teachers instantly — from posting jobs to hiring
-              verified educators near you.
+              {t.teachersPage.howItWorks.sub}
             </p>
           </div>
 
@@ -87,27 +74,25 @@ export default function TeachersHowItWorks() {
         <div className="grid lg:grid-cols-2 gap-10 items-center">
           <div>
             <p className="text-xs font-black tracking-widest uppercase mb-4" style={{ color: "var(--brand-accent)" }}>
-              Abjad for Everyone
+              {t.teachersPage.howItWorks.everyoneKicker}
             </p>
             <h3
               className="font-extrabold text-gray-950 leading-tight mb-4"
-              style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", letterSpacing: "-0.03em" }}
+              style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", letterSpacing: isRTL ? "0" : "-0.03em" }}
             >
-              Whether You&apos;re Managing a High School or an International School
+              {t.teachersPage.howItWorks.everyoneHeadline}
             </h3>
           </div>
           <div className="space-y-4">
             <p className="text-gray-600 text-base leading-relaxed">
-              Abjad connects schools and qualified teachers instantly. Whether you&apos;re managing a
-              high school or an international school, our system simplifies the hiring process —
-              from posting jobs to hiring verified educators near you.
+              {t.teachersPage.howItWorks.everyoneBody}
             </p>
             <Link
               href="/register"
               className="inline-flex items-center gap-2 font-bold text-sm px-7 py-3.5 rounded-full text-white transition-all hover:opacity-90 hover:-translate-y-0.5"
               style={{ backgroundColor: "var(--brand-primary)" }}
             >
-              Get Started <ArrowRight size={16} />
+              {t.teachersPage.howItWorks.everyoneCta} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
             </Link>
           </div>
         </div>

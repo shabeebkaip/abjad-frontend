@@ -1,23 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const stats = [
-  { value: "2,000+", label: "Verified Teachers",      color: "var(--brand-accent)"   },
-  { value: "500+",   label: "Active Schools",          color: "#10b981"               },
-  { value: "3-Day",  label: "Average Match Time",      color: "#a78bfa"               },
-];
-
-const communities = [
-  { label: "International & bilingual school teachers",         accent: true  },
-  { label: "Substitute teachers across all grade levels",       accent: true  },
-  { label: "Full-time subject specialists and department heads", accent: true  },
-  { label: "Western Province — Jeddah, Makkah, Madinah",       accent: false },
-  { label: "Eastern Province — Dammam, Khobar, Dhahran",       accent: false },
-  { label: "Central Region — Riyadh, Al Kharj, Qassim",        accent: false },
-  { label: "Northern & Southern Regions and beyond",            accent: false },
-];
+const STAT_COLORS = ["var(--brand-accent)", "#10b981", "#a78bfa"];
+const COMMUNITY_ACCENT = [true, true, true, false, false, false, false];
 
 export default function TeachersNetwork() {
+  const { t, isRTL } = useTranslation();
+  const stats = t.teachersPage.network.stats.map((s, i) => ({ ...s, color: STAT_COLORS[i] }));
+  const communities = t.teachersPage.network.communities.map((label, i) => ({ label, accent: COMMUNITY_ACCENT[i] }));
+
   return (
     <section
       className="relative overflow-hidden py-16 lg:py-28"
@@ -30,7 +24,7 @@ export default function TeachersNetwork() {
       />
       {/* Vertical accent line */}
       <div
-        className="absolute inset-y-0 right-1/3 w-px opacity-10 pointer-events-none"
+        className="absolute inset-y-0 end-1/3 w-px opacity-10 pointer-events-none"
         style={{ background: "linear-gradient(180deg, transparent, var(--brand-accent), transparent)" }}
       />
 
@@ -39,19 +33,17 @@ export default function TeachersNetwork() {
         {/* Section header */}
         <div className="text-center mb-8 lg:mb-16 max-w-2xl mx-auto">
           <span className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-white/10 text-white/60 mb-6">
-            Join the Abjad Network
+            {t.teachersPage.network.kicker}
           </span>
           <h2
             className="font-extrabold text-white leading-[1.1] mb-4"
-            style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}
+            style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
           >
-            Connecting Thousands of Teachers and Schools{" "}
-            <span style={{ color: "var(--brand-accent)" }}>Across Saudi Arabia</span>
+            {t.teachersPage.network.headlinePre}{" "}
+            <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.network.headlineAccent}</span>
           </h2>
           <p className="text-white/55 text-base leading-relaxed">
-            Join a growing community shaping the future of education. From international schools
-            to local academies, Abjad helps make every hiring and teaching experience smoother,
-            faster, and more rewarding.
+            {t.teachersPage.network.sub}
           </p>
         </div>
 
@@ -76,7 +68,7 @@ export default function TeachersNetwork() {
           {/* Community list */}
           <div>
             <p className="text-xs font-black tracking-widest uppercase text-white/30 mb-5">
-              Our growing community includes:
+              {t.teachersPage.network.communityLabel}
             </p>
             <div className="space-y-2.5">
               {communities.map((c, i) => (
@@ -101,12 +93,11 @@ export default function TeachersNetwork() {
                 className="font-extrabold text-white leading-tight mb-4"
                 style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)" }}
               >
-                Ready to Join the{" "}
-                <span style={{ color: "var(--brand-accent)" }}>Movement?</span>
+                {t.teachersPage.network.ctaHeadlinePre}{" "}
+                <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.network.ctaHeadlineAccent}</span>
               </h3>
               <p className="text-white/55 text-sm leading-relaxed mb-8">
-                Whether you&apos;re an educator looking for your next classroom or a school searching
-                for exceptional talent — Abjad is your partner across Saudi Arabia.
+                {t.teachersPage.network.ctaBody}
               </p>
               <div className="flex flex-col gap-3">
                 <Link
@@ -114,13 +105,13 @@ export default function TeachersNetwork() {
                   className="flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-full text-white transition-all hover:shadow-xl hover:-translate-y-0.5"
                   style={{ background: "linear-gradient(135deg, var(--brand-accent) 0%, #0083a8 100%)" }}
                 >
-                  Get Started <ArrowRight size={15} />
+                  {t.teachersPage.network.ctaGetStarted} <ArrowRight size={15} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
                 </Link>
                 <Link
                   href="/register?role=school"
                   className="flex items-center justify-center gap-2 font-semibold text-sm py-3.5 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
                 >
-                  Hire Educators
+                  {t.teachersPage.network.ctaHireEducators}
                 </Link>
               </div>
             </div>

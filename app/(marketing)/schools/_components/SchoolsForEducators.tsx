@@ -1,34 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, User, Search, BellRing, LayoutDashboard } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const benefits = [
-  {
-    icon: User,
-    color: "var(--brand-accent)",
-    title: "Free Professional Profile",
-    desc: "Create a free profile and get discovered by top schools across Saudi Arabia.",
-  },
-  {
-    icon: Search,
-    color: "#a78bfa",
-    title: "Verified Job Openings",
-    desc: "Access verified job listings from trusted, reputable institutions only.",
-  },
-  {
-    icon: BellRing,
-    color: "#34d399",
-    title: "Instant Alerts",
-    desc: "Receive instant alerts when new teaching and substitute positions open.",
-  },
-  {
-    icon: LayoutDashboard,
-    color: "#f59e0b",
-    title: "Easy Dashboard",
-    desc: "Apply quickly and track all your applications in one easy-to-use dashboard.",
-  },
+const BENEFIT_STYLES = [
+  { icon: User, color: "var(--brand-accent)" },
+  { icon: Search, color: "#a78bfa" },
+  { icon: BellRing, color: "#34d399" },
+  { icon: LayoutDashboard, color: "#f59e0b" },
 ];
 
 export default function SchoolsForEducators() {
+  const { t, isRTL } = useTranslation();
+  const benefits = t.schoolsPage.forEducators.benefits.map((b, i) => ({ ...b, ...BENEFIT_STYLES[i] }));
+
   return (
     <section
       className="relative overflow-hidden py-16 lg:py-28"
@@ -41,7 +27,8 @@ export default function SchoolsForEducators() {
       />
       {/* Large watermark */}
       <div
-        className="absolute left-0 top-1/2 -translate-y-1/2 font-black select-none pointer-events-none leading-none"
+        aria-hidden="true"
+        className="absolute start-0 top-1/2 -translate-y-1/2 font-black select-none pointer-events-none leading-none"
         style={{ fontSize: "18rem", lineHeight: 1, color: "rgba(255,255,255,0.02)" }}
       >
         EDUCATORS
@@ -52,19 +39,18 @@ export default function SchoolsForEducators() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-end mb-12 lg:mb-16">
           <div>
             <span className="inline-block text-xs font-black tracking-widest uppercase px-3.5 py-1.5 rounded-full bg-white/10 text-white/60 mb-5">
-              For Educators
+              {t.schoolsPage.forEducators.kicker}
             </span>
             <h2
               className="font-extrabold text-white leading-[1.1]"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}
+              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
             >
-              Why Educators Across Saudi Arabia{" "}
-              <span style={{ color: "var(--brand-accent)" }}>Choose Abjad</span>
+              {t.schoolsPage.forEducators.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.forEducators.headlineAccent}</span>
             </h2>
           </div>
           <p className="text-white/55 text-base leading-relaxed max-w-md">
-            Abjad is designed to help teachers, substitute teachers, and educators get hired faster,
-            with tools built specifically for today&apos;s job market.
+            {t.schoolsPage.forEducators.sub}
           </p>
         </div>
 
@@ -90,7 +76,7 @@ export default function SchoolsForEducators() {
             className="inline-flex items-center gap-2 bg-white font-bold text-sm px-8 py-3.5 rounded-full transition-all hover:shadow-xl hover:shadow-black/20 hover:-translate-y-0.5"
             style={{ color: "var(--brand-primary-dark)" }}
           >
-            Join as an Educator <ArrowRight size={16} />
+            {t.schoolsPage.forEducators.cta} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </Link>
         </div>
       </div>

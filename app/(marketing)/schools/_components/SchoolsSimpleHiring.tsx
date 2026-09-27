@@ -1,56 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Bell, Lock, UserCheck, Zap, Briefcase, Handshake, Sparkles } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const steps = [
-  {
-    icon: Briefcase,
-    title: "Post Your Vacancies",
-    desc: "From preschool to high school — list your teaching openings in minutes.",
-  },
-  {
-    icon: Sparkles,
-    title: "Get Instant Matches",
-    desc: "Receive qualified teacher candidates across Saudi Arabia immediately.",
-  },
-  {
-    icon: Handshake,
-    title: "Interview & Hire",
-    desc: "Interview and hire directly through the platform — fast, secure, seamless.",
-  },
-];
-
-const features = [
-  {
-    icon: UserCheck,
-    color: "#10b981",
-    bg: "#f0fdf4",
-    title: "Verified Profiles",
-    desc: "Complete credentials, references, and vetting confirmed before placement.",
-  },
-  {
-    icon: Bell,
-    color: "var(--brand-accent)",
-    bg: "rgba(0,172,211,0.08)",
-    title: "Instant Notifications",
-    desc: "Real-time alerts for nearby qualified candidates the moment you post.",
-  },
-  {
-    icon: Lock,
-    color: "#6366f1",
-    bg: "rgba(99,102,241,0.08)",
-    title: "School-Only Access",
-    desc: "Secure, school-only access to all applications and candidate portfolios.",
-  },
-  {
-    icon: Zap,
-    color: "#f59e0b",
-    bg: "rgba(245,158,11,0.08)",
-    title: "Faster Matching",
-    desc: "AI-powered teacher matching for record-speed, confident hiring decisions.",
-  },
+const STEP_ICONS = [Briefcase, Sparkles, Handshake];
+const FEATURE_STYLES = [
+  { icon: UserCheck, color: "#10b981", bg: "#f0fdf4" },
+  { icon: Bell, color: "var(--brand-accent)", bg: "rgba(0,172,211,0.08)" },
+  { icon: Lock, color: "#6366f1", bg: "rgba(99,102,241,0.08)" },
+  { icon: Zap, color: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
 ];
 
 export default function SchoolsSimpleHiring() {
+  const { t, isRTL } = useTranslation();
+  const steps = t.schoolsPage.simpleHiring.steps.map((s, i) => ({ ...s, icon: STEP_ICONS[i] }));
+  const features = t.schoolsPage.simpleHiring.features.map((f, i) => ({ ...f, ...FEATURE_STYLES[i] }));
+
   return (
     <section className="bg-[#f8fafc] overflow-hidden">
 
@@ -65,7 +31,8 @@ export default function SchoolsSimpleHiring() {
         />
         {/* Large watermark */}
         <div
-          className="absolute right-0 top-0 bottom-0 flex items-center pointer-events-none select-none overflow-hidden"
+          aria-hidden="true"
+          className="absolute end-0 top-0 bottom-0 flex items-center pointer-events-none select-none overflow-hidden"
           style={{ fontSize: "18rem", fontWeight: 900, lineHeight: 1, color: "rgba(255,255,255,0.02)" }}
         >
           03
@@ -75,18 +42,18 @@ export default function SchoolsSimpleHiring() {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
             <div>
               <span className="inline-block text-xs font-black tracking-widest uppercase px-4 py-1.5 rounded-full bg-white/10 text-white/60 mb-4">
-                For Schools
+                {t.schoolsPage.simpleHiring.kicker}
               </span>
               <h2
                 className="font-extrabold text-white leading-tight"
-                style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: "-0.04em" }}
+                style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
               >
-                Simple Hiring,{" "}
-                <span style={{ color: "var(--brand-accent)" }}>Strong Results</span>
+                {t.schoolsPage.simpleHiring.headlinePre}{" "}
+                <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.simpleHiring.headlineAccent}</span>
               </h2>
             </div>
             <p className="text-white/50 text-sm leading-relaxed max-w-xs">
-              Post your teaching vacancies from preschool to high school and get instant matches.
+              {t.schoolsPage.simpleHiring.sub}
             </p>
           </div>
 
@@ -115,7 +82,7 @@ export default function SchoolsSimpleHiring() {
         <div className="flex items-center gap-4 mb-12">
           <div className="h-px flex-1 bg-gray-200" />
           <span className="text-xs font-black tracking-widest uppercase text-gray-400 px-4">
-            Why Schools Use Abjad
+            {t.schoolsPage.simpleHiring.whyKicker}
           </span>
           <div className="h-px flex-1 bg-gray-200" />
         </div>
@@ -144,7 +111,7 @@ export default function SchoolsSimpleHiring() {
             className="inline-flex items-center gap-2 font-bold text-sm px-8 py-3.5 rounded-full transition-all hover:shadow-lg hover:-translate-y-0.5 text-white"
             style={{ backgroundColor: "var(--brand-primary)" }}
           >
-            Hire Now <ArrowRight size={16} />
+            {t.schoolsPage.simpleHiring.cta} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </Link>
         </div>
       </div>

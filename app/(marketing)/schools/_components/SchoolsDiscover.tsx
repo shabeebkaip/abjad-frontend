@@ -1,17 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const regions = [
-  { label: "Leading schools across Saudi Arabia",              accent: true  },
-  { label: "International and bilingual schools nationwide",   accent: true  },
-  { label: "Private schools, academies, and high schools hiring now", accent: true },
-  { label: "Western Province — Jeddah, Makkah, Madinah",      accent: false },
-  { label: "Eastern Province — Dammam, Khobar, Dhahran",      accent: false },
-  { label: "Central Region — Riyadh, Al Kharj, Qassim",       accent: false },
-  { label: "Northern & Southern Regions and beyond",           accent: false },
-];
+const REGION_ACCENT = [true, true, true, false, false, false, false];
 
 export default function SchoolsDiscover() {
+  const { t, isRTL } = useTranslation();
+  const regions = t.schoolsPage.discover.regions.map((label, i) => ({ label, accent: REGION_ACCENT[i] }));
+
   return (
     <section
       className="relative overflow-hidden py-16 lg:py-28"
@@ -24,49 +22,47 @@ export default function SchoolsDiscover() {
       />
       {/* Vertical accent line */}
       <div
-        className="absolute inset-y-0 right-1/3 w-px opacity-10 pointer-events-none"
+        className="absolute inset-y-0 end-1/3 w-px opacity-10 pointer-events-none"
         style={{ background: "linear-gradient(180deg, transparent, var(--brand-accent), transparent)" }}
       />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
-          {/* Left — content */}
+          {/* Start — content */}
           <div>
             <div
               className="inline-flex items-center gap-2 text-xs font-black tracking-widest uppercase mb-6 px-3.5 py-1.5 rounded-full bg-white/10 text-white/60"
             >
               <MapPin size={12} />
-              Nationwide Network
+              {t.schoolsPage.discover.badge}
             </div>
             <h2
               className="font-extrabold text-white leading-[1.1] mb-6"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}
+              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
             >
-              Discover Teaching Opportunities Across{" "}
-              <span style={{ color: "var(--brand-accent)" }}>Saudi Arabia</span>
+              {t.schoolsPage.discover.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.discover.headlineAccent}</span>
             </h2>
             <p className="text-white/60 text-base leading-relaxed mb-4">
-              Connecting Educators With Schools Hiring Right Now, Anywhere in the Kingdom.
+              {t.schoolsPage.discover.sub1}
             </p>
             <p className="text-white/45 text-sm leading-relaxed mb-10">
-              Whether you&apos;re an educator ready to take your next career step or a school searching
-              for exceptional teaching talent, Abjad streamlines the process — fast, easy, and fully
-              aligned with the needs of Saudi Arabia&apos;s expanding education sector.
+              {t.schoolsPage.discover.sub2}
             </p>
             <Link
               href="/register"
               className="inline-flex items-center gap-2 font-bold text-sm px-8 py-3.5 rounded-full transition-all hover:-translate-y-0.5 text-white"
               style={{ backgroundColor: "var(--brand-accent)" }}
             >
-              Search Now <ArrowRight size={16} />
+              {t.schoolsPage.discover.cta} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
             </Link>
           </div>
 
-          {/* Right — region list */}
+          {/* End — region list */}
           <div>
             <p className="text-xs font-black tracking-widest uppercase text-white/30 mb-5">
-              Connect with educators from:
+              {t.schoolsPage.discover.regionsLabel}
             </p>
             <div className="space-y-2.5">
               {regions.map((r, i) => (

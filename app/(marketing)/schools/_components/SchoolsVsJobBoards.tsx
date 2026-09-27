@@ -1,34 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Building2, ShieldCheck, Users, Zap } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const highlights = [
-  {
-    icon: Building2,
-    color: "var(--brand-accent)",
-    title: "A Local Saudi Platform Built for All Schools",
-    desc: "Designed to meet the unique hiring needs of Saudi Arabia's education system, from major cities to smaller regions.",
-  },
-  {
-    icon: ShieldCheck,
-    color: "#6366f1",
-    title: "Verified Teacher & Educator Matching",
-    desc: "Every teacher and educator is vetted to ensure your school connects only with qualified, trusted professionals.",
-  },
-  {
-    icon: Users,
-    color: "#10b981",
-    title: "A Growing Community of Active Educators",
-    desc: "Join thousands of dedicated educators across Saudi Arabia ready to engage, apply, and support your institution's growth.",
-  },
-  {
-    icon: Zap,
-    color: "#f59e0b",
-    title: "Built for Rapid Teacher Placement",
-    desc: "Ideal for schools that need fast, accurate hiring — saving time, effort, and administrative resources.",
-  },
+const HIGHLIGHT_STYLES = [
+  { icon: Building2, color: "var(--brand-accent)" },
+  { icon: ShieldCheck, color: "#6366f1" },
+  { icon: Users, color: "#10b981" },
+  { icon: Zap, color: "#f59e0b" },
 ];
 
 export default function SchoolsVsJobBoards() {
+  const { t, isRTL } = useTranslation();
+  const highlights = t.schoolsPage.vsJobBoards.highlights.map((h, i) => ({ ...h, ...HIGHLIGHT_STYLES[i] }));
+
   return (
     <section className="bg-white overflow-hidden">
 
@@ -39,9 +25,9 @@ export default function SchoolsVsJobBoards() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-accent)" }}
           >
-            vs General Job Boards
+            {t.schoolsPage.vsJobBoards.kicker}
           </span>
-          <span className="text-xs text-gray-400">Education-first · Saudi-focused</span>
+          <span className="text-xs text-gray-400">{t.schoolsPage.vsJobBoards.kickerSub}</span>
         </div>
       </div>
 
@@ -51,15 +37,14 @@ export default function SchoolsVsJobBoards() {
         <div className="text-center mb-16">
           <h2
             className="font-extrabold text-gray-950 mb-4"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: "-0.04em" }}
+            style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
           >
-            Why Abjad{" "}
-            <span style={{ color: "var(--brand-accent)" }}>Outperforms</span>{" "}
-            Job Boards
+            {t.schoolsPage.vsJobBoards.headlinePre}{" "}
+            <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.vsJobBoards.headlineAccent}</span>{" "}
+            {t.schoolsPage.vsJobBoards.headlinePost}
           </h2>
           <p className="text-gray-500 text-base max-w-xl mx-auto">
-            Unlike general hiring platforms, Abjad focuses entirely on education in Saudi Arabia —
-            making it the most relevant and fastest way to connect schools and teachers.
+            {t.schoolsPage.vsJobBoards.sub}
           </p>
         </div>
 
@@ -92,7 +77,7 @@ export default function SchoolsVsJobBoards() {
             className="inline-flex items-center gap-2 font-bold text-sm px-8 py-3.5 rounded-full text-white transition-all hover:opacity-90 hover:-translate-y-0.5"
             style={{ backgroundColor: "var(--brand-primary)" }}
           >
-            Try Abjad <ArrowRight size={16} />
+            {t.schoolsPage.vsJobBoards.cta} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </Link>
         </div>
       </div>

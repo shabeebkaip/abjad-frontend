@@ -2,14 +2,9 @@
 
 import { useState, FormEvent } from "react";
 import { Send, CheckCircle2 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const ROLES = [
-  { value: "", label: "Select your role" },
-  { value: "school_admin", label: "School Administrator" },
-  { value: "hiring_manager", label: "Hiring Manager" },
-  { value: "teacher", label: "Teacher" },
-  { value: "substitute_teacher", label: "Substitute Teacher" },
-];
+const ROLE_VALUES = ["school_admin", "hiring_manager", "teacher", "substitute_teacher"];
 
 interface FormState {
   name: string;
@@ -30,9 +25,11 @@ const INITIAL: FormState = {
 };
 
 export default function ContactForm() {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(INITIAL);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const roles = ROLE_VALUES.map((value, i) => ({ value, label: t.contactPage.form.roles[i] }));
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -59,17 +56,17 @@ export default function ContactForm() {
 
         <div className="text-center mb-12">
           <span className="inline-block text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4 bg-white/10 text-white/70">
-            Contact Form
+            {t.contactPage.form.badge}
           </span>
           <h2
             className="font-extrabold text-white mb-3"
             style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", letterSpacing: "-0.03em" }}
           >
-            Send Us a Message
+            {t.contactPage.form.headline}
           </h2>
           <p className="text-white/55 text-base max-w-xl mx-auto">
-            Fill in the form below and our team will get back to you within{" "}
-            <strong className="text-white/80">24–48 hours</strong>.
+            {t.contactPage.form.subPre}{" "}
+            <strong className="text-white/80">{t.contactPage.form.subHighlight}</strong>.
           </p>
         </div>
 
@@ -82,59 +79,60 @@ export default function ContactForm() {
               >
                 <CheckCircle2 size={32} style={{ color: "var(--brand-accent)" }} />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Message Received!</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{t.contactPage.form.successTitle}</h3>
               <p className="text-gray-500 max-w-sm">
-                Thank you for reaching out. Our team will review your details and contact you within
-                24–48 hours.
+                {t.contactPage.form.successBody}
               </p>
               <button
                 onClick={() => { setForm(INITIAL); setSubmitted(false); }}
                 className="mt-2 text-sm font-semibold rounded-full px-6 py-2 transition-all hover:scale-105"
                 style={{ backgroundColor: "var(--brand-accent-light)", color: "var(--brand-accent)" }}
               >
-                Submit Another
+                {t.contactPage.form.submitAnother}
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <div className="grid sm:grid-cols-2 gap-5">
-                <Field label="Full Name" required>
+                <Field label={t.contactPage.form.fullName} required>
                   <input
                     type="text"
                     name="name"
                     value={form.name}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. Sara Al-Mutairi"
+                    placeholder={t.contactPage.form.fullNamePlaceholder}
                     className="field-input"
                   />
                 </Field>
-                <Field label="Email Address" required>
+                <Field label={t.contactPage.form.email} required>
                   <input
                     type="email"
                     name="email"
                     value={form.email}
                     onChange={handleChange}
                     required
-                    placeholder="you@school.sa"
+                    placeholder={t.contactPage.form.emailPlaceholder}
                     className="field-input"
+                    dir="ltr"
                   />
                 </Field>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-5">
-                <Field label="Phone Number" required>
+                <Field label={t.contactPage.form.phone} required>
                   <input
                     type="tel"
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
                     required
-                    placeholder="+966 5x xxx xxxx"
+                    placeholder={t.contactPage.form.phonePlaceholder}
                     className="field-input"
+                    dir="ltr"
                   />
                 </Field>
-                <Field label="Your Role" required>
+                <Field label={t.contactPage.form.role} required>
                   <select
                     name="role"
                     value={form.role}
@@ -142,8 +140,9 @@ export default function ContactForm() {
                     required
                     className="field-input"
                   >
-                    {ROLES.map((r) => (
-                      <option key={r.value} value={r.value} disabled={r.value === ""}>
+                    <option value="" disabled>{t.contactPage.form.roleSelectPlaceholder}</option>
+                    {roles.map((r) => (
+                      <option key={r.value} value={r.value}>
                         {r.label}
                       </option>
                     ))}
@@ -151,25 +150,25 @@ export default function ContactForm() {
                 </Field>
               </div>
 
-              <Field label="City / Location">
+              <Field label={t.contactPage.form.location}>
                 <input
                   type="text"
                   name="location"
                   value={form.location}
                   onChange={handleChange}
-                  placeholder="e.g. Riyadh, Jeddah, Dammam"
+                  placeholder={t.contactPage.form.locationPlaceholder}
                   className="field-input"
                 />
               </Field>
 
-              <Field label="Your Message" required>
+              <Field label={t.contactPage.form.message} required>
                 <textarea
                   name="message"
                   value={form.message}
                   onChange={handleChange}
                   required
                   rows={5}
-                  placeholder="Tell us what you need — a substitute teacher, a permanent hire, or looking for work as an educator..."
+                  placeholder={t.contactPage.form.messagePlaceholder}
                   className="field-input resize-none"
                 />
               </Field>
@@ -185,13 +184,13 @@ export default function ContactForm() {
                 ) : (
                   <>
                     <Send size={16} strokeWidth={2} />
-                    Submit Now
+                    {t.contactPage.form.submitButton}
                   </>
                 )}
               </button>
 
               <p className="text-center text-xs text-gray-400 mt-3">
-                Your information is handled privately and used only to match you appropriately.
+                {t.contactPage.form.privacyNote}
               </p>
             </form>
           )}
@@ -236,7 +235,7 @@ function Field({
     <div className="flex flex-col gap-1.5">
       <label className="text-sm font-semibold text-gray-700">
         {label}
-        {required && <span className="text-red-400 ml-0.5">*</span>}
+        {required && <span className="text-red-400 ms-0.5">*</span>}
       </label>
       {children}
     </div>

@@ -1,35 +1,18 @@
-const growthItems = [
-  {
-    color: "#10b981",
-    bg: "#f0fdf4",
-    tag: "Zero Shortages",
-    title: "Eliminate Teacher Shortages with Verified Educators",
-    desc: "Fill staffing gaps fast with a network of trusted, pre-screened educators available across Saudi Arabia, ensuring your classrooms never go underserved.",
-  },
-  {
-    color: "var(--brand-accent)",
-    bg: "rgba(0,172,211,0.07)",
-    tag: "70% Faster",
-    title: "Hire 70% Faster Than Traditional Recruitment",
-    desc: "Skip slow, outdated hiring methods. Abjad accelerates recruitment workflows, helping your school secure the right educators in record time.",
-  },
-  {
-    color: "#6366f1",
-    bg: "rgba(99,102,241,0.07)",
-    tag: "Better Outcomes",
-    title: "Improve Classroom Stability & Student Success",
-    desc: "Maintain consistent learning experiences with reliable substitutes and full-time educators, boosting student satisfaction, academic continuity, and teaching quality.",
-  },
-  {
-    color: "#f59e0b",
-    bg: "rgba(245,158,11,0.07)",
-    tag: "Kingdom-Wide",
-    title: "Access a Kingdom-Wide Talent Pool of Qualified Educators",
-    desc: "Connect directly with experienced teachers, substitutes, and specialists already in Saudi Arabia, reducing onboarding delays and ensuring cultural and regulatory alignment.",
-  },
+"use client";
+
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
+const ITEM_STYLES = [
+  { color: "#10b981", bg: "#f0fdf4" },
+  { color: "var(--brand-accent)", bg: "rgba(0,172,211,0.07)" },
+  { color: "#6366f1", bg: "rgba(99,102,241,0.07)" },
+  { color: "#f59e0b", bg: "rgba(245,158,11,0.07)" },
 ];
 
 export default function SchoolsGrowth() {
+  const { t, isRTL } = useTranslation();
+  const growthItems = t.schoolsPage.growth.items.map((item, i) => ({ ...item, ...ITEM_STYLES[i] }));
+
   return (
     <section className="relative bg-[#f8fafc] overflow-hidden">
 
@@ -40,9 +23,9 @@ export default function SchoolsGrowth() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-primary)" }}
           >
-            School Growth
+            {t.schoolsPage.growth.kicker}
           </span>
-          <span className="text-xs text-gray-400">Transforming staffing into a strength</span>
+          <span className="text-xs text-gray-400">{t.schoolsPage.growth.kickerSub}</span>
         </div>
       </div>
 
@@ -52,14 +35,13 @@ export default function SchoolsGrowth() {
         <div className="text-center mb-16 max-w-2xl mx-auto">
           <h2
             className="font-extrabold text-gray-950 leading-tight mb-4"
-            style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: "-0.04em" }}
+            style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
           >
-            Empower Your School&apos;s Growth with{" "}
-            <span style={{ color: "var(--brand-accent)" }}>Abjad</span>
+            {t.schoolsPage.growth.headlinePre}{" "}
+            <span style={{ color: "var(--brand-accent)" }}>{t.schoolsPage.growth.headlineAccent}</span>
           </h2>
           <p className="text-gray-500 text-base leading-relaxed">
-            Transforming how schools across Saudi Arabia solve staffing challenges, enhance classroom
-            performance, and build stronger academic environments.
+            {t.schoolsPage.growth.sub}
           </p>
         </div>
 
@@ -96,7 +78,7 @@ export default function SchoolsGrowth() {
                   <h3 className="text-gray-950 font-bold text-base leading-snug">{item.title}</h3>
                 </div>
               </div>
-              <p className="text-gray-500 text-sm leading-relaxed pl-0 sm:pl-13">{item.desc}</p>
+              <p className="text-gray-500 text-sm leading-relaxed ps-0 sm:ps-13">{item.desc}</p>
             </div>
           ))}
         </div>

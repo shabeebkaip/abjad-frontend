@@ -1,21 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, X, Clock } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const painPoints = [
-  "Difficulty finding jobs that match your qualifications and subject expertise",
-  "Slow hiring response from schools leaves you waiting without answers",
-  "Limited visibility for substitute teachers in a competitive market",
-  "No flexibility — rigid schedules that don't suit your lifestyle",
-];
-
-const flexBenefits = [
-  { label: "Part-time & full-time roles", color: "var(--brand-accent)" },
-  { label: "Substitute teaching slots", color: "#10b981" },
-  { label: "Flexible morning or afternoon shifts", color: "#a78bfa" },
-  { label: "Remote & hybrid opportunities", color: "#f59e0b" },
-];
+const FLEX_COLORS = ["var(--brand-accent)", "#10b981", "#a78bfa", "#f59e0b"];
 
 export default function TeachersOpportunities() {
+  const { t, isRTL } = useTranslation();
+  const flexBenefits = t.teachersPage.opportunities.flexBenefits.map((label, i) => ({ label, color: FLEX_COLORS[i] }));
+
   return (
     <section className="relative bg-white overflow-hidden">
 
@@ -26,39 +20,37 @@ export default function TeachersOpportunities() {
             className="text-xs font-black tracking-widest uppercase"
             style={{ color: "var(--brand-accent)" }}
           >
-            For Teachers
+            {t.teachersPage.opportunities.kicker}
           </span>
-          <span className="text-xs text-gray-400">Abjad puts your career first</span>
+          <span className="text-xs text-gray-400">{t.teachersPage.opportunities.kickerSub}</span>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12 sm:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
 
-          {/* Left — headline + pain points */}
+          {/* Start — headline + pain points */}
           <div>
             <h2
               className="font-extrabold text-gray-950 leading-tight mb-4"
-              style={{ fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)", letterSpacing: "-0.04em" }}
+              style={{ fontSize: "clamp(1.9rem, 3.5vw, 2.8rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
             >
-              Shape the Future:{" "}
-              <span style={{ color: "var(--brand-accent)" }}>One Class at a Time</span>
+              {t.teachersPage.opportunities.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.opportunities.headlineAccent}</span>
             </h2>
             <p className="text-gray-500 text-base leading-relaxed mb-3">
-              Whether you&apos;re a full-time teacher or a substitute teacher seeking new classrooms,
-              Abjad helps you match with schools that value your skills.
+              {t.teachersPage.opportunities.sub1}
             </p>
             <p className="text-gray-500 text-sm leading-relaxed mb-10">
-              Discover opportunities in Riyadh, Jeddah, or Dammam schools tailored to your
-              expertise and goals — and enjoy the flexibility to work on your terms.
+              {t.teachersPage.opportunities.sub2}
             </p>
 
             {/* Pain points */}
             <p className="text-xs font-black tracking-widest uppercase text-gray-400 mb-4">
-              We solve the real challenges teachers face:
+              {t.teachersPage.opportunities.painPointsLabel}
             </p>
             <div className="space-y-3">
-              {painPoints.map((p, i) => (
+              {t.teachersPage.opportunities.painPoints.map((p, i) => (
                 <div
                   key={i}
                   className="flex items-start gap-3 p-4 rounded-xl border border-red-100 bg-red-50"
@@ -72,28 +64,27 @@ export default function TeachersOpportunities() {
             </div>
           </div>
 
-          {/* Right — solution card + flexible hours */}
+          {/* End — solution card + flexible hours */}
           <div className="lg:pt-16">
             {/* Flexible hours card */}
             <div
               className="rounded-3xl p-6 sm:p-10 relative overflow-hidden mb-5"
               style={{ background: "var(--brand-gradient)" }}
             >
-              <div className="absolute -bottom-10 -right-10 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
+              <div className="absolute -bottom-10 -end-10 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
               <div className="relative z-10">
                 <span className="inline-block text-xs font-black tracking-widest uppercase px-3.5 py-1.5 rounded-full bg-white/10 text-white/60 mb-6">
-                  Flexible Opportunities
+                  {t.teachersPage.opportunities.flexBadge}
                 </span>
                 <h3
                   className="font-extrabold text-white leading-tight mb-3"
                   style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)" }}
                 >
-                  Work on{" "}
-                  <span style={{ color: "var(--brand-accent)" }}>Your Schedule</span>
+                  {t.teachersPage.opportunities.flexHeadlinePre}{" "}
+                  <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.opportunities.flexHeadlineAccent}</span>
                 </h3>
                 <p className="text-white/60 text-sm mb-6 leading-relaxed">
-                  Abjad supports teachers who want flexibility — choose the hours, days, and
-                  schools that fit your lifestyle without compromising career growth.
+                  {t.teachersPage.opportunities.flexSub}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                   {flexBenefits.map((b) => (
@@ -111,7 +102,7 @@ export default function TeachersOpportunities() {
                   className="inline-flex items-center gap-2 bg-white font-bold text-sm px-7 py-3 rounded-full transition-all hover:shadow-xl hover:shadow-black/20 hover:-translate-y-0.5"
                   style={{ color: "var(--brand-primary-dark)" }}
                 >
-                  Explore Roles <ArrowRight size={15} />
+                  {t.teachersPage.opportunities.flexCta} <ArrowRight size={15} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
                 </Link>
               </div>
             </div>
@@ -122,9 +113,9 @@ export default function TeachersOpportunities() {
               style={{ borderColor: "var(--brand-accent-light)", backgroundColor: "var(--brand-accent-light)" }}
             >
               <p className="text-sm font-semibold leading-snug" style={{ color: "var(--brand-primary)" }}>
-                Teachers on Abjad receive their first interview invitation within{" "}
-                <span style={{ color: "var(--brand-accent)" }}>72 hours</span>{" "}
-                of completing their profile.
+                {t.teachersPage.opportunities.quickWinPre}{" "}
+                <span style={{ color: "var(--brand-accent)" }}>{t.teachersPage.opportunities.quickWinHighlight}</span>{" "}
+                {t.teachersPage.opportunities.quickWinPost}
               </p>
             </div>
           </div>

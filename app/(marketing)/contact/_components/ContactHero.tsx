@@ -1,15 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Phone, Mail } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function ContactHero() {
+  const { t, isRTL } = useTranslation();
+
   return (
     <section
       className="relative overflow-hidden pt-36 pb-0"
       style={{ background: "var(--brand-gradient)" }}
     >
       {/* Background decoration */}
-      <div className="absolute -top-32 -right-32 w-125 h-125 rounded-full bg-white/4 pointer-events-none" />
-      <div className="absolute top-1/2 -left-24 w-96 h-96 rounded-full bg-white/3 pointer-events-none" />
+      <div className="absolute -top-32 -end-32 w-125 h-125 rounded-full bg-white/4 pointer-events-none" />
+      <div className="absolute top-1/2 -start-24 w-96 h-96 rounded-full bg-white/3 pointer-events-none" />
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -29,28 +34,24 @@ export default function ContactHero() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
           </span>
-          Matching Schools &amp; Educators Nationwide
+          {t.contactPage.hero.badge}
         </div>
 
         {/* H1 */}
         <h1
           className="font-extrabold text-white leading-[1.06] mb-6"
-          style={{ fontSize: "clamp(2.4rem, 5.5vw, 4.2rem)", letterSpacing: "-0.03em" }}
+          style={{ fontSize: "clamp(2.4rem, 5.5vw, 4.2rem)", letterSpacing: isRTL ? "0" : "-0.03em" }}
         >
-          Contact Abjad: Hire Teachers &amp;{" "}
-          <span style={{ color: "var(--brand-accent)" }}>Educators Easily</span>
+          {t.contactPage.hero.headlinePre}{" "}
+          <span style={{ color: "var(--brand-accent)" }}>{t.contactPage.hero.headlineAccent}</span>
         </h1>
 
         <p className="text-white/75 text-lg leading-relaxed mb-4 mx-auto" style={{ maxWidth: "56ch" }}>
-          Connect your school with qualified substitute teachers and educators across Saudi Arabia.
+          {t.contactPage.hero.sub1}
         </p>
 
         <p className="text-white/55 text-base leading-relaxed mb-10 mx-auto" style={{ maxWidth: "68ch" }}>
-          At Abjad, we specialize in connecting international schools, high schools, and local institutions
-          throughout the Kingdom with vetted substitute teachers and professional educators. Whether
-          you&apos;re a school searching for reliable teaching staff or an educator looking for short-term
-          or long-term assignments, Abjad is your trusted platform for seamless hiring and placement
-          across Saudi Arabia.
+          {t.contactPage.hero.sub2}
         </p>
 
         {/* CTAs */}
@@ -60,19 +61,19 @@ export default function ContactHero() {
             className="inline-flex items-center gap-2 bg-white font-bold text-sm px-8 py-3.5 rounded-full transition-all hover:shadow-2xl hover:shadow-black/25 hover:-translate-y-0.5"
             style={{ color: "var(--brand-primary-dark)" }}
           >
-            Get Started <ArrowRight size={16} />
+            {t.contactPage.hero.ctaGetStarted} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </Link>
           <a
             href="tel:+966110000000"
             className="inline-flex items-center gap-2 bg-white/12 border border-white/25 text-white font-semibold text-sm px-6 py-3.5 rounded-full hover:bg-white/20 transition-all"
           >
-            <Phone size={14} /> Call Us
+            <Phone size={14} /> {t.contactPage.hero.ctaCall}
           </a>
           <a
             href="mailto:hello@abjad.sa"
             className="inline-flex items-center gap-2 bg-white/12 border border-white/25 text-white font-semibold text-sm px-6 py-3.5 rounded-full hover:bg-white/20 transition-all"
           >
-            <Mail size={14} /> Email Us
+            <Mail size={14} /> {t.contactPage.hero.ctaEmail}
           </a>
         </div>
       </div>

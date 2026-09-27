@@ -1,33 +1,19 @@
-import { FileText, Search, Video, PlayCircle } from "lucide-react";
+"use client";
 
-const steps = [
-  {
-    icon: FileText,
-    color: "var(--brand-accent)",
-    title: "Submit Your Information",
-    desc: "Fill out our contact form below with your name, email, phone, role, and what you are looking for. Schools can describe their vacancy; educators can share availability and subject specialisation.",
-  },
-  {
-    icon: Search,
-    color: "#6366f1",
-    title: "Match & Review",
-    desc: "Our team reviews your submission and begins matching schools with vetted substitute teachers or permanent educators based on curriculum, location, and urgency.",
-  },
-  {
-    icon: Video,
-    color: "#10b981",
-    title: "Interview or Trial Assignment",
-    desc: "We coordinate a brief interview or a trial day assignment to confirm compatibility before formalising any placement, ensuring confidence on both sides.",
-  },
-  {
-    icon: PlayCircle,
-    color: "#f59e0b",
-    title: "Start the Assignment",
-    desc: "Once confirmed, the teacher or substitute teacher begins their placement. We remain available throughout to provide ongoing support to both schools and educators.",
-  },
+import { ArrowRight, FileText, Search, Video, PlayCircle } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
+const STEP_STYLES = [
+  { icon: FileText, color: "var(--brand-accent)" },
+  { icon: Search, color: "#6366f1" },
+  { icon: Video, color: "#10b981" },
+  { icon: PlayCircle, color: "#f59e0b" },
 ];
 
 export default function HowItWorksProcess() {
+  const { t, isRTL } = useTranslation();
+  const steps = t.contactPage.howItWorks.steps.map((s, i) => ({ ...s, ...STEP_STYLES[i] }));
+
   return (
     <section
       className="py-24 overflow-hidden"
@@ -42,20 +28,19 @@ export default function HowItWorksProcess() {
               className="text-xs font-black tracking-widest uppercase mb-4"
               style={{ color: "var(--brand-accent)" }}
             >
-              The Process
+              {t.contactPage.howItWorks.kicker}
             </p>
             <h2
               className="font-extrabold text-white leading-tight"
-              style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: "-0.04em" }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 3rem)", letterSpacing: isRTL ? "0" : "-0.04em" }}
             >
-              How It Works
+              {t.contactPage.howItWorks.headlinePre}
               <br />
-              <span style={{ color: "var(--brand-accent)" }}>Step by Step</span>
+              <span style={{ color: "var(--brand-accent)" }}>{t.contactPage.howItWorks.headlineAccent}</span>
             </h2>
           </div>
           <p className="lg:col-span-5 text-white/55 text-base leading-relaxed self-end">
-            From your first message to a confirmed placement, our process is straightforward,
-            fast, and designed to reduce friction for both schools and educators.
+            {t.contactPage.howItWorks.sub}
           </p>
         </div>
 
@@ -83,7 +68,7 @@ export default function HowItWorksProcess() {
               <div className="lg:col-span-9">
                 <h3
                   className="font-bold text-white text-lg mb-3 leading-snug"
-                  style={{ letterSpacing: "-0.02em" }}
+                  style={{ letterSpacing: isRTL ? "0" : "-0.02em" }}
                 >
                   {s.title}
                 </h3>
@@ -96,13 +81,13 @@ export default function HowItWorksProcess() {
         {/* CTA */}
         <div className="mt-12 pt-10 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6">
           <p className="text-white/50 text-sm">
-            Ready to get started? Submit your information and we will take it from there.
+            {t.contactPage.howItWorks.ctaText}
           </p>
           <a
             href="#contact-form"
             className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold text-white border border-white/20 hover:bg-white/10 transition-all"
           >
-            Submit Your Info →
+            {t.contactPage.howItWorks.ctaButton} <ArrowRight size={15} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </a>
         </div>
       </div>

@@ -96,6 +96,178 @@ export interface CommonTranslations {
       taglines: string[];
     };
   };
+  teachersPage: {
+    hero: {
+      badge: string;
+      headlinePre: string; headlineAccent: string; headlinePost: string;
+      tagline: string; sub: string;
+      ctaJoin: string; ctaBrowse: string;
+      trustAnchors: string[];
+      searchPlaceholder: string; openingsBadge: string; searchButton: string;
+      opportunities: { school: string; role: string; location: string; type: string; curriculum: string; tag: string; tags: string[] }[];
+      lockedCta: string; applyNow: string; moreCount: string;
+      stats: { value: string; label: string }[];
+    };
+    opportunities: {
+      kicker: string; kickerSub: string;
+      headlinePre: string; headlineAccent: string;
+      sub1: string; sub2: string;
+      painPointsLabel: string; painPoints: string[];
+      flexBadge: string; flexHeadlinePre: string; flexHeadlineAccent: string; flexSub: string;
+      flexBenefits: string[]; flexCta: string;
+      quickWinPre: string; quickWinHighlight: string; quickWinPost: string;
+    };
+    howItWorks: {
+      kicker: string; headlinePre: string; headlineMid: string; headlinePost: string; sub: string;
+      steps: { title: string; desc: string }[];
+      everyoneKicker: string; everyoneHeadline: string; everyoneBody: string; everyoneCta: string;
+    };
+    whyChoose: {
+      kicker: string; kickerSub: string; headlinePre: string; headlineAccent: string; sub: string;
+      reasons: { title: string; desc: string }[];
+      cta: string;
+    };
+    forSchools: {
+      kicker: string; kickerSub: string; headlinePre: string; headlineAccent: string;
+      sub1: string; sub2: string;
+      challengesLabel: string; challenges: string[];
+      ctaPost: string; solutionLabel: string;
+      solutions: { title: string; desc: string }[];
+      resultLabel: string; resultPre: string; resultHighlight: string; resultPost: string;
+    };
+    network: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      stats: { value: string; label: string }[];
+      communityLabel: string; communities: string[];
+      ctaHeadlinePre: string; ctaHeadlineAccent: string; ctaBody: string;
+      ctaGetStarted: string; ctaHireEducators: string;
+    };
+    faq: {
+      kicker: string; questionsAnsweredLabel: string;
+      headlinePre: string; headlineAccent: string;
+      items: { q: string; a: string }[];
+      showFewer: string; showAllPre: string; showAllPost: string;
+      inlineCtaTitle: string; inlineCtaBody: string; inlineCtaButton: string;
+      quoteText: string; quoteAttribution: string;
+      statLabels: { val: string; label: string }[];
+      stillQuestions: string;
+    };
+    cta: {
+      kicker: string; headlinePre: string; headlineAccent: string;
+      sub1: string; sub2: string;
+      ctaSignUp: string; ctaHireEducators: string;
+    };
+  };
+  schoolsPage: {
+    hero: {
+      badge: string;
+      headlinePre: string; headlineAccent: string; headlinePost: string;
+      sub: string; ctaStart: string; ctaDemo: string;
+      trustAnchors: string[];
+      searchPlaceholder: string; resultsBadge: string; filterButton: string;
+      educators: { name: string; subject: string; experience: string; location: string; tag: string; subjects: string[] }[];
+      lockedCta: string; viewProfile: string; moreCount: string;
+      stats: { value: string; label: string }[];
+    };
+    hiringChallenge: {
+      kicker: string; kickerSub: string;
+      headlinePre: string; headlineAccent: string;
+      sub1: string; sub2: string;
+      problemsLabel: string; problems: string[];
+      solutionBadge: string; solutionHeadlinePre: string; solutionHeadlineAccent: string;
+      solutionPoints: string[]; ctaPost: string;
+      quickWinPre: string; quickWinHighlight: string; quickWinPost: string;
+    };
+    simpleHiring: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      steps: { title: string; desc: string }[];
+      whyKicker: string;
+      features: { title: string; desc: string }[];
+      cta: string;
+    };
+    talentPool: {
+      kicker: string; headlinePre: string; headlineAccent: string;
+      body1: string; body2: string;
+      categoriesLabel: string; categories: string[];
+      ctaHeadline: string; ctaBody: string; ctaButton: string;
+    };
+    vsJobBoards: {
+      kicker: string; kickerSub: string;
+      headlinePre: string; headlineAccent: string; headlinePost: string;
+      sub: string;
+      highlights: { title: string; desc: string }[];
+      cta: string;
+    };
+    discover: {
+      badge: string; headlinePre: string; headlineAccent: string;
+      sub1: string; sub2: string; cta: string;
+      regionsLabel: string; regions: string[];
+    };
+    forEducators: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      benefits: { title: string; desc: string }[];
+      cta: string;
+    };
+    growth: {
+      kicker: string; kickerSub: string;
+      headlinePre: string; headlineAccent: string; sub: string;
+      items: { tag: string; title: string; desc: string }[];
+    };
+    faq: {
+      kicker: string; questionsAnsweredLabel: string;
+      headlinePre: string; headlineAccent: string;
+      items: { q: string; a: string }[];
+      showFewer: string; showAllPre: string; showAllPost: string;
+      quoteText: string; quoteAttribution: string;
+      statLabels: { val: string; label: string }[];
+      stillQuestions: string;
+    };
+    cta: {
+      kicker: string; headlinePre: string; headlineAccent: string;
+      sub1: string; sub2: string;
+      ctaStart: string; ctaSignUp: string;
+    };
+  };
+  contactPage: {
+    hero: {
+      badge: string; headlinePre: string; headlineAccent: string;
+      sub1: string; sub2: string;
+      ctaGetStarted: string; ctaCall: string; ctaEmail: string;
+    };
+    whoShouldContact: {
+      schoolsBadge: string; schoolsHeadline: string; schoolsSub: string; schoolsNeeds: string[];
+      teachersBadge: string; teachersHeadline: string; teachersSub: string; teachersNeeds: string[];
+    };
+    whyReachUs: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      reasons: { title: string; desc: string }[];
+    };
+    howItWorks: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      steps: { title: string; desc: string }[];
+      ctaText: string; ctaButton: string;
+    };
+    form: {
+      badge: string; headline: string; subPre: string; subHighlight: string;
+      fullName: string; fullNamePlaceholder: string;
+      email: string; emailPlaceholder: string;
+      phone: string; phonePlaceholder: string;
+      role: string; roleSelectPlaceholder: string; roles: string[];
+      location: string; locationPlaceholder: string;
+      message: string; messagePlaceholder: string;
+      submitButton: string; privacyNote: string;
+      successTitle: string; successBody: string; submitAnother: string;
+    };
+    servingSchools: {
+      badge: string; headlinePre: string; headlineAccent: string; sub: string;
+      regions: { city: string; desc: string; tag: string }[];
+      seoParagraph: string;
+    };
+    faq: {
+      kicker: string; headlinePre: string; headlineAccent: string; sub: string;
+      items: { q: string; a: string }[];
+    };
+  };
   login: {
     welcome: string; subtitle: string; email: string; emailPlaceholder: string;
     password: string; passwordPlaceholder: string; remember: string; forgot: string;
