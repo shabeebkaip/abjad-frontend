@@ -135,6 +135,10 @@ export function parseNext(rawNext: string | null, fallback: string): string {
   let decoded: string;
   try { decoded = decodeURIComponent(rawNext); } catch { return fallback; }
   if (!decoded.startsWith("/"))     return fallback;
+  // Browsers strip tab/CR/LF from URLs, so "/\t/evil.com" becomes
+  // "//evil.com" after this check would have passed. Reject all control
+  // characters outright.
+  if (/[\u0000-\u001F\u007F]/.test(decoded)) return fallback;
   // Block protocol-relative ("//evil.com") AND the backslash bypass
   // ("/\evil.com", "\/evil.com") — browsers coerce "\" to "/", so "/\evil.com"
   // becomes "//evil.com" = external. Reject any second char that is a slash
@@ -142,5 +146,9 @@ export function parseNext(rawNext: string | null, fallback: string): string {
   if (decoded[1] === "/" || decoded[1] === "\\") return fallback;
   if (decoded.includes(":"))        return fallback;        // path with scheme
   if (decoded.startsWith("/api"))   return fallback;        // never bounce to API
+  // Dot-segments ("/.//evil.com", "/a/..//evil.com") normalise to a
+  // protocol-relative "//evil.com" path — resolve and reject those too.
+  const resolved = new URL(decoded, "https://x.invalid");
+  if (resolved.origin !== "https://x.invalid" || resolved.pathname.startsWith("//")) return fallback;
   return decoded;
 }
