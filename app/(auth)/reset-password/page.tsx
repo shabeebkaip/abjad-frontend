@@ -50,6 +50,16 @@ export default function ResetPasswordPage() {
   const [locked, setLocked] = useState(false);
   const [done, setDone] = useState(false);
   const otpRef = useRef<OtpInputHandle>(null);
+  const refocusOtp = useRef(false);
+
+  // Inputs are disabled while loading and disabled inputs can't take focus, so
+  // refocus box 1 only after isLoading has flipped back to false.
+  useEffect(() => {
+    if (!isLoading && refocusOtp.current) {
+      refocusOtp.current = false;
+      otpRef.current?.focus(0);
+    }
+  }, [isLoading]);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("abjad_reset_email");
@@ -98,7 +108,7 @@ export default function ResetPasswordPage() {
           // New/confirm password values are preserved.
           setCodeError(err.message);
           setOtp(Array(OTP_LENGTH).fill(""));
-          otpRef.current?.focus(0);
+          refocusOtp.current = true;
         } else if (err.status === 404) {
           setBanner({
             variant: "warning",
