@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/MarketingLink";
 import { ArrowRight, X, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 

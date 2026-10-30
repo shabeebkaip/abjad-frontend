@@ -5,6 +5,7 @@ export const common: CommonTranslations = {
     signIn: "Sign In",
     register: "Create Account",
     homeAriaLabel: "Abjad home",
+    goToDashboard: "Go to dashboard",
   },
   authUnavailable: {
     title: "Connection problem",

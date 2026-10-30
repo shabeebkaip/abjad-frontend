@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/MarketingLink";
 import Image from "next/image";
 import { ArrowRight, Mail, MapPin } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";

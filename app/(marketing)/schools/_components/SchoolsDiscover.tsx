@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/MarketingLink";
 import { ArrowRight, MapPin } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 

@@ -5,6 +5,7 @@ export const common: CommonTranslations = {
     signIn: "تسجيل الدخول",
     register: "إنشاء حساب",
     homeAriaLabel: "أبجد - الصفحة الرئيسية",
+    goToDashboard: "الذهاب إلى لوحة التحكم",
   },
   authUnavailable: {
     title: "مشكلة في الاتصال",

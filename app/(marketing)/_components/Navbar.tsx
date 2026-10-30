@@ -7,6 +7,8 @@ import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useAuth } from "@/lib/auth/useAuth";
+import { getDashboardPath } from "@/lib/auth/checkout-target";
 
 const NAV_LINKS = [
   { label: "Home",     labelAr: "الرئيسية",    href: "/"         },
@@ -21,6 +23,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen]   = useState(false);
   const { lang, switchLang }      = useLanguage();
   const { t }                     = useTranslation();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const pathname                  = usePathname();
   const isAr                      = lang === "ar";
 
@@ -119,22 +122,34 @@ export default function Navbar() {
 
             <div className="w-px h-4 bg-gray-200" />
 
-            {/* Sign in */}
-            <Link
-              href="/login"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all"
-            >
-              {isAr ? "تسجيل الدخول" : "Sign in"}
-            </Link>
+            {authLoading ? null : isAuthenticated ? (
+              <Link
+                href={getDashboardPath(user?.role)}
+                className="text-sm font-bold text-white px-4 py-2 rounded-xl transition-all hover:opacity-90 hover:scale-[1.03] shadow-sm"
+                style={{ backgroundColor: "var(--brand-primary)" }}
+              >
+                {t.nav.goToDashboard}
+              </Link>
+            ) : (
+              <>
+              {/* Sign in */}
+              <Link
+                href="/login"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-xl hover:bg-gray-50 transition-all"
+              >
+                {isAr ? "تسجيل الدخول" : "Sign in"}
+              </Link>
 
-            {/* Primary CTA */}
-            <Link
-              href="/register"
-              className="text-sm font-bold text-white px-4 py-2 rounded-xl transition-all hover:opacity-90 hover:scale-[1.03] shadow-sm"
-              style={{ backgroundColor: "var(--brand-primary)" }}
-            >
-              {isAr ? "ابدأ مجاناً" : "Get started"}
-            </Link>
+              {/* Primary CTA */}
+              <Link
+                href="/register"
+                className="text-sm font-bold text-white px-4 py-2 rounded-xl transition-all hover:opacity-90 hover:scale-[1.03] shadow-sm"
+                style={{ backgroundColor: "var(--brand-primary)" }}
+              >
+                {isAr ? "ابدأ مجاناً" : "Get started"}
+              </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -180,21 +195,34 @@ export default function Navbar() {
               })}
             </nav>
             <div className="px-3 pb-3 pt-1 border-t border-gray-100 flex flex-col gap-2">
-              <Link
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors"
-              >
-                {isAr ? "تسجيل الدخول" : "Sign in"}
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setMenuOpen(false)}
-                className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
-                style={{ backgroundColor: "var(--brand-primary)" }}
-              >
-                {isAr ? "ابدأ مجاناً" : "Get started"}
-              </Link>
+              {authLoading ? null : isAuthenticated ? (
+                <Link
+                  href={getDashboardPath(user?.role)}
+                  onClick={() => setMenuOpen(false)}
+                  className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
+                  style={{ backgroundColor: "var(--brand-primary)" }}
+                >
+                  {t.nav.goToDashboard}
+                </Link>
+              ) : (
+                <>
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-center text-sm font-medium text-gray-700 py-2.5 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors"
+                >
+                  {isAr ? "تسجيل الدخول" : "Sign in"}
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-center text-sm font-bold text-white py-2.5 rounded-xl transition-colors"
+                  style={{ backgroundColor: "var(--brand-primary)" }}
+                >
+                  {isAr ? "ابدأ مجاناً" : "Get started"}
+                </Link>
+                </>
+              )}
               {/* Language toggle */}
               <div className="flex items-center justify-center bg-gray-100 rounded-full p-0.5 mt-1">
                 <button

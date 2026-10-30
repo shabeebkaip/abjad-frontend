@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/MarketingLink";
 import { BadgeCheck, SlidersHorizontal, Clock3, Globe2, ArrowRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 

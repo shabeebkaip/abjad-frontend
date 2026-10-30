@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/MarketingLink";
 import { GraduationCap, School } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 

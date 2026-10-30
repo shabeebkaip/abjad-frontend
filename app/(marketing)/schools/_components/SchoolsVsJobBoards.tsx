@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/MarketingLink";
 import { ArrowRight, Building2, ShieldCheck, Users, Zap } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
