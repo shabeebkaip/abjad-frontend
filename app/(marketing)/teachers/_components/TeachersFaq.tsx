@@ -56,6 +56,7 @@ export default function TeachersFaq() {
                       onClick={() => setOpen(isOpen ? null : i)}
                       className="w-full flex items-start justify-between gap-6 py-5 text-start group"
                       aria-expanded={isOpen}
+                      aria-controls={`faq-teachers-panel-${i}`}
                     >
                       <span className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-gray-700 transition-colors">
                         {faq.q}
@@ -72,7 +73,7 @@ export default function TeachersFaq() {
                       </span>
                     </button>
                     {isOpen && (
-                      <div className="pb-5 pe-4 sm:pe-12">
+                      <div id={`faq-teachers-panel-${i}`} className="pb-5 pe-4 sm:pe-12">
                         <p className="text-sm text-gray-500 leading-relaxed">{faq.a}</p>
                       </div>
                     )}

@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
+  const panelId = useId();
   return (
     <div className="border-b border-gray-100 last:border-0">
       <button
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-controls={panelId}
         className="w-full flex items-center justify-between gap-4 py-5 text-start group"
       >
         <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-primary transition-colors">
@@ -21,7 +24,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         />
       </button>
       {open && (
-        <p className="text-sm text-gray-500 leading-relaxed pb-5 pe-8">
+        <p id={panelId} className="text-sm text-gray-500 leading-relaxed pb-5 pe-8">
           {a}
         </p>
       )}

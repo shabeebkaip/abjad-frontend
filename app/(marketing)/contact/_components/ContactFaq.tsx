@@ -45,6 +45,7 @@ export default function ContactFaq() {
                   onClick={() => setOpen(isOpen ? null : i)}
                   className="w-full flex items-start justify-between gap-6 py-6 text-start group"
                   aria-expanded={isOpen}
+                  aria-controls={`faq-contact-panel-${i}`}
                 >
                   <span className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-gray-700 transition-colors">
                     {faq.q}
@@ -61,7 +62,7 @@ export default function ContactFaq() {
                   </span>
                 </button>
                 {isOpen && (
-                  <div className="pb-6 ps-0 pe-14">
+                  <div id={`faq-contact-panel-${i}`} className="pb-6 ps-0 pe-14">
                     <p className="text-sm text-gray-500 leading-relaxed">{faq.a}</p>
                   </div>
                 )}
