@@ -28,7 +28,6 @@ export default function ContactForm() {
   const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(INITIAL);
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
   const roles = ROLE_VALUES.map((value, i) => ({ value, label: t.contactPage.form.roles[i] }));
 
   function handleChange(
@@ -37,12 +36,22 @@ export default function ContactForm() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: FormEvent) {
+  // Interim (QA_FIX_PLAN D14-a): there is no contact API yet, so open a
+  // prefilled email instead of pretending the message was sent.
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    // TODO: wire up to API endpoint
-    await new Promise((r) => setTimeout(r, 800));
-    setLoading(false);
+    const f = t.contactPage.form;
+    const roleLabel = roles.find((r) => r.value === form.role)?.label ?? form.role;
+    const body = [
+      `${f.fullName}: ${form.name}`,
+      `${f.email}: ${form.email}`,
+      `${f.phone}: ${form.phone}`,
+      `${f.role}: ${roleLabel}`,
+      ...(form.location ? [`${f.location}: ${form.location}`] : []),
+      "",
+      form.message,
+    ].join("\n");
+    window.location.assign(`mailto:hello@abjad.sa?subject=${encodeURIComponent(f.mailSubject)}&body=${encodeURIComponent(body)}`);
     setSubmitted(true);
   }
 
@@ -175,22 +184,15 @@ export default function ContactForm() {
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold text-white shadow-md hover:scale-[1.02] hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold text-white shadow-md hover:scale-[1.02] hover:shadow-lg transition-all duration-200"
                 style={{ background: "var(--brand-gradient)" }}
               >
-                {loading ? (
-                  <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Send size={16} strokeWidth={2} />
-                    {t.contactPage.form.submitButton}
-                  </>
-                )}
+                <Send size={16} strokeWidth={2} />
+                {t.contactPage.form.submitButton}
               </button>
 
               <p className="text-center text-xs text-gray-400 mt-3">
-                {t.contactPage.form.privacyNote}
+                {t.contactPage.form.mailtoNote} {t.contactPage.form.privacyNote}
               </p>
             </form>
           )}

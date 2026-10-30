@@ -260,7 +260,7 @@ export interface CommonTranslations {
       role: string; roleSelectPlaceholder: string; roles: string[];
       location: string; locationPlaceholder: string;
       message: string; messagePlaceholder: string;
-      submitButton: string; privacyNote: string;
+      submitButton: string; privacyNote: string; mailtoNote: string; mailSubject: string;
       successTitle: string; successBody: string; submitAnother: string;
     };
     servingSchools: {
