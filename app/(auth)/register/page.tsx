@@ -163,6 +163,8 @@ function RegisterPage() {
       await sendOtp(data.email, "signup");
       router.push(`/verify-otp${forwardQuery}`);
     } catch (err) {
+      // send-otp failed: signup can't continue, so don't leave the plaintext password behind.
+      sessionStorage.removeItem("abjad_reg_data");
       setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -187,6 +189,8 @@ function RegisterPage() {
       await sendOtp(data.email, "signup");
       router.push(`/verify-otp${forwardQuery}`);
     } catch (err) {
+      // send-otp failed: signup can't continue, so don't leave the plaintext password behind.
+      sessionStorage.removeItem("abjad_reg_data");
       setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
