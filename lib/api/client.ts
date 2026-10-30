@@ -44,11 +44,16 @@ export function doRefresh(): Promise<string> {
     } catch {
       throw new ApiError('Network error — please check your connection and try again.', 0);
     }
-    // Only 400/401 mean "no/invalid session". 429 / 5xx / network are transient
-    // and must not be read as logged out (see isDefinitiveLogout).
+    // Only 400/401/403 mean "no/invalid session". 429 / 5xx / network are
+    // transient and must not be read as logged out (see isDefinitiveLogout).
     if (!res.ok) {
-      if (res.status === 400 || res.status === 401) throw new AuthError();
-      throw new ApiError(`Refresh failed (${res.status}).`, res.status);
+      if (res.status === 400 || res.status === 401 || res.status === 403) throw new AuthError();
+      const resetSec = Number(res.headers.get('RateLimit-Reset'));
+      throw new ApiError(
+        `Request failed (${res.status}). Please try again.`,
+        res.status,
+        resetSec > 0 ? { resetSec } : undefined,
+      );
     }
     const json: ApiResponse<{ accessToken: string }> = await res.json();
     if (!json.data?.accessToken) throw new AuthError();
@@ -64,14 +69,28 @@ export function isDefinitiveLogout(e: unknown): boolean {
   return e instanceof AuthError;
 }
 
-/** Runs `fn`, retrying transient failures (not definitive logouts) after each delay. */
+const MAX_RATE_LIMIT_WAIT_S = 10;
+
+/** ms to wait before retry `i` of error `e`, or null to give up. */
+export function retryDelayMs(e: unknown, i: number, delaysMs: number[]): number | null {
+  if (isDefinitiveLogout(e)) return null;
+  if (e instanceof ApiError && e.status === 429) {
+    // Never hammer a rate limiter: wait only if the server told us when it resets (and soon).
+    const s = e.payload?.resetSec;
+    return typeof s === 'number' && s <= MAX_RATE_LIMIT_WAIT_S && i === 0 ? s * 1000 : null;
+  }
+  return i < delaysMs.length ? delaysMs[i] : null;
+}
+
+/** Runs `fn`, retrying transient failures (not definitive logouts) with backoff. */
 export async function withTransientRetry<T>(fn: () => Promise<T>, delaysMs: number[] = [500, 1500]): Promise<T> {
   for (let i = 0; ; i++) {
     try {
       return await fn();
     } catch (e) {
-      if (isDefinitiveLogout(e) || i >= delaysMs.length) throw e;
-      await new Promise((r) => setTimeout(r, delaysMs[i]));
+      const wait = retryDelayMs(e, i, delaysMs);
+      if (wait === null) throw e;
+      await new Promise((r) => setTimeout(r, wait));
     }
   }
 }

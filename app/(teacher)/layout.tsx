@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
+import { AuthUnavailable } from "@/components/auth/AuthUnavailable";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getUnreadCount } from "@/lib/api/teacher";
 import { PlanBadge } from "@/components/billing/PlanBadge";
@@ -27,7 +28,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 export default function TeacherLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { user, isLoading, isAuthenticated, authUnavailable, logout } = useAuth();
   const { t } = useTranslation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,7 +48,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
   // Redirect to login when session check finishes and user is not authenticated
   // Redirect school/admin users away from teacher routes
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || authUnavailable) return;
     if (!isAuthenticated) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     } else if (user?.role === "school") {
@@ -55,7 +56,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
     } else if (user?.role === "admin") {
       router.replace("/admin/dashboard");
     }
-  }, [isLoading, isAuthenticated, user, pathname, router]);
+  }, [isLoading, authUnavailable, isAuthenticated, user, pathname, router]);
 
   // Only fetch unread count once auth is ready
   useEffect(() => {
@@ -201,6 +202,8 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             <div className="flex items-center justify-center min-h-[60vh]">
               <Loader2 className="w-7 h-7 animate-spin text-slate-400" />
             </div>
+          ) : authUnavailable ? (
+            <AuthUnavailable />
           ) : isAuthenticated && user?.role === "teacher" ? (
             children
           ) : null}

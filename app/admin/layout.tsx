@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Building2, GraduationCap, LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/useAuth";
+import { AuthUnavailable } from "@/components/auth/AuthUnavailable";
 
 const navItems = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -15,16 +16,16 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { user, isLoading, isAuthenticated, authUnavailable, logout } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || authUnavailable) return;
     if (!isAuthenticated) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     } else if (user?.role !== "admin") {
       router.replace(user?.role === "school" ? "/school/dashboard" : "/dashboard");
     }
-  }, [isLoading, isAuthenticated, user, pathname, router]);
+  }, [isLoading, authUnavailable, isAuthenticated, user, pathname, router]);
 
   const handleLogout = async () => {
     await logout();
@@ -81,6 +82,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center justify-center min-h-screen">
             <Loader2 className="w-7 h-7 animate-spin text-slate-400" />
           </div>
+        ) : authUnavailable ? (
+          <AuthUnavailable />
         ) : isAuthenticated && user?.role === "admin" ? (
           children
         ) : null}

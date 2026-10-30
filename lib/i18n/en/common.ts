@@ -6,6 +6,11 @@ export const common: CommonTranslations = {
     register: "Create Account",
     homeAriaLabel: "Abjad home",
   },
+  authUnavailable: {
+    title: "Connection problem",
+    body: "We could not check your session. Your account is fine - please check your connection and try again.",
+    retry: "Retry",
+  },
   hero: {
     badge: "Empower Schools, Empower Educators",
     headline: "Where Great\nTeachers Meet\nGreat Schools",

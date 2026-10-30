@@ -19,6 +19,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authUnavailable, setAuthUnavailable] = useState(false);
 
   // initDone is intentionally module-level (_authInitDone above), not a ref.
   // See the declaration for why.
@@ -36,52 +37,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.removeItem(OTP_SESSION_KEY);
   }, []);
 
+  const initAuth = useCallback(async () => {
+    try {
+      // Step 1 — restore the access token from the httpOnly refresh cookie.
+      const { accessToken } = await withTransientRetry(() => authApi.refreshTokens());
+      setAccessToken(accessToken);
+
+      // Step 2 — verify the User row still exists. Only a genuine auth
+      // failure (dead session, or 401/403 = deleted/suspended user) should
+      // tear the session down. A transient 500 / network blip must NOT log
+      // the user out — calling logout would revoke a still-valid session.
+      try {
+        const me = await authApi.getMe();
+        setUser(me);
+      } catch (e) {
+        const isAuthFailure =
+          e instanceof AuthError ||
+          (e instanceof ApiError && (e.status === 401 || e.status === 403));
+        if (isAuthFailure) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('[auth] /me auth failure during init → tearing down session', e);
+          }
+          await teardown(true);
+        } else {
+          // Transient error — session kept, but we can't confirm the user.
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('[auth] /me failed transiently during init (session kept):', e);
+          }
+          setAuthUnavailable(true);
+        }
+      }
+    } catch (e) {
+      // 400/401/403: no valid refresh cookie — user is simply logged out.
+      // Anything else (network/429/5xx) already got its retries: flag the
+      // session check as unavailable so layouts show Retry, not /login.
+      if (!isDefinitiveLogout(e)) setAuthUnavailable(true);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(isDefinitiveLogout(e) ? '[auth] no valid session' : '[auth] init refresh failed transiently after retries:', e);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [teardown]);
+
   useEffect(() => {
     if (_authInitDone) return;
     _authInitDone = true;
+    initAuth();
+  }, [initAuth]);
 
-    (async () => {
-      try {
-        // Step 1 — restore the access token from the httpOnly refresh cookie.
-        const { accessToken } = await withTransientRetry(() => authApi.refreshTokens());
-        setAccessToken(accessToken);
-
-        // Step 2 — verify the User row still exists. Only a genuine auth
-        // failure (dead session, or 401/403 = deleted/suspended user) should
-        // tear the session down. A transient 500 / network blip must NOT log
-        // the user out — calling logout would revoke a still-valid session.
-        try {
-          const me = await authApi.getMe();
-          setUser(me);
-        } catch (e) {
-          const isAuthFailure =
-            e instanceof AuthError ||
-            (e instanceof ApiError && (e.status === 401 || e.status === 403));
-          if (isAuthFailure) {
-            if (process.env.NODE_ENV !== 'production') {
-              console.error('[auth] /me auth failure during init → tearing down session', e);
-            }
-            await teardown(true);
-          } else {
-            // Transient error — keep the session; a reload or the next request
-            // will recover. Leave user null for now.
-            if (process.env.NODE_ENV !== 'production') {
-              console.warn('[auth] /me failed transiently during init (session kept):', e);
-            }
-          }
-        }
-      } catch (e) {
-        // 400/401: no valid refresh cookie — user is simply logged out.
-        // Anything else (network/429/5xx) already got retries; we still end up
-        // with user=null, but it is logged distinctly.
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn(isDefinitiveLogout(e) ? '[auth] no valid session' : '[auth] init refresh failed transiently after retries:', e);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [teardown]);
+  const retryAuth = useCallback(() => {
+    setAuthUnavailable(false);
+    setIsLoading(true);
+    initAuth();
+  }, [initAuth]);
 
   const sendOtp = useCallback(
     async (email: string, purpose: 'login' | 'signup', rememberDevice: boolean = true) => {
@@ -161,6 +170,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        authUnavailable,
+        retryAuth,
         sendOtp,
         verifyOtp,
         login,

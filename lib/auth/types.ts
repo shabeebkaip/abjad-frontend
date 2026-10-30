@@ -30,6 +30,10 @@ export interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  // True when the startup session check failed transiently (network/429/5xx)
+  // after retries. The session may be valid — do NOT redirect to /login.
+  authUnavailable: boolean;
+  retryAuth: () => void;
   sendOtp: (email: string, purpose: 'login' | 'signup', rememberDevice?: boolean) => Promise<void>;
   verifyOtp: (email: string, otp: string, purpose: string) => Promise<VerifyOtpResult>;
   login: (email: string, password: string, rememberDevice?: boolean) => Promise<VerifyOtpResult>;

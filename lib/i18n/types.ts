@@ -11,6 +11,7 @@
 // no changes needed here to support it.
 export interface CommonTranslations {
   nav: { signIn: string; register: string; homeAriaLabel: string };
+  authUnavailable: { title: string; body: string; retry: string };
   hero: {
     badge: string; headline: string; sub: string;
     line1: string; line2: string; line3: string;
