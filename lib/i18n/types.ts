@@ -10,7 +10,7 @@
 // namespace will be added the same way for app/school/** (M3) — additive,
 // no changes needed here to support it.
 export interface CommonTranslations {
-  nav: { signIn: string; register: string };
+  nav: { signIn: string; register: string; homeAriaLabel: string };
   hero: {
     badge: string; headline: string; sub: string;
     line1: string; line2: string; line3: string;

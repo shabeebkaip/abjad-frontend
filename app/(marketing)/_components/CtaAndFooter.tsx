@@ -99,7 +99,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="col-span-2">
             {/* Logo */}
-            <Link href="/" className="inline-block mb-5">
+            <Link href="/" aria-label={t.nav.homeAriaLabel} className="inline-block mb-5">
               <Image
                 src="/ABJAD.png"
                 alt="Abjad"

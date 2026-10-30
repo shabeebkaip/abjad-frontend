@@ -4,6 +4,7 @@ export const common: CommonTranslations = {
   nav: {
     signIn: "Sign In",
     register: "Create Account",
+    homeAriaLabel: "Abjad home",
   },
   hero: {
     badge: "Empower Schools, Empower Educators",

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const NAV_LINKS = [
   { label: "Home",     labelAr: "الرئيسية",    href: "/"         },
@@ -19,6 +20,7 @@ export default function Navbar() {
   const [scrolled, setScrolled]   = useState(false);
   const [menuOpen, setMenuOpen]   = useState(false);
   const { lang, switchLang }      = useLanguage();
+  const { t }                     = useTranslation();
   const pathname                  = usePathname();
   const isAr                      = lang === "ar";
 
@@ -55,7 +57,7 @@ export default function Navbar() {
           {/* Inner container — always max-w-6xl centered */}
           <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0">
+          <Link href="/" aria-label={t.nav.homeAriaLabel} className="flex items-center shrink-0">
             <Image
               src="/ABJAD.png"
               alt="Abjad"

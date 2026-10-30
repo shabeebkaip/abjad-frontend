@@ -4,6 +4,7 @@ export const common: CommonTranslations = {
   nav: {
     signIn: "تسجيل الدخول",
     register: "إنشاء حساب",
+    homeAriaLabel: "أبجد - الصفحة الرئيسية",
   },
   hero: {
     badge: "نُمكّن المدارس، ونُمكّن المعلمين",
