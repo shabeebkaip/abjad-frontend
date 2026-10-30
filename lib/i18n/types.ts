@@ -12,6 +12,10 @@
 export interface CommonTranslations {
   nav: { signIn: string; register: string; homeAriaLabel: string; goToDashboard: string };
   authUnavailable: { title: string; body: string; retry: string };
+  legal: {
+    terms: string; privacy: string; cookies: string; statement: string;
+    effectiveDateLabel: string; effectiveDatePending: string; contactPrefix: string; backHome: string;
+  };
   hero: {
     badge: string; headline: string; sub: string;
     line1: string; line2: string; line3: string;

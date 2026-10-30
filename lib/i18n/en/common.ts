@@ -7,6 +7,16 @@ export const common: CommonTranslations = {
     homeAriaLabel: "Abjad home",
     goToDashboard: "Go to dashboard",
   },
+  legal: {
+    terms: "Terms of Service",
+    privacy: "Privacy Policy",
+    cookies: "Cookie Notice",
+    statement: "This document is being finalised and will be published before our public launch. Until then, please contact us with any question about how your information is handled.",
+    effectiveDateLabel: "Effective date",
+    effectiveDatePending: "Pending - to be announced",
+    contactPrefix: "Contact:",
+    backHome: "Back to home",
+  },
   authUnavailable: {
     title: "Connection problem",
     body: "We could not check your session. Your account is fine - please check your connection and try again.",
