@@ -30,6 +30,16 @@ function VerifyOtpInner() {
   const [passwordRejected, setPasswordRejected] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const otpRef = useRef<OtpInputHandle>(null);
+  const refocusOtp = useRef(false);
+
+  // Inputs are disabled while loading and disabled inputs can't take focus, so
+  // refocus box 1 only after isLoading has flipped back to false.
+  useEffect(() => {
+    if (!isLoading && refocusOtp.current) {
+      refocusOtp.current = false;
+      otpRef.current?.focus(0);
+    }
+  }, [isLoading]);
 
   // Load OTP session (set by login/register pages via AuthContext.sendOtp)
   useEffect(() => {
@@ -97,7 +107,7 @@ function VerifyOtpInner() {
       }
       setError(err instanceof Error ? err.message : t.verifyOtp.invalidCodeFallback);
       setOtp(Array(OTP_LENGTH).fill(""));
-      otpRef.current?.focus(0);
+      refocusOtp.current = true;
     } finally {
       setIsLoading(false);
     }
