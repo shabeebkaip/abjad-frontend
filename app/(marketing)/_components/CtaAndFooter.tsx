@@ -63,9 +63,9 @@ export function Footer() {
     {
       heading: t.footerNav.platformGroup,
       links: [
-        { label: t.footerNav.forTeachers, href: "#teachers" },
-        { label: t.footerNav.forSchools, href: "#schools" },
-        { label: t.footerNav.howItWorks, href: "#how-it-works" },
+        { label: t.footerNav.forTeachers, href: "/teachers" },
+        { label: t.footerNav.forSchools, href: "/schools" },
+        { label: t.footerNav.howItWorks, href: "/#how-it-works" },
         { label: t.footerNav.pricing, href: "/pricing" },
       ],
     },
