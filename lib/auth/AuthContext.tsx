@@ -130,8 +130,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // escape hatch for "this state update must be visible to the next
       // synchronous action."
       setAccessToken(result.tokens.accessToken);
+      // Q-39: new accounts default to language 'ar' server-side. If the visitor
+      // chose English before signing up, persist that choice so
+      // LanguageProvider doesn't flip them to Arabic when the account loads.
+      let user = result.user;
+      if (purpose === 'signup') {
+        const chosen = localStorage.getItem('abjad_lang');
+        if ((chosen === 'ar' || chosen === 'en') && chosen !== user.language) {
+          user = { ...user, language: chosen };
+          authApi.updateLanguage(chosen).catch(() => {});
+        }
+      }
       flushSync(() => {
-        setUser(result.user);
+        setUser(user);
       });
       sessionStorage.removeItem(OTP_SESSION_KEY);
       sessionStorage.removeItem('abjad_reg_data');

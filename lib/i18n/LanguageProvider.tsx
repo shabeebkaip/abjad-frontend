@@ -13,16 +13,17 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType>({
-  lang: "en",
+  lang: "ar",
   switchLang: () => {},
   isRTL: false,
 });
 
 const detectLang = (): Lang => {
-  if (typeof window === "undefined") return "en";
+  if (typeof window === "undefined") return "ar";
   const saved = localStorage.getItem("abjad_lang") as Lang | null;
   if (saved === "ar" || saved === "en") return saved;
-  return navigator.language.startsWith("ar") ? "ar" : "en";
+  // Arabic is the product default (D3); only an explicit saved choice overrides it.
+  return "ar";
 };
 
 const applyLang = (newLang: Lang) => {
@@ -33,7 +34,7 @@ const applyLang = (newLang: Lang) => {
 };
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  const [lang, setLang] = useState<Lang>("en"); // SSR-safe default
+  const [lang, setLang] = useState<Lang>("ar"); // SSR-safe default (matches server <html lang="ar">)
   // AuthProvider wraps LanguageProvider (see app/layout.tsx), so this is safe.
   const { user, isAuthenticated } = useAuthContext();
 
