@@ -86,13 +86,16 @@ type PaymentMethod = {
   hintKey?: keyof Pick<BillingCheckoutTranslations, "hintMada" | "hintApplePay" | "hintStcPay" | "hintBankTransfer">;
 } & ({ Logo: React.ComponentType; Icon?: never } | { Icon: React.ElementType; Logo?: never });
 
-const METHODS: PaymentMethod[] = [
+const ALL_METHODS: PaymentMethod[] = [
   { value: "mada",          labelEn: "Mada",              labelAr: "مدى",              Logo: MadaLogo,            hintKey: "hintMada" },
   { value: "apple_pay",     labelEn: "Apple Pay",         labelAr: "آبل باي",           Logo: ApplePayLogo,        hintKey: "hintApplePay" },
   { value: "stcpay",        labelEn: "STC Pay",           labelAr: "STC Pay",           Logo: StcPayLogo,          hintKey: "hintStcPay" },
   { value: "moyasar_card",  labelEn: "Visa / Mastercard", labelAr: "فيزا / ماستركارد", Logo: VisaMastercardLogo },
   { value: "bank_transfer", labelEn: "Bank Transfer",     labelAr: "تحويل بنكي",        Icon: Landmark,            hintKey: "hintBankTransfer" },
 ];
+const METHODS = ALL_METHODS.filter((m) => BANK_TRANSFER_ENABLED || m.value !== "bank_transfer");
+
+import { BANK_TRANSFER_ENABLED } from "@/lib/billing-flags";
 
 const MOYASAR_JS  = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.js";
 const MOYASAR_CSS = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.css";

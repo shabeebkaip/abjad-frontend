@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from "@/lib/i18n/format";
 import type { BillingPendingTranslations } from "@/lib/i18n/types";
 import { listMyInvoices, type MyInvoice } from "@/lib/api/billing";
 import { getAccessToken, doRefresh } from "@/lib/api/client";
+import { BANK_TRANSFER_ENABLED } from "@/lib/billing-flags";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
 
@@ -133,6 +134,12 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
               {tt.transferDetailsTitle}
             </h2>
           </div>
+          {!BANK_TRANSFER_ENABLED ? (
+            <div className="p-5 space-y-3">
+              <p className="text-sm text-gray-600">{tt.bankDetailsUnavailable}</p>
+              <CopyRow label={tt.referenceLabel} value={invoice.number} onCopy={copy} copied={copied} tt={tt} highlight mono ltr />
+            </div>
+          ) : (
           <div className="p-5 space-y-3">
             <CopyRow
               label={tt.bankLabel}
@@ -191,6 +198,7 @@ export function BillingPending({ invoiceId, audience, billingHref }: Props) {
               </p>
             )}
           </div>
+          )}
         </section>
 
         {/* Summary */}

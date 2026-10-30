@@ -966,6 +966,7 @@ export interface BillingPendingTranslations {
   awaitingTitle: string;
   awaitingBody: string;
   transferDetailsTitle: string;
+  bankDetailsUnavailable: string;
   bankLabel: string;
   accountNameLabel: string;
   ibanLabel: string;

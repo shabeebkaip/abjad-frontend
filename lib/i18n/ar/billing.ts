@@ -62,6 +62,7 @@ export const billingShared: BillingSharedTranslations = {
     awaitingTitle: "بانتظار تحويلك البنكي",
     awaitingBody: "حوّل المبلغ إلى الحساب أدناه، واذكر رقم الفاتورة كمرجع. سنفعّل اشتراكك تلقائياً خلال 1-2 يوم عمل من تأكيد التحويل.",
     transferDetailsTitle: "تفاصيل التحويل",
+    bankDetailsUnavailable: "تفاصيل التحويل البنكي غير متاحة عبر الإنترنت حالياً. يرجى التواصل معنا على hello@abjad.sa مع ذكر رقم الفاتورة أدناه.",
     bankLabel: "البنك",
     accountNameLabel: "اسم الحساب",
     ibanLabel: "IBAN",

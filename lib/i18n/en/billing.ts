@@ -65,6 +65,7 @@ export const billingShared: BillingSharedTranslations = {
     awaitingTitle: "Awaiting your bank transfer",
     awaitingBody: "Transfer the amount to the account below and quote the invoice number as the reference. We'll activate your subscription within 1–2 business days of confirming the transfer.",
     transferDetailsTitle: "Transfer details",
+    bankDetailsUnavailable: "Bank transfer details are not available online at the moment. Please contact us at hello@abjad.sa and quote your invoice number below.",
     bankLabel: "Bank",
     accountNameLabel: "Account name",
     ibanLabel: "IBAN",

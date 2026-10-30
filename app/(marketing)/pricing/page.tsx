@@ -13,6 +13,7 @@ import { getPricingPagePayload, type PricingPagePayload, type PricingPlan } from
 import { resolveCheckoutTarget, type CheckoutTarget } from "@/lib/auth/checkout-target";
 import { SARSymbol } from "@/components/ui/sar-symbol";
 import LocalizedTitle from "../_components/LocalizedTitle";
+import { BANK_TRANSFER_ENABLED } from "@/lib/billing-flags";
 
 type T = ReturnType<typeof useTranslation>["t"];
 
@@ -465,6 +466,7 @@ const PAYMENT_LABELS_AR: Record<string, string> = {
 };
 
 function PaymentMarks({ methods, locale, t }: { methods: PricingPagePayload["paymentMethods"]; locale: "en" | "ar"; t: T }) {
+  methods = methods.filter((m) => BANK_TRANSFER_ENABLED || m !== "bank_transfer");
   if (methods.length === 0) return null;
   const labels = locale === "ar" ? PAYMENT_LABELS_AR : PAYMENT_LABELS_EN;
   return (
