@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { flushSync } from 'react-dom';
 import authApi from '@/lib/api/auth';
 import { setAccessToken, AuthError, ApiError, withTransientRetry, isDefinitiveLogout } from '@/lib/api/client';
+import { TERMS_VERSION } from '@/lib/legal';
 import type { AuthUser, AuthContextValue, OtpSession, VerifyOtpResult } from './types';
 
 const OTP_SESSION_KEY = 'abjad_otp_session';
@@ -109,6 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const raw = sessionStorage.getItem('abjad_reg_data');
           if (raw) registrationData = JSON.parse(raw) as Record<string, unknown>;
         } catch { /* ignore parse errors */ }
+        // Consent record (D6): the register form's terms checkbox must be ticked
+        // to reach here; tell the server which version was accepted.
+        registrationData = { ...registrationData, termsVersion: TERMS_VERSION };
       }
       // Read rememberDevice choice from the OTP session (set during sendOtp)
       let rememberDevice = true;
