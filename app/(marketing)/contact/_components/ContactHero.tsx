@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Phone, Mail } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function ContactHero() {
@@ -63,12 +63,6 @@ export default function ContactHero() {
           >
             {t.contactPage.hero.ctaGetStarted} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
           </Link>
-          <a
-            href="tel:+966110000000"
-            className="inline-flex items-center gap-2 bg-white/12 border border-white/25 text-white font-semibold text-sm px-6 py-3.5 rounded-full hover:bg-white/20 transition-all"
-          >
-            <Phone size={14} /> {t.contactPage.hero.ctaCall}
-          </a>
           <a
             href="mailto:hello@abjad.sa"
             className="inline-flex items-center gap-2 bg-white/12 border border-white/25 text-white font-semibold text-sm px-6 py-3.5 rounded-full hover:bg-white/20 transition-all"

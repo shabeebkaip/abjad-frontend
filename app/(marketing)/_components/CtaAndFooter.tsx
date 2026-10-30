@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Mail, Phone, MapPin, Twitter, Linkedin, Instagram } from "lucide-react";
+import { ArrowRight, Mail, MapPin } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function CtaBanner() {
@@ -50,12 +50,6 @@ export function CtaBanner() {
   );
 }
 
-const SOCIALS = [
-  { icon: Twitter, href: "#", labelKey: "socialTwitter" as const },
-  { icon: Linkedin, href: "#", labelKey: "socialLinkedin" as const },
-  { icon: Instagram, href: "#", labelKey: "socialInstagram" as const },
-];
-
 export function Footer() {
   const { t } = useTranslation();
 
@@ -73,14 +67,11 @@ export function Footer() {
       heading: t.footerNav.companyGroup,
       links: [
         { label: t.footerNav.aboutUs, href: "/about" },
-        { label: t.footerNav.careers, href: "#" },
-        { label: t.footerNav.blogs, href: "#" },
       ],
     },
     {
       heading: t.footerNav.supportGroup,
       links: [
-        { label: t.footerNav.helpCenter, href: "#" },
         { label: t.footerNav.contactUs, href: "/contact" },
         { label: t.footerNav.privacyPolicy, href: "/privacy" },
         { label: t.footerNav.termsOfService, href: "/terms" },
@@ -94,7 +85,7 @@ export function Footer() {
       <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--brand-accent), transparent)" }} />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-10 pt-16 pb-10">
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-10 pb-12 border-b border-white/8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/8">
 
           {/* Brand column */}
           <div className="col-span-2">
@@ -123,30 +114,10 @@ export function Footer() {
               </a>
               <div className="flex items-center gap-2.5 text-slate-400 text-xs">
                 <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
-                  <Phone size={12} />
-                </div>
-                <span dir="ltr">+966 11 000 0000</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-slate-400 text-xs">
-                <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
                   <MapPin size={12} />
                 </div>
                 {t.footerNav.addressLine}
               </div>
-            </div>
-
-            {/* Social icons */}
-            <div className="flex items-center gap-2 mt-6">
-              {SOCIALS.map(({ icon: Icon, href, labelKey }) => (
-                <a
-                  key={labelKey}
-                  href={href}
-                  aria-label={t.footerNav[labelKey]}
-                  className="w-8 h-8 rounded-xl bg-white/5 hover:bg-(--brand-accent)/20 hover:text-(--brand-accent) text-slate-400 flex items-center justify-center transition-all hover:scale-110"
-                >
-                  <Icon size={14} />
-                </a>
-              ))}
             </div>
           </div>
 
@@ -169,27 +140,6 @@ export function Footer() {
               </ul>
             </div>
           ))}
-
-          {/* Newsletter column */}
-          <div className="col-span-2 lg:col-span-1">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">{t.footerNav.stayUpdated}</h4>
-            <p className="text-slate-400 text-xs leading-relaxed mb-3">
-              {t.footerNav.newsletterBody}
-            </p>
-            <div className="flex flex-col gap-2">
-              <input
-                type="email"
-                placeholder={t.footerNav.emailPlaceholder}
-                className="w-full px-3 py-2.5 text-xs bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-(--brand-accent)/50 focus:bg-white/8 transition-colors"
-              />
-              <button
-                className="w-full py-2.5 text-xs font-semibold rounded-xl text-white transition-all hover:opacity-90 hover:shadow-lg hover:shadow-(--brand-accent)/20"
-                style={{ backgroundColor: "var(--brand-accent)" }}
-              >
-                {t.footerNav.subscribe}
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Bottom bar */}

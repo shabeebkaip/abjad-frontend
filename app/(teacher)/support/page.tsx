@@ -17,7 +17,6 @@ import {
   BookOpen,
   Search,
   HelpCircle,
-  Phone,
   Mail,
   ExternalLink,
   FileText,
@@ -147,7 +146,7 @@ export default function SupportPage() {
 
       <div className="p-6 space-y-6 max-w-4xl">
         {/* Quick contact cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
             <div className="w-10 h-10 bg-cyan-50 rounded-xl flex items-center justify-center">
               <MessageSquare className="w-5 h-5 text-cyan-600" />
@@ -164,16 +163,6 @@ export default function SupportPage() {
             <div>
               <p className="font-semibold text-slate-800 text-sm">{tt.emailSupportTitle}</p>
               <p className="text-xs text-slate-400" dir="ltr">support@abjad.sa</p>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-              <Phone className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-800 text-sm">{tt.phoneTitle}</p>
-              <p className="text-xs text-slate-400" dir="ltr">+966 11 000 0000</p>
-              <p className="text-xs text-slate-400">{tt.phoneHours}</p>
             </div>
           </div>
         </div>
