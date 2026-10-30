@@ -34,12 +34,22 @@ export interface ApiResponse<T = unknown> {
 export function doRefresh(): Promise<string> {
   if (_refreshPromise) return _refreshPromise;
   _refreshPromise = (async () => {
-    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) throw new AuthError();
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch {
+      throw new ApiError('Network error — please check your connection and try again.', 0);
+    }
+    // Only 400/401 mean "no/invalid session". 429 / 5xx / network are transient
+    // and must not be read as logged out (see isDefinitiveLogout).
+    if (!res.ok) {
+      if (res.status === 400 || res.status === 401) throw new AuthError();
+      throw new ApiError(`Refresh failed (${res.status}).`, res.status);
+    }
     const json: ApiResponse<{ accessToken: string }> = await res.json();
     if (!json.data?.accessToken) throw new AuthError();
     return json.data.accessToken;
@@ -47,6 +57,23 @@ export function doRefresh(): Promise<string> {
     _refreshPromise = null;
   });
   return _refreshPromise;
+}
+
+/** True only when the refresh failure proves the session is gone (400/401). */
+export function isDefinitiveLogout(e: unknown): boolean {
+  return e instanceof AuthError;
+}
+
+/** Runs `fn`, retrying transient failures (not definitive logouts) after each delay. */
+export async function withTransientRetry<T>(fn: () => Promise<T>, delaysMs: number[] = [500, 1500]): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (isDefinitiveLogout(e) || i >= delaysMs.length) throw e;
+      await new Promise((r) => setTimeout(r, delaysMs[i]));
+    }
+  }
 }
 
 export async function apiFetch<T = unknown>(
@@ -107,7 +134,9 @@ export async function apiFetch<T = unknown>(
       const newToken = await doRefresh();
       setAccessToken(newToken);
       return apiFetch<T>(path, options);
-    } catch {
+    } catch (e) {
+      // Transient refresh failure (network/429/5xx): keep the token, surface the error.
+      if (!isDefinitiveLogout(e)) throw e;
       setAccessToken(null);
       throw new AuthError();
     }

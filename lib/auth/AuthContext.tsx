@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import authApi from '@/lib/api/auth';
-import { setAccessToken, AuthError, ApiError } from '@/lib/api/client';
+import { setAccessToken, AuthError, ApiError, withTransientRetry, isDefinitiveLogout } from '@/lib/api/client';
 import type { AuthUser, AuthContextValue, OtpSession, VerifyOtpResult } from './types';
 
 const OTP_SESSION_KEY = 'abjad_otp_session';
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         // Step 1 — restore the access token from the httpOnly refresh cookie.
-        const { accessToken } = await authApi.refreshTokens();
+        const { accessToken } = await withTransientRetry(() => authApi.refreshTokens());
         setAccessToken(accessToken);
 
         // Step 2 — verify the User row still exists. Only a genuine auth
@@ -71,11 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (e) {
-        // No valid refresh cookie — user is simply logged out. In dev we still
-        // log it so genuine refresh failures (network, server down) don't
-        // disappear silently.
+        // 400/401: no valid refresh cookie — user is simply logged out.
+        // Anything else (network/429/5xx) already got retries; we still end up
+        // with user=null, but it is logged distinctly.
         if (process.env.NODE_ENV !== 'production') {
-          console.warn('[auth] init refresh failed (no/expired cookie?):', e);
+          console.warn(isDefinitiveLogout(e) ? '[auth] no valid session' : '[auth] init refresh failed transiently after retries:', e);
         }
       } finally {
         setIsLoading(false);
