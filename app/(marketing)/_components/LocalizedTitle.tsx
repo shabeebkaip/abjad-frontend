@@ -18,13 +18,23 @@ const TITLE_KEY: Record<SeoPage, "homeTitle" | "aboutTitle" | "teachersTitle" | 
   pricing: "pricingTitle",
 };
 
+const DESC_KEY = {
+  home: "homeDescription", about: "aboutDescription", teachers: "teachersDescription",
+  schools: "schoolsDescription", contact: "contactDescription", pricing: "pricingDescription",
+} as const;
+
 export default function LocalizedTitle({ page }: { page: SeoPage }) {
   const { t } = useTranslation();
   const title = t.seo[TITLE_KEY[page]];
+  const description = t.seo[DESC_KEY[page]];
 
   useEffect(() => {
     document.title = title;
   }, [title]);
+
+  useEffect(() => {
+    document.querySelector('meta[name="description"]')?.setAttribute("content", description);
+  }, [description]);
 
   return null;
 }
