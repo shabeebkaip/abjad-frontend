@@ -359,8 +359,6 @@ export interface CommonTranslations {
   seo: {
     homeTitle: string; aboutTitle: string; teachersTitle: string;
     schoolsTitle: string; contactTitle: string; pricingTitle: string;
-    homeDescription: string; aboutDescription: string; teachersDescription: string;
-    schoolsDescription: string; contactDescription: string; pricingDescription: string;
   };
 }
 

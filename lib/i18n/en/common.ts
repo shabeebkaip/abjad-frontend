@@ -1400,11 +1400,5 @@ export const common: CommonTranslations = {
     schoolsTitle: "Hire Teachers in Saudi Arabia — Abjad for Schools",
     contactTitle: "Contact Abjad — Hire Substitute Teachers for Riyadh, Jeddah & Dammam Schools",
     pricingTitle: "Pricing — Abjad for Schools & Teachers",
-    homeDescription: "Abjad is a hiring platform connecting talented teachers with schools.",
-    aboutDescription: "Abjad connects teachers, substitute teachers, and schools across Riyadh, Jeddah, and Dammam. Learn about our mission, vision, team, and values.",
-    teachersDescription: "Abjad connects qualified teachers and substitute teachers with top international, private, and national schools across Saudi Arabia. Create a free profile and get matched instantly.",
-    schoolsDescription: "Abjad is the easiest way to hire qualified teachers, substitute teachers, and educators for international, private, and national schools across Saudi Arabia. Post jobs and get matched instantly.",
-    contactDescription: "Reach out to Abjad to connect with qualified substitute teachers and permanent educators for international and private schools across Saudi Arabia. Fast response, verified placements.",
-    pricingDescription: "Abjad is a hiring platform connecting talented teachers with schools.",
   },
 };

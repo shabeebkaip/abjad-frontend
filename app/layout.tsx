@@ -30,7 +30,10 @@ const cinzel = Cinzel({
 
 export const metadata: Metadata = {
   title: "Abjad – Connect Teachers & Schools",
-  description: "Abjad is a hiring platform connecting talented teachers with schools.",
+  // Server metadata can't follow the client-side language toggle, so ship one
+  // Arabic-first bilingual description (D3: Arabic is the default).
+  description:
+    "أبجد منصة توظيف تربط المعلمين الموهوبين بالمدارس في المملكة العربية السعودية. Abjad is a hiring platform connecting talented teachers with schools in Saudi Arabia.",
 };
 
 export default function RootLayout({
