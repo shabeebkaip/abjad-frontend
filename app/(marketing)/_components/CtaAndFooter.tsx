@@ -36,7 +36,7 @@ export function CtaBanner() {
             </p>
 
             <Link
-              href="/register"
+              href="/choose-role"
               className="inline-flex items-center justify-center gap-2 bg-white font-bold text-sm px-10 py-4 rounded-2xl hover:shadow-xl hover:shadow-black/20 transition-all hover:-translate-y-0.5"
               style={{ color: "var(--brand-primary-dark)" }}
             >
