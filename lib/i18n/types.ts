@@ -702,6 +702,8 @@ export interface TeacherProfileTranslations {
   cvFileTypes: string;
   uploadFailed: string;
   uploadTooLarge: string;
+  uploadingLabel: string;
+  replaceCvHint: string;
   browseFiles: string;
   uploaded: string;
   noCvUploaded: string;

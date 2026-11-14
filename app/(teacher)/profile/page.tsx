@@ -241,6 +241,42 @@ function SaveButton({ saving, onClick }: { saving: boolean; onClick: () => void 
   );
 }
 
+// Native <label> + visually-hidden input: tapping opens the picker without a
+// JS .click() (most reliable on iPadOS), the input stays keyboard-focusable,
+// and drag & drop works on desktop.
+function FileDropzone({ id, accept, busy, onFile, className, children }: {
+  id: string; accept: string; busy: boolean; onFile: (f: File) => void; className: string; children: React.ReactNode;
+}) {
+  const [dragOver, setDragOver] = useState(false);
+  return (
+    <label
+      htmlFor={id}
+      aria-busy={busy}
+      onDragOver={(e) => { e.preventDefault(); if (!busy) setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        const f = e.dataTransfer.files?.[0];
+        if (f && !busy) onFile(f);
+      }}
+      className={`block border-2 border-dashed text-center transition-colors focus-within:ring-2 focus-within:ring-brand-primary/40 ${
+        busy ? "cursor-wait opacity-70" : "cursor-pointer hover:border-brand-primary/40"
+      } ${dragOver ? "border-brand-primary bg-brand-primary-light" : "border-gray-200"} ${className}`}
+    >
+      {children}
+      <input
+        id={id}
+        type="file"
+        accept={accept}
+        disabled={busy}
+        className="sr-only"
+        onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onFile(f); }}
+      />
+    </label>
+  );
+}
+
 function toggleItem<T>(arr: T[], setArr: (a: T[]) => void, item: T) {
   setArr(arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item]);
 }
@@ -292,9 +328,8 @@ export default function ProfilePage() {
 
   const [saving, setSaving] = useState(false);
   const [uploadError, setUploadError] = useState<{ target: "resume" | "eduCert"; message: string } | null>(null);
+  const [uploading, setUploading] = useState<"resume" | "eduCert" | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const resumeInputRef = useRef<HTMLInputElement>(null);
-  const eduCertInputRef = useRef<HTMLInputElement>(null);
 
   // ── Load profile ────────────────────────────────────────────────────────────
 
@@ -583,7 +618,7 @@ export default function ProfilePage() {
       setUploadError({ target, message: tt.uploadTooLarge });
       return;
     }
-    setSaving(true);
+    setUploading(target);
     try {
       const updated = await (target === "resume" ? uploadResume(file) : uploadEducationCertificate(file));
       setProfile(updated);
@@ -591,7 +626,7 @@ export default function ProfilePage() {
       console.error(err);
       setUploadError({ target, message: tt.uploadFailed });
     } finally {
-      setSaving(false);
+      setUploading(null);
     }
   };
   const handleResumeUpload = (file: File) => runDocUpload("resume", file);
@@ -973,13 +1008,22 @@ export default function ProfilePage() {
                     />
                   </FormField>
                   <FormField label={tt.degreeCertificate}>
-                    <div
-                      className="border-2 border-dashed border-gray-200 rounded-lg p-3 text-center hover:border-brand-primary/40 transition-colors cursor-pointer"
-                      onClick={() => eduCertInputRef.current?.click()}
+                    <FileDropzone
+                      id="edu-cert-upload"
+                      accept={CV_ACCEPT}
+                      busy={uploading === "eduCert"}
+                      onFile={handleEduCertUpload}
+                      className="rounded-lg p-3"
                     >
-                      <p className="text-xs text-gray-500">
-                        <span className="text-brand-primary font-medium">{tt.clickToUpload}</span> {tt.orDragDrop}
-                      </p>
+                      {uploading === "eduCert" ? (
+                        <p className="text-xs text-brand-primary font-medium flex items-center justify-center gap-1.5">
+                          <Loader2 size={12} className="animate-spin" /> {tt.uploadingLabel}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-gray-500">
+                          <span className="text-brand-primary font-medium">{profile?.education?.certificateUrl ? tt.replace : tt.clickToUpload}</span> {tt.orDragDrop}
+                        </p>
+                      )}
                       {profile?.education?.certificateUrl ? (
                         <p className="text-xs text-green-600 mt-0.5 flex items-center justify-center gap-1">
                           <CheckCircle2 size={11} /> {tt.certificateUploaded}
@@ -987,14 +1031,17 @@ export default function ProfilePage() {
                       ) : (
                         <p className="text-xs text-gray-400 mt-0.5">{tt.noFileUploaded}</p>
                       )}
-                    </div>
-                    <input
-                      ref={eduCertInputRef}
-                      type="file"
-                      accept={CV_ACCEPT}
-                      className="hidden"
-                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) handleEduCertUpload(f); }}
-                    />
+                    </FileDropzone>
+                    {profile?.education?.certificateUrl && (
+                      <a
+                        href={profile.education.certificateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-brand-primary hover:underline mt-1.5"
+                      >
+                        <Download size={11} /> {tt.view}
+                      </a>
+                    )}
                     {uploadError?.target === "eduCert" && (
                       <p role="alert" className="text-xs text-red-600 mt-1.5">{uploadError.message}</p>
                     )}
@@ -1032,35 +1079,36 @@ export default function ProfilePage() {
             {activeSection === "resume" && (
               <div>
                 <SectionHeader title={tt.resumeCv} subtitle={tt.resumeSubtitle} done={sectionDone(profile, "resume")} />
-                <div
-                  className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center hover:border-brand-primary/40 transition-colors cursor-pointer mb-4"
-                  onClick={() => resumeInputRef.current?.click()}
+                <FileDropzone
+                  id="cv-upload"
+                  accept={CV_ACCEPT}
+                  busy={uploading === "resume"}
+                  onFile={handleResumeUpload}
+                  className="rounded-2xl p-8 sm:p-10 mb-4"
                 >
                   <div className="w-14 h-14 bg-brand-primary-light rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <FileText size={24} className="text-brand-primary" />
+                    {uploading === "resume"
+                      ? <Loader2 size={24} className="text-brand-primary animate-spin" />
+                      : <FileText size={24} className="text-brand-primary" />}
                   </div>
-                  <p className="text-sm font-medium text-gray-700">{tt.dropCvHere}</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    {uploading === "resume" ? tt.uploadingLabel : profile?.resume?.fileUrl ? tt.replaceCvHint : tt.dropCvHere}
+                  </p>
                   <p className="text-xs text-gray-400 mt-1">{tt.cvFileTypes}</p>
-                  <button
-                    type="button"
-                    className="mt-4 px-5 py-2 text-sm font-medium text-brand-primary border border-brand-primary/40 rounded-lg hover:bg-brand-primary-light transition-colors"
+                  {/* Visual affordance only — the whole <label> opens the picker */}
+                  <span
+                    aria-hidden="true"
+                    className="inline-block mt-4 px-5 py-2 text-sm font-medium text-brand-primary border border-brand-primary/40 rounded-lg"
                   >
-                    {tt.browseFiles}
-                  </button>
-                  <input
-                    ref={resumeInputRef}
-                    type="file"
-                    accept={CV_ACCEPT}
-                    className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) handleResumeUpload(f); }}
-                  />
-                </div>
+                    {profile?.resume?.fileUrl ? tt.replace : tt.browseFiles}
+                  </span>
+                </FileDropzone>
                 {uploadError?.target === "resume" && (
                   <p role="alert" className="text-sm text-red-600 -mt-2 mb-4">{uploadError.message}</p>
                 )}
                 <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
-                  <div className="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
-                    <FileText size={16} className="text-red-500" />
+                  <div className="w-9 h-9 bg-brand-primary-light rounded-lg flex items-center justify-center shrink-0">
+                    <FileText size={16} className="text-brand-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     {profile?.resume?.fileUrl ? (
