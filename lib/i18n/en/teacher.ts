@@ -370,6 +370,8 @@ export const teacher: TeacherTranslations = {
     resumeSubtitle: "Upload your latest CV for schools to download",
     dropCvHere: "Drop your CV here",
     cvFileTypes: "PDF, DOC, DOCX — max 10MB",
+    uploadFailed: "We couldn't upload this file. Please use a PDF or Word document (max 10MB) and try again.",
+    uploadTooLarge: "This file is larger than 10MB. Please choose a smaller file.",
     browseFiles: "Browse Files",
     uploaded: "Uploaded {date}",
     noCvUploaded: "No CV uploaded yet",

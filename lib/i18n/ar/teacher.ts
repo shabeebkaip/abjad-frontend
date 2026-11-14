@@ -370,6 +370,8 @@ export const teacher: TeacherTranslations = {
     resumeSubtitle: "ارفع أحدث سيرة ذاتية لتتمكن المدارس من تحميلها",
     dropCvHere: "أفلت سيرتك الذاتية هنا",
     cvFileTypes: "PDF، DOC، DOCX — حتى 10 ميجابايت",
+    uploadFailed: "تعذّر رفع هذا الملف. يرجى استخدام ملف PDF أو Word (حتى 10 ميجابايت) والمحاولة مرة أخرى.",
+    uploadTooLarge: "حجم هذا الملف أكبر من 10 ميجابايت. يرجى اختيار ملف أصغر.",
     browseFiles: "استعراض الملفات",
     uploaded: "تم الرفع في {date}",
     noCvUploaded: "لم يتم رفع سيرة ذاتية بعد",

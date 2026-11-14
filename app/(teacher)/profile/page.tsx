@@ -44,6 +44,11 @@ import { useAuth } from "@/lib/auth/useAuth";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatCurrency, formatDate } from "@/lib/i18n/format";
 
+// iPadOS resolves `accept` via MIME types more reliably than bare extensions;
+// list both so PDFs/Word files in Files → Downloads are selectable.
+const CV_ACCEPT = ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const CV_MAX_BYTES = 10 * 1024 * 1024; // keep in sync with backend uploadCvDocument
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const subjects = [
@@ -286,6 +291,7 @@ export default function ProfilePage() {
   });
 
   const [saving, setSaving] = useState(false);
+  const [uploadError, setUploadError] = useState<{ target: "resume" | "eduCert"; message: string } | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const eduCertInputRef = useRef<HTMLInputElement>(null);
@@ -569,29 +575,27 @@ export default function ProfilePage() {
     }
   };
 
-  const handleResumeUpload = async (file: File) => {
+  // CV + degree certificate share one path so failures are always visible
+  // (previously console-only — iPad users saw "nothing happen").
+  const runDocUpload = async (target: "resume" | "eduCert", file: File) => {
+    setUploadError(null);
+    if (file.size > CV_MAX_BYTES) {
+      setUploadError({ target, message: tt.uploadTooLarge });
+      return;
+    }
     setSaving(true);
     try {
-      const updated = await uploadResume(file);
+      const updated = await (target === "resume" ? uploadResume(file) : uploadEducationCertificate(file));
       setProfile(updated);
     } catch (err) {
       console.error(err);
+      setUploadError({ target, message: tt.uploadFailed });
     } finally {
       setSaving(false);
     }
   };
-
-  const handleEduCertUpload = async (file: File) => {
-    setSaving(true);
-    try {
-      const updated = await uploadEducationCertificate(file);
-      setProfile(updated);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleResumeUpload = (file: File) => runDocUpload("resume", file);
+  const handleEduCertUpload = (file: File) => runDocUpload("eduCert", file);
 
   const handleSubmitProfile = async () => {
     setSaving(true);
@@ -987,10 +991,13 @@ export default function ProfilePage() {
                     <input
                       ref={eduCertInputRef}
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      accept={CV_ACCEPT}
                       className="hidden"
-                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleEduCertUpload(f); }}
+                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) handleEduCertUpload(f); }}
                     />
+                    {uploadError?.target === "eduCert" && (
+                      <p role="alert" className="text-xs text-red-600 mt-1.5">{uploadError.message}</p>
+                    )}
                   </FormField>
                 </div>
                 <SaveButton saving={saving} onClick={saveEducation} />
@@ -1043,11 +1050,14 @@ export default function ProfilePage() {
                   <input
                     ref={resumeInputRef}
                     type="file"
-                    accept=".pdf,.doc,.docx"
+                    accept={CV_ACCEPT}
                     className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleResumeUpload(f); }}
+                    onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) handleResumeUpload(f); }}
                   />
                 </div>
+                {uploadError?.target === "resume" && (
+                  <p role="alert" className="text-sm text-red-600 -mt-2 mb-4">{uploadError.message}</p>
+                )}
                 <div className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
                   <div className="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
                     <FileText size={16} className="text-red-500" />

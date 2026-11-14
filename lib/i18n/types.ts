@@ -700,6 +700,8 @@ export interface TeacherProfileTranslations {
   resumeSubtitle: string;
   dropCvHere: string;
   cvFileTypes: string;
+  uploadFailed: string;
+  uploadTooLarge: string;
   browseFiles: string;
   uploaded: string;
   noCvUploaded: string;
