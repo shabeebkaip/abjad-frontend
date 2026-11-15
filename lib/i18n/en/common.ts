@@ -148,6 +148,7 @@ export const common: CommonTranslations = {
       sub: "Abjad connects teachers, substitute teachers, and schools across Saudi Arabia, building a future where education staffing is faster, smarter, and more reliable.",
       ctaJoin: "Join Today",
       ctaContact: "Get in Touch",
+      feeNote: "When a school offers a permanent position to a substitute teacher introduced through Abjad, a placement fee applies under the school's service agreement with Abjad.",
       stats: [
         { val: "Reviewed", label: "Every teacher profile, before schools see it" },
         { val: "Private schools", label: "National and international, across the Kingdom" },
@@ -191,7 +192,7 @@ export const common: CommonTranslations = {
       kicker: "Our Vision",
       headlinePre: "Empowering Educators & Elevating Education",
       headlineAccent: "Across Saudi Arabia",
-      quote: "To become a trusted partner to private and international schools, ensuring every classroom remains active and engaging.",
+      quote: "To become a trusted partner to private national and private international schools, ensuring every classroom remains active and engaging.",
       whyKicker: "Why Abjad Leads",
       whyKickerSub: "A Nationwide Community",
       whyItems: [
@@ -209,7 +210,7 @@ export const common: CommonTranslations = {
         },
       ],
       watermark: "VISION",
-      callout: "For educators, Abjad makes it easy to discover roles that match your skills, values, and growth ambitions — from private schools to national educational institutions across the Kingdom of Saudi Arabia.",
+      callout: "For educators, Abjad makes it easy to discover roles that match your skills, values and growth ambitions at private national and private international schools across the Kingdom of Saudi Arabia.",
     },
     values: {
       kicker: "Our Values",
@@ -377,8 +378,8 @@ export const common: CommonTranslations = {
         },
       ],
       everyoneKicker: "Abjad for Everyone",
-      everyoneHeadline: "Whether You're Managing a High School or an International School",
-      everyoneBody: "Abjad connects schools and qualified teachers. Whether you manage a private national or an international school, Abjad simplifies hiring, from posting jobs to hiring reviewed educators near you.",
+      everyoneHeadline: "Whether You Run a Private National or a Private International School",
+      everyoneBody: "Abjad connects schools and qualified teachers. Whether you manage a private national or a private international school, Abjad simplifies hiring, from posting jobs to hiring reviewed educators near you.",
       everyoneCta: "Get Started",
     },
     whyChoose: {
@@ -441,7 +442,7 @@ export const common: CommonTranslations = {
       kicker: "Join the Abjad Network",
       headlinePre: "Connecting Teachers and Schools",
       headlineAccent: "Across Saudi Arabia",
-      sub: "Join a growing community shaping the future of education. From international schools to local academies, Abjad helps make every hiring and teaching experience smoother, faster, and more rewarding.",
+      sub: "Join a growing community shaping the future of education. From private national to private international schools, Abjad helps make every hiring and teaching experience smoother.",
       stats: [
         { value: "Free", label: "For teachers to join" },
         { value: "Reviewed", label: "Teacher profiles" },
@@ -478,8 +479,8 @@ export const common: CommonTranslations = {
           a: "Yes. Substitute teachers are in high demand in Riyadh, Jeddah, and Dammam schools. Abjad makes it easy to list your availability and get matched with schools needing cover on short notice.",
         },
         {
-          q: "Do international schools use Abjad?",
-          a: "Absolutely. Many international schools across Saudi Arabia hire teachers and substitutes using Abjad. Our platform caters specifically to schools using British, American, IB, and bilingual curricula.",
+          q: "Is Abjad for private international schools?",
+          a: "Yes. Abjad is built for private international and private national schools in Saudi Arabia, including schools teaching British, American, IB and bilingual curricula.",
         },
         {
           q: "How can I become a teacher in Saudi Arabia?",
@@ -554,7 +555,7 @@ export const common: CommonTranslations = {
       showAllPre: "Show all",
       showAllPost: "questions",
       inlineCtaTitle: "Find Teaching Jobs in Saudi Arabia Faster",
-      inlineCtaBody: "Abjad connects you with top international schools, private institutions, and Riyadh, Jeddah, and Dammam schools seeking passionate teachers today.",
+      inlineCtaBody: "Abjad connects you with private national and private international schools in Riyadh, Jeddah and Dammam looking for passionate teachers.",
       inlineCtaButton: "Find Jobs",
       quoteText: "I became a teacher because I enjoy helping students grow, discover new ideas, and build confidence in learning.",
       quoteAttribution: "— International School Teacher, Riyadh",
@@ -696,7 +697,7 @@ export const common: CommonTranslations = {
       headlinePre: "A Dedicated Platform for",
       headlineAccent: "Hiring Teachers",
       body1: "Abjad connects private national and international schools across Saudi Arabia with qualified educators, teachers and academic professionals.",
-      body2: "From international academies to private institutions and growing educational networks, schools across the Kingdom rely on Abjad to fill classrooms quickly with the right talent. Our platform brings together bilingual educators, STEM specialists, licensed substitute teachers, subject-matter experts, and early childhood professionals — all fully prepared to teach on short notice and support learning outcomes across the Kingdom.",
+      body2: "Private national and private international schools across the Kingdom use Abjad to find the right talent: bilingual educators, STEM specialists, licensed substitute teachers, subject-matter experts and early childhood professionals.",
       categoriesLabel: "Featured Talent Categories",
       categories: [
         "International School Teachers",
@@ -749,7 +750,7 @@ export const common: CommonTranslations = {
       regions: [
         "Leading schools across Saudi Arabia",
         "International and bilingual schools nationwide",
-        "Private schools, academies, and high schools hiring now",
+        "Private national and private international schools hiring",
         "Western Province — Jeddah, Makkah, Madinah",
         "Eastern Province — Dammam, Khobar, Dhahran",
         "Central Region — Riyadh, Al Kharj, Qassim",
@@ -842,6 +843,10 @@ export const common: CommonTranslations = {
           a: "We offer a replacement guarantee within the initial contract period. Schools can request a replacement teacher at no additional cost under the agreed terms.",
         },
         {
+          q: "Is there a fee if we hire a substitute teacher permanently?",
+          a: "When a school offers a permanent position to a substitute teacher introduced through Abjad, a placement fee applies under the school's service agreement with Abjad.",
+        },
+        {
           q: "What is the minimum experience required?",
           a: "Most roles require 1–2 years of professional experience, including classroom teaching, training or instructional roles, tutoring, or curriculum assistance. We also welcome candidates with practicum or early career teaching exposure.",
         },
@@ -906,7 +911,7 @@ export const common: CommonTranslations = {
       headlinePre: "Contact Abjad: Hire Teachers &",
       headlineAccent: "Educators Easily",
       sub1: "Connect your school with qualified substitute teachers and educators across Saudi Arabia.",
-      sub2: "At Abjad, we specialize in connecting international schools, high schools, and local institutions throughout the Kingdom with vetted substitute teachers and professional educators. Whether you're a school searching for reliable teaching staff or an educator looking for short-term or long-term assignments, Abjad is your trusted platform for seamless hiring and placement across Saudi Arabia.",
+      sub2: "At Abjad, we specialize in connecting private national and private international schools throughout the Kingdom with reviewed substitute teachers and professional educators. Whether you're a school looking for reliable teaching staff or an educator looking for short-term or long-term roles, Abjad brings hiring and placement into one platform across Saudi Arabia.",
       ctaGetStarted: "Get Started",
       ctaCall: "Call Us",
       ctaEmail: "Email Us",
@@ -917,7 +922,7 @@ export const common: CommonTranslations = {
       schoolsSub: "Ideal for principals, HR managers, and hiring administrators who:",
       schoolsNeeds: [
         "Need to fill an urgent substitute teacher vacancy quickly",
-        "Looking to hire permanent teachers for private or international schools",
+        "Looking to hire permanent teachers for private national or private international schools",
         "Seeking vetted educators who meet NEOM, MOE, or international curriculum standards",
       ],
       teachersBadge: "Teachers & Substitute Teachers",
@@ -953,7 +958,7 @@ export const common: CommonTranslations = {
         },
         {
           title: "Continuous Opportunities",
-          desc: "Educators and teachers on our platform gain continuous placement opportunities in international schools, high schools, and local institutions throughout Saudi Arabia.",
+          desc: "Educators and teachers on Abjad find placement opportunities at private national and private international schools throughout Saudi Arabia.",
         },
       ],
     },

@@ -15,7 +15,7 @@ import LocalizedTitle from "../_components/LocalizedTitle";
 export const metadata: Metadata = {
   title: "Hire Teachers in Saudi Arabia — Abjad for Schools",
   description:
-    "Abjad is the easiest way to hire qualified teachers, substitute teachers, and educators for international, private, and national schools across Saudi Arabia. Post jobs and get matched instantly.",
+    "Hire qualified teachers, substitute teachers and educators for private national and private international schools across Saudi Arabia. Post jobs and see best-matched candidates.",
 };
 
 export default function SchoolsPage() {

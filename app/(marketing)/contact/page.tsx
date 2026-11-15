@@ -11,7 +11,7 @@ import LocalizedTitle from "../_components/LocalizedTitle";
 export const metadata: Metadata = {
   title: "Contact Abjad — Hire Substitute Teachers for Riyadh, Jeddah & Dammam Schools",
   description:
-    "Reach out to Abjad to connect with qualified substitute teachers and permanent educators for international and private schools across Saudi Arabia. Fast response, verified placements.",
+    "Contact Abjad to hire qualified substitute teachers and permanent educators for private national and private international schools across Saudi Arabia.",
 };
 
 export default function ContactPage() {

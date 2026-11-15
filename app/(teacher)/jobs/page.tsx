@@ -7,7 +7,7 @@ import {
   GraduationCap, Banknote, CalendarDays, CheckCircle2,
   Briefcase, Share2, ChevronDown, ChevronLeft, ChevronRight,
   SlidersHorizontal, Filter, Loader2,
-  List as ListIcon, LayoutGrid,
+  List as ListIcon, LayoutGrid, Info,
 } from "lucide-react";
 
 type ViewMode = "list" | "grid";
@@ -75,6 +75,36 @@ function schoolInitial(job: Job): string {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+
+/** Client feedback R1 §4: tell teachers where listings come from and how to apply. Dismissal is remembered per browser. */
+const EXPLAINER_KEY = "abjad_jobs_explainer_hidden";
+function JobsExplainer() {
+  const { t } = useTranslation();
+  const tt = t.teacher.jobs;
+  // Panel pages render client-side only (behind the auth guard), so reading storage here is safe.
+  const [hidden, setHidden] = useState(() => {
+    try { return localStorage.getItem(EXPLAINER_KEY) === "1"; } catch { return false; }
+  });
+  if (hidden) return null;
+  return (
+    <div className="shrink-0 flex items-start gap-3 px-4 lg:px-5 py-3 bg-sky-50 border-b border-sky-100 text-sm text-slate-700">
+      <Info size={16} className="shrink-0 mt-0.5 text-sky-700" aria-hidden="true" />
+      <p className="flex-1 leading-relaxed">
+        <span className="font-semibold text-slate-900">{tt.explainerTitle}. </span>
+        {tt.explainerBody}{" "}
+        <Link href="/applications" className="font-semibold text-sky-800 underline underline-offset-2">{tt.explainerApplications}</Link>.
+      </p>
+      <button
+        onClick={() => { setHidden(true); try { localStorage.setItem(EXPLAINER_KEY, "1"); } catch { /* private mode */ } }}
+        className="shrink-0 p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-sky-100"
+        aria-label={tt.explainerDismiss}
+        title={tt.explainerDismiss}
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
+}
 
 export default function JobsPage() {
   const { t, lang, isRTL } = useTranslation();
@@ -338,6 +368,8 @@ export default function JobsPage() {
 
   return (
     <div className="h-[calc(100vh-6.25rem)] flex flex-col overflow-hidden bg-slate-50">
+
+      <JobsExplainer />
 
       {/* ── Search + sort bar ────────────────────────────────── */}
       <div className="shrink-0 bg-white border-b border-slate-200 px-4 lg:px-5 py-3">

@@ -13,7 +13,7 @@ import LocalizedTitle from "../_components/LocalizedTitle";
 export const metadata: Metadata = {
   title: "Teaching Jobs in Saudi Arabia — Find Schools with Abjad",
   description:
-    "Abjad connects qualified teachers and substitute teachers with top international, private, and national schools across Saudi Arabia. Create a free profile and get matched instantly.",
+    "Find teaching and substitute roles at private national and private international schools across Saudi Arabia. Create a free profile and apply to jobs posted by schools.",
 };
 
 export default function TeachersPage() {

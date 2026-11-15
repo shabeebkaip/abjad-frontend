@@ -54,8 +54,11 @@ export default function AboutHero() {
               <span style={{ color: "var(--brand-accent)" }}>{t.about.hero.headlineAccent}</span>
             </h1>
 
-            <p className="text-white/65 text-lg leading-relaxed mb-10 max-w-[48ch]">
+            <p className="text-white/65 text-lg leading-relaxed mb-4 max-w-[48ch]">
               {t.about.hero.sub}
+            </p>
+            <p className="text-white/50 text-sm leading-relaxed mb-10 max-w-[52ch]">
+              {t.about.hero.feeNote}
             </p>
 
             <div className="flex items-center gap-4 flex-wrap">

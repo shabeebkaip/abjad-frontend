@@ -11,7 +11,7 @@ import LocalizedTitle from "../_components/LocalizedTitle";
 export const metadata = {
   title: "About Abjad — Empowering Education Excellence Across Saudi Arabia",
   description:
-    "Abjad connects teachers, substitute teachers, and schools across Riyadh, Jeddah, and Dammam. Learn about our mission, vision, team, and values.",
+    "Abjad connects teachers and substitute teachers with private national and private international schools across Saudi Arabia. Learn about our mission, vision, team and values.",
 };
 
 export default function AboutPage() {

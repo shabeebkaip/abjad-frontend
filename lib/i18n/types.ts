@@ -40,6 +40,8 @@ export interface CommonTranslations {
       badgeLocation: string; kicker: string;
       headlineLine1: string; headlineLine2: string; headlineAccent: string;
       sub: string; ctaJoin: string; ctaContact: string;
+      // Client feedback R1 §3.8: placement-fee agreement. Wording pending client sign-off (D4).
+      feeNote: string;
       stats: { val: string; label: string }[];
       tagline: string;
       bottomStats: { val: string; label: string }[];
@@ -495,6 +497,11 @@ export interface TeacherJobsTranslations {
   applying: string;
   applyNow: string;
   postedVia: string;
+  // Client feedback R1 §4: explain where listings come from and how to apply.
+  explainerTitle: string;
+  explainerBody: string;
+  explainerApplications: string;
+  explainerDismiss: string;
   verifiedByAbjad: string;
   schoolFallback: string;
   closesOn: string;
