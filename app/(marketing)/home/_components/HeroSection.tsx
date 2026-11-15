@@ -1,24 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef } from "react";
-import { Zap, BadgeCheck, SlidersHorizontal } from "lucide-react";
+import { Zap, BadgeCheck, SlidersHorizontal, GraduationCap, School, ArrowRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { PHOTOS, usePhotoAlt } from "../../_components/PhotoStrip";
 
-/* Floating tags that drift slowly in the background */
+/* Floating background tags = primary search keywords (client feedback R1 §1.3) */
 const TAGS_EN = [
-  "Math Teacher", "Science", "Riyadh", "Jeddah", "English Teacher",
-  "Primary School", "Secondary", "Arabic", "Physics", "Biology",
-  "Special Needs", "Dammam", "PE Teacher", "Art", "Music",
-  "Full-Time", "Part-Time", "International", "STEM", "IGCSE",
-  "IB Curriculum", "Khobar", "History", "Chemistry", "Kindergarten",
+  "Substitute Teachers", "Teaching Jobs Riyadh", "Teaching Jobs Jeddah", "Teaching Jobs Dammam", "Qualified Educators",
+  "Private National Schools", "Private International Schools", "Teacher Recruitment KSA", "Hire Teachers", "Continuity in Learning",
+  "IB Curriculum", "IGCSE", "American Curriculum", "British Curriculum", "Math Teachers",
+  "Science Teachers", "English Teachers", "Arabic Teachers", "Verified Profiles", "Smart Matching",
+  "Full-Time Teachers", "Short-Term Cover", "Early Years", "Special Needs", "Saudi Teachers",
 ];
 const TAGS_AR = [
-  "معلم رياضيات", "علوم", "الرياض", "جدة", "معلم لغة إنجليزية",
-  "مرحلة ابتدائية", "مرحلة ثانوية", "لغة عربية", "فيزياء", "أحياء",
-  "تربية خاصة", "الدمام", "معلم تربية بدنية", "فنون", "موسيقى",
-  "دوام كامل", "دوام جزئي", "مدارس دولية", "STEM", "IGCSE",
-  "مناهج IB", "الخبر", "تاريخ", "كيمياء", "رياض أطفال",
+  "المعلمون البدلاء", "وظائف تدريس الرياض", "وظائف تدريس جدة", "وظائف تدريس الدمام", "معلمون مؤهلون",
+  "المدارس الأهلية", "المدارس الدولية الخاصة", "توظيف المعلمين", "وظّف معلمين", "استمرارية التعليم",
+  "منهج IB", "IGCSE", "المنهج الأمريكي", "المنهج البريطاني", "معلمو الرياضيات",
+  "معلمو العلوم", "معلمو اللغة الإنجليزية", "معلمو اللغة العربية", "ملفات موثّقة", "مطابقة ذكية",
+  "معلمون بدوام كامل", "تغطية قصيرة المدى", "الطفولة المبكرة", "التربية الخاصة", "معلمون سعوديون",
 ];
 
 interface TagProps { label: string; style: React.CSSProperties }
@@ -42,6 +44,8 @@ function FloatingTag({ label, style }: TagProps) {
 export default function HeroSection() {
   const { t, isRTL } = useTranslation();
   const tags = isRTL ? TAGS_AR : TAGS_EN;
+  const alt = usePhotoAlt();
+  const flip = { transform: isRTL ? "scaleX(-1)" : undefined };
 
   /* Subtle parallax on mouse move */
   const bgRef = useRef<HTMLDivElement>(null);
@@ -92,7 +96,7 @@ export default function HeroSection() {
       {/* ── Floating tags layer ── */}
       <div
         ref={bgRef}
-        className="absolute inset-0 will-change-transform transition-transform duration-120 ease-out opacity-40 sm:opacity-100"
+        className="absolute inset-0 will-change-transform transition-transform duration-120 ease-out opacity-40 sm:opacity-50"
         aria-hidden="true"
       >
         {tags.map((label, i) => (
@@ -110,73 +114,102 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 pointer-events-none hidden sm:block"
         style={{
-          background: "radial-gradient(ellipse 65% 70% at 50% 46%, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.82) 55%, transparent 100%)",
+          background: "radial-gradient(ellipse 80% 75% at 50% 48%, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.9) 60%, transparent 100%)",
         }}
       />
 
-      {/* ── Main content — centered ── */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 pt-20 sm:pt-32 pb-10 sm:pb-12">
+      {/* ── Main content — text + photos ── */}
+      <div className="relative z-10 flex-1 flex flex-col justify-center w-full max-w-7xl mx-auto px-6 lg:px-10 pt-24 sm:pt-28 lg:pt-32 pb-10 sm:pb-12">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-center mb-8 sm:mb-14">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-start">
 
-        {/* Live badge */}
-        <div className="fade-in-up-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-8"
-          style={{ borderColor: "rgba(13,37,66,0.25)", color: "var(--brand-primary)", backgroundColor: "rgba(13,37,66,0.06)" }}>
-          <span className="relative flex h-2 w-2 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
-          </span>
-          {t.hero.badge}
-        </div>
+            {/* Role CTAs — first thing under the nav on mobile, after the copy on desktop (feedback R1 §1.7, §2) */}
+            <div className="fade-in-up-1 order-first lg:order-last grid w-full max-w-xl grid-cols-1 sm:grid-cols-2 gap-3 mb-8 lg:mb-0">
+              {[
+                { href: "/register?role=teacher", icon: GraduationCap, label: t.hero.ctaTeacher, sub: t.hero.ctaTeacherSub, bg: "var(--brand-primary)" },
+                { href: "/register?role=school", icon: School, label: t.hero.ctaSchool, sub: t.hero.ctaSchoolSub, bg: "linear-gradient(135deg, #0091b5 0%, #006f8e 100%)" },
+              ].map((c) => (
+                <Link
+                  key={c.href}
+                  href={c.href}
+                  className="group flex items-center gap-4 rounded-2xl px-5 py-4 text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-(--brand-accent)/40"
+                  style={{ background: c.bg }}
+                >
+                  <span className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                    <c.icon size={22} strokeWidth={2.2} />
+                  </span>
+                  <span className="flex-1 text-start min-w-0">
+                    <span className="block font-bold text-lg leading-tight">{c.label}</span>
+                    <span className="block text-sm text-white/85 mt-0.5">{c.sub}</span>
+                  </span>
+                  <ArrowRight size={18} className="shrink-0 transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" style={flip} />
+                </Link>
+              ))}
+            </div>
 
-        {/* Headline */}
-        <h1
-          className="fade-in-up-2 font-extrabold text-gray-950 leading-[1.06] mb-6 max-w-4xl"
-          style={{
-            fontSize: "clamp(2rem, 4vw, 3.5rem)",
-            letterSpacing: isRTL ? "0" : "-0.03em",
-          }}
-        >
-          {t.hero.headlinePre}{" "}
-          <span style={{ color: "var(--brand-accent)" }}>{t.hero.headlineAccent}</span>{" "}
-          <br className="hidden sm:block" />
-          {t.hero.headlineMid}{" "}
-          <span className="relative inline-block">
-            {t.hero.headlineUnderline}
-            <svg
-              className="absolute left-0 right-0 w-full"
-              style={{ bottom: "-0.2em", height: "0.35em" }}
-              viewBox="0 0 300 12"
-              preserveAspectRatio="none"
-              aria-hidden="true"
+            {/* Live badge */}
+            <div className="fade-in-up-1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-6"
+              style={{ borderColor: "rgba(13,37,66,0.25)", color: "var(--brand-primary)", backgroundColor: "rgba(13,37,66,0.06)" }}>
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+              </span>
+              {t.hero.badge}
+            </div>
+
+            {/* Headline */}
+            <h1
+              className="fade-in-up-2 font-extrabold text-gray-950 leading-[1.08] mb-6"
+              style={{
+                fontSize: "clamp(2rem, 4vw, 3.4rem)",
+                letterSpacing: isRTL ? "0" : "-0.03em",
+              }}
             >
-              <path
-                d="M2 8 Q75 2 150 7 Q225 12 298 5"
-                stroke="var(--brand-accent)"
-                strokeWidth="3.5"
-                fill="none"
-                strokeLinecap="round"
-                opacity="0.7"
-              />
-            </svg>
-          </span>
-        </h1>
+              {t.hero.headlinePre}{" "}
+              <span style={{ color: "var(--brand-accent)" }}>{t.hero.headlineAccent}</span>{" "}
+              {t.hero.headlineMid}{" "}
+              <span className="relative inline-block">
+                {t.hero.headlineUnderline}
+                <svg
+                  className="absolute left-0 right-0 w-full"
+                  style={{ bottom: "-0.2em", height: "0.35em" }}
+                  viewBox="0 0 300 12"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2 8 Q75 2 150 7 Q225 12 298 5"
+                    stroke="var(--brand-accent)"
+                    strokeWidth="3.5"
+                    fill="none"
+                    strokeLinecap="round"
+                    opacity="0.7"
+                  />
+                </svg>
+              </span>
+            </h1>
 
-        {/* Subtext */}
-        <p
-          className="fade-in-up-3 text-gray-500 text-base sm:text-lg leading-relaxed mb-6 sm:mb-10"
-          style={{ maxWidth: "52ch" }}
-        >
-          {t.hero.sub}
-        </p>
+            {/* Subtext */}
+            <p
+              className="fade-in-up-3 text-gray-600 text-base sm:text-lg leading-relaxed lg:mb-8"
+              style={{ maxWidth: "52ch" }}
+            >
+              {t.hero.sub}
+            </p>
+          </div>
 
-        {/* CTA buttons */}
-        <div className="fade-in-up-4 flex items-center gap-4 flex-wrap justify-center mb-8 sm:mb-16">
-          <Link
-            href="/choose-role"
-            className="px-8 py-3.5 rounded-full font-bold text-base text-white transition-all duration-200 hover:scale-105 hover:shadow-xl shadow-lg"
-            style={{ backgroundColor: "var(--brand-primary)", boxShadow: "0 8px 24px var(--brand-primary-glow)" }}
-          >
-            {t.hero.ctaJoin}
-          </Link>
+          {/* Photos — children first (feedback R1 §1.5) */}
+          <div className="fade-in-up-3 grid grid-cols-2 gap-3 w-full max-w-xl mx-auto lg:max-w-none">
+            <div className="relative col-span-2 aspect-3/2 rounded-3xl overflow-hidden shadow-xl">
+              <Image src={PHOTOS.classroom.src} alt={alt("classroom")} fill priority sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+            </div>
+            <div className="relative hidden sm:block aspect-4/3 rounded-2xl overflow-hidden shadow-lg">
+              <Image src={PHOTOS.femaleTeacher.src} alt={alt("femaleTeacher")} fill sizes="(min-width: 1024px) 22vw, 50vw" className="object-cover" />
+            </div>
+            <div className="relative hidden sm:block aspect-4/3 rounded-2xl overflow-hidden shadow-lg">
+              <Image src={PHOTOS.maleTeacher.src} alt={alt("maleTeacher")} fill sizes="(min-width: 1024px) 22vw, 50vw" className="object-cover object-top" />
+            </div>
+          </div>
         </div>
 
         {/* Value props */}

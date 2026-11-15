@@ -22,6 +22,7 @@ export interface CommonTranslations {
     cta_primary: string; cta_secondary: string; trusted_by: string;
     headlinePre: string; headlineAccent: string; headlineMid: string; headlineUnderline: string;
     ctaJoin: string;
+    ctaTeacher: string; ctaTeacherSub: string; ctaSchool: string; ctaSchoolSub: string;
   };
   stats: { value: string; label: string }[];
   card: {

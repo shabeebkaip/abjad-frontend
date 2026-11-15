@@ -1,5 +1,6 @@
 
 import AboutHero from "./_components/AboutHero";
+import PhotoStrip from "../_components/PhotoStrip";
 import MissionSection from "./_components/MissionSection";
 import VisionAndWhySection from "./_components/VisionAndWhySection";
 import ValuesSection from "./_components/ValuesSection";
@@ -18,6 +19,7 @@ export default function AboutPage() {
     <>
       <LocalizedTitle page="about" />
       <AboutHero />
+      <PhotoStrip photos={["femaleClassroom", "studentsWalking", "maleClassroom"]} />
       <MissionSection />
       <VisionAndWhySection />
       <ValuesSection />

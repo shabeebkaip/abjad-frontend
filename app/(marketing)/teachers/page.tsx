@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import TeachersHero from "./_components/TeachersHero";
+import PhotoStrip from "../_components/PhotoStrip";
 import TeachersHowItWorks from "./_components/TeachersHowItWorks";
 import TeachersOpportunities from "./_components/TeachersOpportunities";
 import TeachersForSchools from "./_components/TeachersForSchools";
@@ -20,6 +21,7 @@ export default function TeachersPage() {
     <>
       <LocalizedTitle page="teachers" />
       <TeachersHero />
+      <PhotoStrip photos={["femaleTeacher", "scienceLab", "maleTeacher"]} />
       <TeachersHowItWorks />
       <TeachersOpportunities />
       <TeachersForSchools />
