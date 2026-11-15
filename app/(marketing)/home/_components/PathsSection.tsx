@@ -13,7 +13,7 @@ export default function PathsSection() {
   const p = t.home.paths;
   const paths: { key: string; photo: PhotoKey; href: string; data: typeof p.teacher; dark: boolean }[] = [
     { key: "teacher", photo: "femaleClassroom", href: "/register?role=teacher", data: p.teacher, dark: false },
-    { key: "school", photo: "studentsWalking", href: "/register?role=school", data: p.school, dark: true },
+    { key: "school", photo: "maleTeacherHired", href: "/register?role=school", data: p.school, dark: true },
   ];
 
   return (

@@ -13,6 +13,8 @@ export const PHOTOS = {
   maleClassroom: { src: "/images/marketing/abjad-male-classroom.jpg", en: "Students working in a STEM lab", ar: "طلاب في مختبر العلوم والتقنية" },
   maleTeacher: { src: "/images/marketing/abjad-male-teacher-hero.jpg", en: "Confident male teacher at school", ar: "معلم واثق في المدرسة" },
   studentsWalking: { src: "/images/marketing/abjad-students-walking-school.jpg", en: "Students walking across a school campus", ar: "طلاب يسيرون في ساحة المدرسة" },
+  maleTeacherHired: { src: "/images/marketing/abjad-male-teacher-hired.jpg", en: "School principal shaking hands with a newly hired teacher", ar: "مدير مدرسة يصافح معلماً تم توظيفه" },
+  femaleTeacherHired: { src: "/images/marketing/abjad-female-teacher-hired.jpg", en: "School principal welcoming a newly hired teacher", ar: "مديرة مدرسة ترحب بمعلمة تم توظيفها" },
 } as const;
 
 export type PhotoKey = keyof typeof PHOTOS;

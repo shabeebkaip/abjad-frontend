@@ -21,7 +21,7 @@ export default function TeachersPage() {
     <>
       <LocalizedTitle page="teachers" />
       <TeachersHero />
-      <PhotoStrip photos={["femaleTeacher", "scienceLab", "maleTeacher"]} />
+      <PhotoStrip photos={["femaleTeacherHired", "scienceLab", "maleTeacher"]} />
       <TeachersHowItWorks />
       <TeachersOpportunities />
       <TeachersForSchools />
