@@ -22,10 +22,11 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { listApplications, getApplicationStats, withdrawApplication, respondToOffer, listOffers, submitFeedback } from "@/lib/api/teacher";
+import { listApplications, getApplicationStats, withdrawApplication, listOffers, submitFeedback } from "@/lib/api/teacher";
 import { SARSymbol } from "@/components/ui/sar-symbol";
 import type { Offer } from "@/lib/api/teacher";
 import { PostHireFeedbackModal, type PostHireFeedbackPayload } from "@/components/teacher/PostHireFeedbackModal";
+import { OfferResponse } from "@/components/teacher/OfferResponse";
 import type { Application, ApplicationStats } from "@/lib/api/teacher";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatDate, formatNumber } from "@/lib/i18n/format";
@@ -334,6 +335,7 @@ export default function ApplicationsPage() {
                       key={app._id}
                       app={app}
                       offer={offersByApp[app._id]}
+                      onOfferResponded={(o) => setOffersByApp((prev) => ({ ...prev, [app._id]: o }))}
                       expanded={expandedId === app._id}
                       withdrawing={withdrawing === app._id}
                       hasFeedback={feedbackSubmitted.has(app._id)}
@@ -378,6 +380,7 @@ type TT = ReturnType<typeof useTranslation>["t"]["teacher"]["applications"];
 function ApplicationCard({
   app,
   offer,
+  onOfferResponded,
   expanded,
   withdrawing,
   hasFeedback,
@@ -390,6 +393,7 @@ function ApplicationCard({
 }: {
   app: Application;
   offer?: Offer;
+  onOfferResponded: (o: Offer) => void;
   expanded: boolean;
   withdrawing: boolean;
   hasFeedback: boolean;
@@ -499,7 +503,10 @@ function ApplicationCard({
           </div>
 
           {/* Alerts */}
-          {app.status === "offer_extended" && (
+          {app.status === "offer_extended" && offer && (
+            <OfferResponse offer={offer} onResponded={onOfferResponded} />
+          )}
+          {app.status === "offer_extended" && !offer && (
             <div className="mt-3 flex items-center gap-2 text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-xl px-3 py-2">
               <Award className="w-4 h-4 shrink-0" />
               <span>{tt.offerReceivedAlert}</span>
@@ -604,5 +611,3 @@ function ApplicationCard({
   );
 }
 
-// silence unused import warning
-void respondToOffer;
