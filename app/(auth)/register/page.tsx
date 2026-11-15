@@ -291,9 +291,9 @@ function RegisterPage() {
               <Checkbox id="t-terms" checked={!!teacherTerms} onCheckedChange={(v) => teacherForm.setValue("terms", v === true ? true : (undefined as unknown as true))} className="mt-0.5" />
               <Label htmlFor="t-terms" className="text-xs text-muted-foreground font-normal leading-relaxed cursor-pointer">
                 {t.register.termsText}{" "}
-                <Link href="/terms" className="font-semibold text-primary">{t.register.termsLink}</Link>
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary">{t.register.termsLink}</Link>
                 {" "}{t.register.andText}{" "}
-                <Link href="/privacy" className="font-semibold text-primary">{t.register.privacyLink}</Link>
+                <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary">{t.register.privacyLink}</Link>
               </Label>
             </div>
             <FieldError message={teacherForm.formState.errors.terms?.message} />
@@ -385,9 +385,9 @@ function RegisterPage() {
               <Checkbox id="s-terms" checked={!!schoolTerms} onCheckedChange={(v) => schoolForm.setValue("terms", v === true ? true : (undefined as unknown as true))} className="mt-0.5" />
               <Label htmlFor="s-terms" className="text-xs text-muted-foreground font-normal leading-relaxed cursor-pointer">
                 {t.register.termsText}{" "}
-                <Link href="/terms" className="font-semibold text-primary">{t.register.termsLink}</Link>
+                <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary">{t.register.termsLink}</Link>
                 {" "}{t.register.andText}{" "}
-                <Link href="/privacy" className="font-semibold text-primary">{t.register.privacyLink}</Link>
+                <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary">{t.register.privacyLink}</Link>
               </Label>
             </div>
             <FieldError message={schoolForm.formState.errors.terms?.message} />
