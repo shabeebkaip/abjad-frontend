@@ -3,10 +3,10 @@
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const ITEM_STYLES = [
-  { color: "#10b981", bg: "#f0fdf4" },
+  { color: "#047857", bg: "#f0fdf4" },
   { color: "var(--brand-accent)", bg: "rgba(0,172,211,0.07)" },
-  { color: "#6366f1", bg: "rgba(99,102,241,0.07)" },
-  { color: "#f59e0b", bg: "rgba(245,158,11,0.07)" },
+  { color: "#4f46e5", bg: "rgba(99,102,241,0.07)" },
+  { color: "#b45309", bg: "rgba(245,158,11,0.07)" },
 ];
 
 export default function SchoolsGrowth() {
@@ -25,7 +25,7 @@ export default function SchoolsGrowth() {
           >
             {t.schoolsPage.growth.kicker}
           </span>
-          <span className="text-xs text-gray-400">{t.schoolsPage.growth.kickerSub}</span>
+          <span className="text-xs text-gray-500">{t.schoolsPage.growth.kickerSub}</span>
         </div>
       </div>
 

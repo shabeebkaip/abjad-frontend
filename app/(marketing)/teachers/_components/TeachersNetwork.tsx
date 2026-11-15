@@ -4,7 +4,7 @@ import Link from "@/components/MarketingLink";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const STAT_COLORS = ["var(--brand-accent)", "#10b981", "#a78bfa"];
+const STAT_COLORS = ["var(--brand-accent)", "#047857", "#a78bfa"];
 const COMMUNITY_ACCENT = [true, true, true, false, false, false, false];
 
 export default function TeachersNetwork() {

@@ -80,7 +80,7 @@ export function Footer() {
           {/* Link columns */}
           {footerLinks.map((group) => (
             <div key={group.heading} className="col-span-1">
-              <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">{group.heading}</h4>
+              <h3 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">{group.heading}</h3>
               <ul className="space-y-2.5">
                 {group.links.map((l) => (
                   <li key={l.label}>
@@ -100,10 +100,10 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between pt-8 gap-4">
-          <p className="text-slate-500 text-xs">
+          <p className="text-slate-400 text-xs">
             {t.footerNav.copyright.replace("{year}", String(new Date().getFullYear()))}
           </p>
-          <div className="flex items-center gap-5 text-xs text-slate-500">
+          <div className="flex items-center gap-5 text-xs text-slate-400">
             <Link href="/privacy" className="hover:text-slate-300 transition-colors">{t.footerNav.privacy}</Link>
             <Link href="/terms" className="hover:text-slate-300 transition-colors">{t.footerNav.terms}</Link>
             <Link href="/cookies" className="hover:text-slate-300 transition-colors">{t.footerNav.cookies}</Link>

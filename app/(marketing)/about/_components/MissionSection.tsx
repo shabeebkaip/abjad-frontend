@@ -6,7 +6,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const PILLAR_ICONS = [
   { icon: Target, iconColor: "var(--brand-accent)", iconBg: "rgba(0,172,211,0.1)" },
-  { icon: ShieldCheck, iconColor: "#10b981", iconBg: "rgba(16,185,129,0.1)" },
+  { icon: ShieldCheck, iconColor: "#047857", iconBg: "rgba(16,185,129,0.1)" },
   { icon: Globe, iconColor: "#a78bfa", iconBg: "rgba(167,139,250,0.1)" },
 ];
 
@@ -29,7 +29,7 @@ export default function MissionSection() {
           >
             {t.about.mission.kicker}
           </span>
-          <span className="text-xs text-gray-400">{t.about.mission.kickerSub}</span>
+          <span className="text-xs text-gray-500">{t.about.mission.kickerSub}</span>
         </div>
       </div>
 
@@ -52,7 +52,7 @@ export default function MissionSection() {
               >
                 {t.about.mission.quote}
               </blockquote>
-              <p className="text-gray-400 text-sm mb-12">
+              <p className="text-gray-500 text-sm mb-12">
                 {t.about.mission.quoteAttribution}
               </p>
 
@@ -61,7 +61,7 @@ export default function MissionSection() {
                 {t.about.mission.microStats.map((s) => (
                   <div key={s.val}>
                     <div className="font-extrabold text-gray-900 text-base leading-none mb-1">{s.val}</div>
-                    <div className="text-xs text-gray-400">{s.label}</div>
+                    <div className="text-xs text-gray-500">{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -87,7 +87,7 @@ export default function MissionSection() {
                     <p.icon size={16} style={{ color: p.iconColor }} strokeWidth={2} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-sm mb-1">{p.title}</h3>
+                    <h2 className="font-bold text-gray-900 text-sm mb-1">{p.title}</h2>
                     <p className="text-xs text-gray-500 leading-relaxed">{p.desc}</p>
                   </div>
                 </div>

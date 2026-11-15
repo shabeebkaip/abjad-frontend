@@ -6,8 +6,8 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const SOLUTION_STYLES = [
   { icon: Zap, color: "var(--brand-accent)", bg: "rgba(0,172,211,0.1)" },
-  { icon: ShieldCheck, color: "#10b981", bg: "rgba(16,185,129,0.1)" },
-  { icon: Bell, color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
+  { icon: ShieldCheck, color: "#047857", bg: "rgba(16,185,129,0.1)" },
+  { icon: Bell, color: "#4f46e5", bg: "rgba(99,102,241,0.1)" },
 ];
 
 export default function TeachersForSchools() {
@@ -26,7 +26,7 @@ export default function TeachersForSchools() {
           >
             {t.teachersPage.forSchools.kicker}
           </span>
-          <span className="text-xs text-gray-400">{t.teachersPage.forSchools.kickerSub}</span>
+          <span className="text-xs text-gray-500">{t.teachersPage.forSchools.kickerSub}</span>
         </div>
       </div>
 

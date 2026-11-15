@@ -5,9 +5,9 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const STEP_STYLES = [
   { icon: FileText, color: "var(--brand-accent)" },
-  { icon: Search, color: "#6366f1" },
-  { icon: Video, color: "#10b981" },
-  { icon: PlayCircle, color: "#f59e0b" },
+  { icon: Search, color: "#4f46e5" },
+  { icon: Video, color: "#047857" },
+  { icon: PlayCircle, color: "#b45309" },
 ];
 
 export default function HowItWorksProcess() {

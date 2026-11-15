@@ -19,7 +19,7 @@ export default function SchoolsHiringChallenge() {
           >
             {t.schoolsPage.hiringChallenge.kicker}
           </span>
-          <span className="text-xs text-gray-400">{t.schoolsPage.hiringChallenge.kickerSub}</span>
+          <span className="text-xs text-gray-500">{t.schoolsPage.hiringChallenge.kickerSub}</span>
         </div>
       </div>
 

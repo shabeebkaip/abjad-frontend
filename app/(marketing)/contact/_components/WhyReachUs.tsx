@@ -5,9 +5,9 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const REASON_STYLES = [
   { icon: Globe, iconColor: "var(--brand-accent)", iconBg: "rgba(0,172,211,0.1)" },
-  { icon: Award, iconColor: "#6366f1", iconBg: "rgba(99,102,241,0.1)" },
-  { icon: ShieldCheck, iconColor: "#10b981", iconBg: "rgba(16,185,129,0.1)" },
-  { icon: Zap, iconColor: "#f59e0b", iconBg: "rgba(245,158,11,0.1)" },
+  { icon: Award, iconColor: "#4f46e5", iconBg: "rgba(99,102,241,0.1)" },
+  { icon: ShieldCheck, iconColor: "#047857", iconBg: "rgba(16,185,129,0.1)" },
+  { icon: Zap, iconColor: "#b45309", iconBg: "rgba(245,158,11,0.1)" },
   { icon: RefreshCw, iconColor: "var(--brand-primary)", iconBg: "rgba(13,37,66,0.08)" },
 ];
 

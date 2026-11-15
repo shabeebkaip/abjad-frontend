@@ -4,8 +4,8 @@ import { ShieldCheck, Zap, Star, Users } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const VALUE_ICONS = [
-  { icon: ShieldCheck, accent: "#10b981", bg: "rgba(16,185,129,0.08)" },
-  { icon: Zap, accent: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
+  { icon: ShieldCheck, accent: "#047857", bg: "rgba(16,185,129,0.08)" },
+  { icon: Zap, accent: "#b45309", bg: "rgba(245,158,11,0.08)" },
   { icon: Star, accent: "#a78bfa", bg: "rgba(167,139,250,0.08)" },
   { icon: Users, accent: "var(--brand-accent)", bg: "rgba(0,172,211,0.08)" },
 ];
@@ -32,7 +32,7 @@ export default function ValuesSection() {
           >
             {t.about.values.kicker}
           </span>
-          <span className="text-xs text-gray-400">{t.about.values.kickerSub}</span>
+          <span className="text-xs text-gray-500">{t.about.values.kickerSub}</span>
         </div>
       </div>
 

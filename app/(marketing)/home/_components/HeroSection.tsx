@@ -89,7 +89,7 @@ export default function HeroSection() {
             </p>
 
             <h1
-              className="fade-in-up-2 font-extrabold text-(--brand-primary) leading-[1.1] mb-6 text-balance"
+              className="font-extrabold text-(--brand-primary) leading-[1.1] mb-6 text-balance"
               style={{ fontSize: "clamp(2.1rem, 3.6vw, 3.25rem)", letterSpacing: isRTL ? "0" : "-0.025em" }}
             >
               {t.hero.headlinePre} {t.hero.headlineAccent} {t.hero.headlineMid}{" "}

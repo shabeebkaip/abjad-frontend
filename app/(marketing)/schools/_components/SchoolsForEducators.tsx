@@ -8,7 +8,7 @@ const BENEFIT_STYLES = [
   { icon: User, color: "var(--brand-accent)" },
   { icon: Search, color: "#a78bfa" },
   { icon: BellRing, color: "#34d399" },
-  { icon: LayoutDashboard, color: "#f59e0b" },
+  { icon: LayoutDashboard, color: "#b45309" },
 ];
 
 export default function SchoolsForEducators() {

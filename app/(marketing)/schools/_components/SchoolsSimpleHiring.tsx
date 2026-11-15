@@ -6,10 +6,10 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const STEP_ICONS = [Briefcase, Sparkles, Handshake];
 const FEATURE_STYLES = [
-  { icon: UserCheck, color: "#10b981", bg: "#f0fdf4" },
+  { icon: UserCheck, color: "#047857", bg: "#f0fdf4" },
   { icon: Bell, color: "var(--brand-accent)", bg: "rgba(0,172,211,0.08)" },
-  { icon: Lock, color: "#6366f1", bg: "rgba(99,102,241,0.08)" },
-  { icon: Zap, color: "#f59e0b", bg: "rgba(245,158,11,0.08)" },
+  { icon: Lock, color: "#4f46e5", bg: "rgba(99,102,241,0.08)" },
+  { icon: Zap, color: "#b45309", bg: "rgba(245,158,11,0.08)" },
 ];
 
 export default function SchoolsSimpleHiring() {

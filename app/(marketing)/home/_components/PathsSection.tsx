@@ -36,7 +36,7 @@ export default function PathsSection() {
                 <Image src={PHOTOS[photo].src} alt={alt(photo)} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
               </div>
               <div className="flex flex-col flex-1 p-7 sm:p-9">
-                <p className={`text-sm font-semibold mb-2 ${dark ? "text-(--brand-accent)" : "text-(--brand-accent-dark)"}`}>{data.label}</p>
+                <p className={`text-sm font-semibold mb-2 ${dark ? "text-(--brand-accent)" : "text-[#006b85]"}`}>{data.label}</p>
                 <h3 className="font-extrabold text-2xl sm:text-[1.75rem] leading-snug mb-7">{data.title}</h3>
                 <ol className="flex flex-col gap-5 mb-9">
                   {data.steps.map((step, i) => (

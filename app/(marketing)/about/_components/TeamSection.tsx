@@ -6,9 +6,9 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const MEMBER_STYLES = [
   { color: "var(--brand-primary)", accent: "rgba(13,37,66,0.08)", border: "rgba(13,37,66,0.18)", bandColor: "#0D2542" },
-  { color: "#6366f1", accent: "#eef2ff", border: "rgba(99,102,241,0.22)", bandColor: "#6366f1" },
-  { color: "#10b981", accent: "#ecfdf5", border: "rgba(16,185,129,0.22)", bandColor: "#10b981" },
-  { color: "#f59e0b", accent: "#fef3c7", border: "rgba(245,158,11,0.22)", bandColor: "#f59e0b" },
+  { color: "#4f46e5", accent: "#eef2ff", border: "rgba(99,102,241,0.22)", bandColor: "#4f46e5" },
+  { color: "#047857", accent: "#ecfdf5", border: "rgba(16,185,129,0.22)", bandColor: "#047857" },
+  { color: "#b45309", accent: "#fef3c7", border: "rgba(245,158,11,0.22)", bandColor: "#b45309" },
 ];
 
 // ponytail: initials derived from the localized name so Arabic names get Arabic initials

@@ -53,7 +53,7 @@ export default function SchoolsDiscover() {
             <Link
               href="/register"
               className="inline-flex items-center gap-2 font-bold text-sm px-8 py-3.5 rounded-full transition-all hover:-translate-y-0.5 text-white"
-              style={{ backgroundColor: "var(--brand-accent)" }}
+              style={{ backgroundColor: "#00799a" }}
             >
               {t.schoolsPage.discover.cta} <ArrowRight size={16} style={{ transform: isRTL ? "scaleX(-1)" : undefined }} />
             </Link>

@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const INITIAL_VISIBLE = 6;
-const STAT_COLORS = ["var(--brand-accent)", "#10b981", "var(--brand-primary)"];
+const STAT_COLORS = ["var(--brand-accent)", "#047857", "var(--brand-primary)"];
 
 export default function TeachersFaq() {
   const { t, isRTL } = useTranslation();
@@ -29,7 +29,7 @@ export default function TeachersFaq() {
           >
             {t.teachersPage.faq.kicker}
           </span>
-          <span className="text-xs text-gray-400">{faqs.length} {t.teachersPage.faq.questionsAnsweredLabel}</span>
+          <span className="text-xs text-gray-500">{faqs.length} {t.teachersPage.faq.questionsAnsweredLabel}</span>
         </div>
       </div>
 
@@ -87,7 +87,7 @@ export default function TeachersFaq() {
               type="button"
               onClick={() => { setShowAll(!showAll); if (showAll) setOpen(null); }}
               className="mt-6 flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
-              style={{ color: "var(--brand-accent)" }}
+              style={{ color: "#007c9a" }}
             >
               {showAll ? t.teachersPage.faq.showFewer : `${t.teachersPage.faq.showAllPre} ${faqs.length} ${t.teachersPage.faq.showAllPost}`}
               <span
@@ -147,7 +147,7 @@ export default function TeachersFaq() {
               <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
                 {statLabels.map((s) => (
                   <div key={s.label} className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">{s.label}</span>
+                    <span className="text-xs text-gray-500">{s.label}</span>
                     <span className="font-black text-sm" style={{ color: s.color }}>
                       {s.val}
                     </span>

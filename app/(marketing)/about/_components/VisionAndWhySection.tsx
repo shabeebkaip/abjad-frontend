@@ -4,7 +4,7 @@ import { Zap, Target, GraduationCap } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const WHY_ICONS = [
-  { icon: Zap, color: "#f59e0b" },
+  { icon: Zap, color: "#b45309" },
   { icon: Target, color: "var(--brand-accent)" },
   { icon: GraduationCap, color: "#34d399" },
 ];

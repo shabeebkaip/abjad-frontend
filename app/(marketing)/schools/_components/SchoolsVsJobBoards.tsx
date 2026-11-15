@@ -6,9 +6,9 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const HIGHLIGHT_STYLES = [
   { icon: Building2, color: "var(--brand-accent)" },
-  { icon: ShieldCheck, color: "#6366f1" },
-  { icon: Users, color: "#10b981" },
-  { icon: Zap, color: "#f59e0b" },
+  { icon: ShieldCheck, color: "#4f46e5" },
+  { icon: Users, color: "#047857" },
+  { icon: Zap, color: "#b45309" },
 ];
 
 export default function SchoolsVsJobBoards() {
@@ -27,7 +27,7 @@ export default function SchoolsVsJobBoards() {
           >
             {t.schoolsPage.vsJobBoards.kicker}
           </span>
-          <span className="text-xs text-gray-400">{t.schoolsPage.vsJobBoards.kickerSub}</span>
+          <span className="text-xs text-gray-500">{t.schoolsPage.vsJobBoards.kickerSub}</span>
         </div>
       </div>
 

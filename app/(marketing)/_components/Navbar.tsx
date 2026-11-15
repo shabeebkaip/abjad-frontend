@@ -104,7 +104,7 @@ export default function Navbar() {
               <button
                 onClick={() => switchLang("en")}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
-                  lang === "en" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                  lang === "en" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 EN
@@ -112,7 +112,7 @@ export default function Navbar() {
               <button
                 onClick={() => switchLang("ar")}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
-                  lang === "ar" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+                  lang === "ar" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}
                 style={{ fontFamily: "var(--font-almarai)" }}
               >
@@ -228,7 +228,7 @@ export default function Navbar() {
                 <button
                   onClick={() => switchLang("en")}
                   className={`flex-1 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                    lang === "en" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400"
+                    lang === "en" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600"
                   }`}
                 >
                   EN
@@ -236,7 +236,7 @@ export default function Navbar() {
                 <button
                   onClick={() => switchLang("ar")}
                   className={`flex-1 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                    lang === "ar" ? "bg-white text-gray-900 shadow-sm" : "text-gray-400"
+                    lang === "ar" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600"
                   }`}
                   style={{ fontFamily: "var(--font-almarai)" }}
                 >

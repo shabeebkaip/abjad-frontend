@@ -6,7 +6,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const CARD_STYLES = [
   { bgColor: "var(--brand-accent)", tagBg: "rgba(16,185,129,0.15)", tagColor: "#34d399" },
-  { bgColor: "#7c3aed", tagBg: "rgba(245,158,11,0.15)", tagColor: "#f59e0b" },
+  { bgColor: "#7c3aed", tagBg: "rgba(245,158,11,0.15)", tagColor: "#b45309" },
   { bgColor: "#0891b2", tagBg: "rgba(239,68,68,0.15)", tagColor: "#f87171" },
 ];
 

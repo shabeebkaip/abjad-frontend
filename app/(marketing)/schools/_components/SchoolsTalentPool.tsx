@@ -6,9 +6,9 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const CATEGORY_STYLES = [
   { bg: "rgba(0,172,211,0.10)", color: "var(--brand-accent)", border: "rgba(0,172,211,0.22)" },
-  { bg: "rgba(99,102,241,0.10)", color: "#6366f1", border: "rgba(99,102,241,0.22)" },
-  { bg: "rgba(16,185,129,0.10)", color: "#10b981", border: "rgba(16,185,129,0.22)" },
-  { bg: "rgba(245,158,11,0.10)", color: "#f59e0b", border: "rgba(245,158,11,0.22)" },
+  { bg: "rgba(99,102,241,0.10)", color: "#4f46e5", border: "rgba(99,102,241,0.22)" },
+  { bg: "rgba(16,185,129,0.10)", color: "#047857", border: "rgba(16,185,129,0.22)" },
+  { bg: "rgba(245,158,11,0.10)", color: "#b45309", border: "rgba(245,158,11,0.22)" },
   { bg: "rgba(167,139,250,0.10)", color: "#a78bfa", border: "rgba(167,139,250,0.22)" },
   { bg: "rgba(52,211,153,0.10)", color: "#34d399", border: "rgba(52,211,153,0.22)" },
   { bg: "rgba(13,37,66,0.08)", color: "var(--brand-primary)", border: "rgba(13,37,66,0.15)" },

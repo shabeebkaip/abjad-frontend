@@ -4,7 +4,7 @@ import Link from "@/components/MarketingLink";
 import { ArrowRight, X, Clock } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
-const FLEX_COLORS = ["var(--brand-accent)", "#10b981", "#a78bfa", "#f59e0b"];
+const FLEX_COLORS = ["var(--brand-accent)", "#047857", "#a78bfa", "#b45309"];
 
 export default function TeachersOpportunities() {
   const { t, isRTL } = useTranslation();
@@ -22,7 +22,7 @@ export default function TeachersOpportunities() {
           >
             {t.teachersPage.opportunities.kicker}
           </span>
-          <span className="text-xs text-gray-400">{t.teachersPage.opportunities.kickerSub}</span>
+          <span className="text-xs text-gray-500">{t.teachersPage.opportunities.kickerSub}</span>
         </div>
       </div>
 

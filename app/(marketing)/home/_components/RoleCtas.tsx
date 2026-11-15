@@ -29,7 +29,7 @@ export default function RoleCtas({ onDark = false, className = "" }: { onDark?: 
       // #00799a keeps white text above 4.5:1; brand sky alone is too light for text.
       cls: "bg-[#00799a] text-white",
       iconCls: "bg-white/15",
-      subCls: "text-white/85",
+      subCls: "text-white",
     },
   ];
 
