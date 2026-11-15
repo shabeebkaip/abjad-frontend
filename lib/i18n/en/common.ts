@@ -1223,7 +1223,7 @@ export const common: CommonTranslations = {
     contactUs: "Contact Us",
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
-    brandBlurb: "The education hiring platform connecting talented teachers with exceptional schools across the Kingdom.",
+    brandBlurb: "Built in Saudi Arabia 🇸🇦 — the education hiring platform connecting talented teachers with exceptional schools across the Kingdom.", // exact client wording (feedback R1 §8)
     addressLine: "Riyadh, Saudi Arabia",
     socialTwitter: "Twitter / X",
     socialLinkedin: "LinkedIn",
