@@ -24,45 +24,20 @@ export interface CommonTranslations {
     ctaJoin: string;
     ctaTeacher: string; ctaTeacherSub: string; ctaSchool: string; ctaSchoolSub: string;
   };
-  stats: { value: string; label: string }[];
-  card: {
-    teacher_headline: string; teacher_sub: string;
-    school_headline: string; school_sub: string;
-    teacher_cta: string; school_cta: string;
-    teacher_tab: string; school_tab: string;
-    teacher_b1: string; teacher_b2: string; teacher_b3: string;
-    school_b1: string; school_b2: string; school_b3: string;
-  };
-  features: {
-    label: string; headlinePre: string; headlineAccent: string; headlinePost: string;
-    sub: string; cta: string;
-    items: { title: string; desc: string }[];
+  home: {
+    paths: {
+      title: string; sub: string;
+      school: { label: string; title: string; steps: string[]; cta: string };
+      teacher: { label: string; title: string; steps: string[]; cta: string };
+    };
+    why: { title: string; sub: string; items: { title: string; desc: string }[] };
+    faq: { title: string; sub: string; contactCta: string; items: { q: string; a: string }[] };
+    cta: { title: string; sub: string };
   };
   testimonial: { quote: string; name: string; role: string };
-  startHiring: {
-    label: string; headlinePre: string; headlinePost: string; sub: string; cta: string;
-    tiles: { title: string; desc: string }[];
-    ctaBoxText: string; ctaBoxButton: string;
-  };
-  howItWorks: {
-    label: string; headlinePre: string; headlineAccent: string; sub: string;
-    steps: { title: string; desc: string }[];
-    ctaHeadline: string; ctaBodyBold: string; ctaBodyRest: string; ctaButton: string;
-  };
   faq: {
     label: string; headlinePre: string; headlineAccent: string; sub: string;
     items: { q: string; a: string }[];
-  };
-  whyAbjad: {
-    label: string; headlinePre: string; headlineAccent: string; headlinePost: string; sub: string;
-    schools: {
-      badge: string; headlineLine1: string; headlineLine2: string; body: string; cta: string;
-      bullets: string[];
-    };
-    teachers: {
-      badge: string; headlineLine1: string; headlineLine2: string; body: string; cta: string;
-      bullets: string[];
-    };
   };
   about: {
     hero: {
@@ -328,7 +303,6 @@ export interface CommonTranslations {
   footer: string;
   /** Shared marketing footer (CtaAndFooter.tsx) — "footer" above is a legacy single line, kept separate to avoid a breaking rename. */
   footerNav: {
-    ctaEyebrow: string; ctaBadge: string; ctaHeadline: string; ctaBody: string; ctaButton: string;
     platformGroup: string; companyGroup: string; supportGroup: string;
     forTeachers: string; forSchools: string; howItWorks: string; pricing: string;
     aboutUs: string; careers: string; blogs: string;

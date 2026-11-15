@@ -230,6 +230,10 @@
 }
 .fade-in-card { animation: fadeInCard 0.55s ease both; animation-delay: 0.2s; }
 
+@media (prefers-reduced-motion: reduce) {
+  [class*="fade-in-"] { animation: none !important; }
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

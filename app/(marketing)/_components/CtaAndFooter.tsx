@@ -2,53 +2,8 @@
 
 import Link from "@/components/MarketingLink";
 import Image from "next/image";
-import { ArrowRight, Mail, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-
-export function CtaBanner() {
-  const { t, isRTL } = useTranslation();
-  return (
-    <section className="py-24 bg-gray-50">
-      <div className="max-w-5xl mx-auto px-6 lg:px-10">
-        <div
-          className="rounded-3xl p-12 lg:p-16 text-center relative overflow-hidden"
-          style={{ background: "var(--brand-gradient)" }}
-        >
-          {/* Decorative circles */}
-          <div className="absolute -top-12 -end-12 w-48 h-48 rounded-full bg-white/10" />
-          <div className="absolute -bottom-10 -start-10 w-40 h-40 rounded-full bg-white/10" />
-          <div className="absolute top-1/2 start-1/4 w-32 h-32 rounded-full bg-white/5" />
-
-          <div className="relative z-10">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <span className="inline-block bg-white/20 text-white text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full">
-                {t.footerNav.ctaEyebrow}
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/15 border border-white/25 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
-                {t.footerNav.ctaBadge}
-              </span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-5 tracking-tight">
-              {t.footerNav.ctaHeadline}
-            </h2>
-            <p className="text-white/80 text-lg max-w-xl mx-auto mb-10">
-              {t.footerNav.ctaBody}
-            </p>
-
-            <Link
-              href="/choose-role"
-              className="inline-flex items-center justify-center gap-2 bg-white font-bold text-sm px-10 py-4 rounded-2xl hover:shadow-xl hover:shadow-black/20 transition-all hover:-translate-y-0.5"
-              style={{ color: "var(--brand-primary-dark)" }}
-            >
-              {t.footerNav.ctaButton}
-              <ArrowRight size={15} className={isRTL ? "rotate-180" : ""} />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export function Footer() {
   const { t } = useTranslation();

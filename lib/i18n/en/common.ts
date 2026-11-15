@@ -25,7 +25,7 @@ export const common: CommonTranslations = {
   hero: {
     badge: "Empower Schools & Teachers",
     headline: "Where Great\nTeachers Meet\nGreat Schools",
-    sub: "Whether you are a teacher or a private national or international school in Riyadh, Jeddah, or Dammam, Abjad helps you find the right match.",
+    sub: "Abjad connects private national and international schools across Saudi Arabia with qualified teachers whose profiles we review.",
     line1: "Where Great",
     line2: "Teachers Meet",
     line3: "Great Schools",
@@ -40,106 +40,103 @@ export const common: CommonTranslations = {
     ctaTeacher: "I'm a Teacher",
     ctaTeacherSub: "Find teaching jobs",
     ctaSchool: "I'm a School",
-    ctaSchoolSub: "Hire qualified teachers",
+    ctaSchoolSub: "Hire teachers",
   },
-  stats: [
-    { value: "70%", label: "Faster hiring vs traditional methods" },
-    { value: "100%", label: "Verified educator profiles" },
-    { value: "KSA", label: "Nationwide coverage" },
-  ],
-  card: {
-    teacher_headline: "Your next teaching job is here",
-    teacher_sub: "2,000+ teachers found their school through Abjad",
-    school_headline: "Find your ideal teacher fast",
-    school_sub: "Most schools make a hire within 2 weeks",
-    teacher_cta: "Start job hunting →",
-    school_cta: "Start hiring →",
-    teacher_tab: "I'm a Teacher",
-    school_tab: "I'm a School",
-    teacher_b1: "Browse hundreds of verified school listings",
-    teacher_b2: "Set your availability & preferred subjects",
-    teacher_b3: "Get matched with schools that suit you",
-    school_b1: "Post jobs and receive matched candidates",
-    school_b2: "Filter by subject, experience & availability",
-    school_b3: "Interview and hire — all in one place",
-  },
-  features: {
-    label: "For Teachers",
-    headlinePre: "Find Your",
-    headlineAccent: "Perfect",
-    headlinePost: "Teaching Role Today",
-    sub: "Whether you are an experienced educator or a substitute teacher seeking flexible opportunities, Abjad connects you to top schools in Riyadh, Jeddah, and Dammam.",
-    cta: "Apply Now",
-    items: [
-      {
-        title: "Access Verified Job Openings",
-        desc: "Browse only verified, active openings at international, private, and high schools nationwide — no noise, no expired listings.",
+  home: {
+    paths: {
+      title: "How Abjad works",
+      sub: "Schools post jobs. Teachers apply. Our team reviews teacher profiles before schools can see them.",
+      school: {
+        label: "For schools",
+        title: "Hire teachers you can rely on",
+        steps: [
+          "Register your school and upload your commercial registration and license.",
+          "Post permanent or substitute roles in Arabic and English.",
+          "Review the best-matched candidates, shortlist, interview and make an offer.",
+        ],
+        cta: "Register your school",
       },
-      {
-        title: "Apply Directly to Schools Near You",
-        desc: "Filter by city, curriculum, and role type. Apply to Riyadh, Jeddah, and Dammam schools in minutes.",
+      teacher: {
+        label: "For teachers",
+        title: "Find a school that fits you",
+        steps: [
+          "Create your profile with your subjects, grade levels and certificates.",
+          "Our team reviews your profile and documents.",
+          "Apply to jobs posted directly by schools and track every application.",
+        ],
+        cta: "Create your profile",
       },
-      {
-        title: "Build Your Professional Profile",
-        desc: "Create a standout educator profile with your qualifications, specialisations, and availability — and get discovered by schools actively hiring.",
-      },
-    ],
+    },
+    why: {
+      title: "Built for school hiring in Saudi Arabia",
+      sub: "For private national and private international schools in Riyadh, Jeddah, Dammam and across the Kingdom.",
+      items: [
+        {
+          title: "Reviewed profiles",
+          desc: "Every teacher profile and its documents are reviewed by the Abjad team before schools can see it.",
+        },
+        {
+          title: "Matched on what matters",
+          desc: "Candidates are ranked by subject, grade level, experience, location, language and qualifications.",
+        },
+        {
+          title: "Permanent and substitute roles",
+          desc: "Hire for a full year, a term or a few days, with a daily rate for substitute cover.",
+        },
+        {
+          title: "Arabic and English",
+          desc: "Every page, job post and profile works in both languages.",
+        },
+      ],
+    },
+    faq: {
+      title: "Questions schools and teachers ask",
+      sub: "Can't find your answer? Our team will help.",
+      contactCta: "Contact us",
+      items: [
+        {
+          q: "What is Abjad?",
+          a: "Abjad is a recruitment platform that connects private national and private international schools in Saudi Arabia with qualified teachers, for permanent and substitute roles.",
+        },
+        {
+          q: "Where do the job listings come from?",
+          a: "Every job is posted directly by a school on Abjad. Teachers apply from the listing and follow each application's status in their dashboard.",
+        },
+        {
+          q: "How are teacher profiles reviewed?",
+          a: "Before a profile becomes visible to schools, our team reviews it together with the uploaded documents, such as certificates and CV.",
+        },
+        {
+          q: "How does matching work?",
+          a: "Abjad compares each teacher with each job on subject, grade level, experience, location, language and qualifications, so the strongest matches appear first.",
+        },
+        {
+          q: "Can schools hire substitute teachers?",
+          a: "Yes. Schools can post substitute roles with a daily rate and a contract measured in days, months or a full year.",
+        },
+        {
+          q: "Is Abjad free for teachers?",
+          a: "Yes. Creating a profile, searching jobs and applying are free for teachers.",
+        },
+        {
+          q: "Can teachers from outside Saudi Arabia apply?",
+          a: "Yes. International educators can create a profile and apply. Each school decides which candidates fit its requirements.",
+        },
+        {
+          q: "Is Abjad available in Arabic and English?",
+          a: "Yes. The whole platform works in Arabic and English, and schools can publish each job in both languages.",
+        },
+      ],
+    },
+    cta: {
+      title: "Start with Abjad today",
+      sub: "Free for teachers. Schools can post their first job as soon as they register.",
+    },
   },
   testimonial: {
     quote: "I found my ideal teaching position in Riyadh within two weeks of joining Abjad.",
     name: "Sara Al-Harbi",
     role: "Mathematics Teacher · Riyadh",
-  },
-  startHiring: {
-    label: "For Schools",
-    headlinePre: "Start Hiring with",
-    headlinePost: "Today",
-    sub: "Access a growing database of certified educators and substitute teachers from Riyadh, Jeddah, Dammam, and beyond. Pre-screened and ready to join your school.",
-    cta: "Register Now",
-    tiles: [
-      {
-        title: "Verified Profiles",
-        desc: "Every educator is manually vetted — credentials, references, and trial assignments confirmed before placement.",
-      },
-      {
-        title: "AI-Powered Filters",
-        desc: "Match by curriculum, subject, city, and availability. Find the right educator in seconds.",
-      },
-      {
-        title: "Record-Speed Hiring",
-        desc: "Fill permanent, temporary, or substitute positions faster than any traditional method.",
-      },
-      {
-        title: "Nationwide Network",
-        desc: "Tap into educators across Riyadh, Jeddah, Dammam, and every corner of Saudi Arabia.",
-      },
-    ],
-    ctaBoxText: "Every great school starts with great teachers.",
-    ctaBoxButton: "Get Started",
-  },
-  howItWorks: {
-    label: "How Abjad Works",
-    headlinePre: "Streamlined Hiring for",
-    headlineAccent: "Every School",
-    sub: "Whether you search for full-time teachers, part-time educators, or substitute teachers — Abjad brings the entire Kingdom together on one powerful platform.",
-    steps: [
-      {
-        title: "Verified Profiles Ready to Place",
-        desc: "Every educator on Abjad is manually verified with credential checks, reference reviews, and trial assignments — so schools can hire with zero risk.",
-      },
-      {
-        title: "Smart AI Matching",
-        desc: "Our platform analyses curriculum requirements, location, and availability to instantly surface the right educator for the right school — every time.",
-      },
-      {
-        title: "Nationwide Support",
-        desc: "From Riyadh to Dammam to Jeddah, Abjad covers every region of Saudi Arabia — giving international schools, high schools, and private academies direct access to talent.",
-      },
-    ],
-    ctaHeadline: "Ready to hire the right educator?",
-    ctaBodyBold: "Designed to support schools nationwide",
-    ctaBodyRest: "— Abjad goes beyond Riyadh, Jeddah, and Dammam, serving institutions across every region of Saudi Arabia.",
-    ctaButton: "Start Hiring",
   },
   faq: {
     label: "FAQ",
@@ -228,29 +225,6 @@ export const common: CommonTranslations = {
         a: "Teachers' profiles are featured in smart search results, giving them direct exposure to hundreds of verified schools actively hiring across the country.",
       },
     ],
-  },
-  whyAbjad: {
-    label: "Why Abjad",
-    headlinePre: "The",
-    headlineAccent: "Smarter Way",
-    headlinePost: "to Connect",
-    sub: "Intelligent matching, real-time updates, and nationwide reach — Abjad transforms how educators get discovered and how schools hire.",
-    schools: {
-      badge: "For Schools",
-      headlineLine1: "Hire Faster.",
-      headlineLine2: "Hire Better.",
-      body: "Access a verified pool of ready-to-place educators, post openings in minutes, and fill permanent or substitute vacancies at record speed.",
-      cta: "Get Started",
-      bullets: ["Efficient recruitment pipeline", "Verified educator profiles", "Seamless onboarding flow"],
-    },
-    teachers: {
-      badge: "For Teachers",
-      headlineLine1: "Find Your Role.",
-      headlineLine2: "Grow Your Career.",
-      body: "Discover opportunities that match your skills and schedule — from full-time positions at international schools to flexible substitute roles.",
-      cta: "Get Started",
-      bullets: ["Flexible roles available now", "International school openings", "Fast one-click applications"],
-    },
   },
   about: {
     hero: {
@@ -1323,11 +1297,6 @@ export const common: CommonTranslations = {
   },
   footer: "Built in Saudi Arabia",
   footerNav: {
-    ctaEyebrow: "Ready to Join Abjad?",
-    ctaBadge: "🇸🇦 Made in Saudi Arabia",
-    ctaHeadline: "Your Next Opportunity Awaits",
-    ctaBody: "Join a vast network of teachers, educators, and schools already using Abjad to make hiring and job searching effortless.",
-    ctaButton: "Register",
     platformGroup: "Platform",
     companyGroup: "Company",
     supportGroup: "Support",
@@ -1342,7 +1311,7 @@ export const common: CommonTranslations = {
     contactUs: "Contact Us",
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
-    brandBlurb: "Built in Saudi Arabia 🇸🇦 — the education hiring platform connecting talented teachers with exceptional schools across the Kingdom.",
+    brandBlurb: "The education hiring platform connecting talented teachers with exceptional schools across the Kingdom.",
     addressLine: "Riyadh, Saudi Arabia",
     socialTwitter: "Twitter / X",
     socialLinkedin: "LinkedIn",
