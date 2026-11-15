@@ -8,11 +8,8 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 export default function AuthChrome({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
 
-  const STATS = [
-    { value: "12k+", label: t.authLayout.statTeachersPlaced },
-    { value: "800+", label: t.authLayout.statPartnerSchools },
-    { value: "72h",  label: t.authLayout.statAvgTimeToOffer },
-  ];
+  // Client feedback R1 §8.4: no invented numbers. Word stats that are true today.
+  const STATS = t.authLayout.stats;
 
   return (
     <div className="flex min-h-screen bg-slate-50 relative">
@@ -84,9 +81,9 @@ export default function AuthChrome({ children }: { children: React.ReactNode }) 
             </p>
 
             {/* Minimal stat row */}
-            <div className="flex items-center gap-8">
+            <div className="grid grid-cols-3 gap-6 max-w-md items-start">
               {STATS.map((s) => (
-                <div key={s.label}>
+                <div key={s.label} className="min-w-0">
                   <p className="text-2xl font-bold text-white tracking-tight">{s.value}</p>
                   <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.40)" }}>{s.label}</p>
                 </div>
@@ -113,11 +110,6 @@ export default function AuthChrome({ children }: { children: React.ReactNode }) 
               <div>
                 <p className="text-white text-xs font-medium">{t.authLayout.testimonialName}</p>
                 <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{t.authLayout.testimonialRole}</p>
-              </div>
-              <div className="ms-auto flex gap-px">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-amber-400 text-xs">★</span>
-                ))}
               </div>
             </div>
           </div>

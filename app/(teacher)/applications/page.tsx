@@ -15,7 +15,6 @@ import {
   Send,
   Star,
   Eye,
-  MoreHorizontal,
   TrendingUp,
   Briefcase,
   Award,
@@ -193,7 +192,8 @@ export default function ApplicationsPage() {
     setWithdrawing(appId);
     try {
       const updated = await withdrawApplication(appId);
-      setApplications((prev) => prev.map((a) => a._id === appId ? updated : a));
+      // Keep the populated job/school on the card; the API returns the bare document.
+      setApplications((prev) => prev.map((a) => a._id === appId ? { ...a, status: updated.status, statusHistory: updated.statusHistory } : a));
     } catch (err) {
       console.error(err);
     } finally {
@@ -404,6 +404,7 @@ function ApplicationCard({
   const isActive = !["Rejected", "Withdrawn"].includes(uiStatus);
   const canWithdraw = app.status === "submitted" || app.status === "reviewing";
   const title = jobTitle(app, tt.jobFallback);
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
 
   return (
     <div className="p-5 hover:bg-slate-50/50 transition-colors">
@@ -436,15 +437,31 @@ function ApplicationCard({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <StatusBadge uiStatus={uiStatus} tt={tt} />
-              {canWithdraw && (
+              {canWithdraw && !confirmWithdraw && (
                 <button
                   disabled={withdrawing}
-                  onClick={() => onWithdraw(app._id)}
-                  className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-                  title={tt.withdrawTooltip}
+                  onClick={() => setConfirmWithdraw(true)}
+                  className="px-2.5 py-1 text-xs font-medium text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
                 >
-                  {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
+                  {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : tt.withdrawTooltip}
                 </button>
+              )}
+              {canWithdraw && confirmWithdraw && (
+                <span className="flex items-center gap-1.5 text-xs" role="group" aria-label={tt.withdrawConfirm}>
+                  <span className="text-slate-600">{tt.withdrawConfirm}</span>
+                  <button
+                    onClick={() => { setConfirmWithdraw(false); onWithdraw(app._id); }}
+                    className="px-2.5 py-1 font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg"
+                  >
+                    {tt.withdrawYes}
+                  </button>
+                  <button
+                    onClick={() => setConfirmWithdraw(false)}
+                    className="px-2.5 py-1 font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
+                  >
+                    {tt.withdrawCancel}
+                  </button>
+                </span>
               )}
             </div>
           </div>

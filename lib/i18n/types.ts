@@ -34,7 +34,6 @@ export interface CommonTranslations {
     faq: { title: string; sub: string; contactCta: string; items: { q: string; a: string }[] };
     cta: { title: string; sub: string };
   };
-  testimonial: { quote: string; name: string; role: string };
   about: {
     hero: {
       badgeLocation: string; kicker: string;
@@ -314,7 +313,7 @@ export interface CommonTranslations {
   authLayout: {
     headlineLine1: string; headlineAccent: string; headlineLine2: string;
     subCopy: string;
-    statTeachersPlaced: string; statPartnerSchools: string; statAvgTimeToOffer: string;
+    stats: { value: string; label: string }[];
     testimonialQuote: string; testimonialName: string; testimonialRole: string;
     trustedBy: string; secureAndPrivate: string; verifiedSchoolsOnly: string; builtForKSA: string;
     copyright: string;
@@ -564,6 +563,9 @@ export interface TeacherApplicationsTranslations {
   emptyTitle: string;
   emptyBody: string;
   withdrawTooltip: string;
+  withdrawConfirm: string;
+  withdrawYes: string;
+  withdrawCancel: string;
   progressSubmitted: string;
   progressShortlisted: string;
   progressInterview: string;
