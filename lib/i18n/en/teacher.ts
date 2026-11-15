@@ -155,6 +155,7 @@ export const teacher: TeacherTranslations = {
     applying: "Applying…",
     applyNow: "Apply Now",
     postedVia: "Posted via Abjad",
+    verifiedByAbjad: "Verified by Abjad",
     schoolFallback: "School",
     closesOn: "Closes {date}",
     cityLabels: {

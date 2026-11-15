@@ -499,6 +499,7 @@ export interface TeacherJobsTranslations {
   applying: string;
   applyNow: string;
   postedVia: string;
+  verifiedByAbjad: string;
   schoolFallback: string;
   closesOn: string;
   cityLabels: Record<string, string>;

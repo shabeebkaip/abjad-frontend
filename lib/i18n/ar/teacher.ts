@@ -155,6 +155,7 @@ export const teacher: TeacherTranslations = {
     applying: "جارٍ التقديم…",
     applyNow: "قدّم الآن",
     postedVia: "نُشرت عبر أبجد",
+    verifiedByAbjad: "موثّقة من أبجد",
     schoolFallback: "المدرسة",
     closesOn: "تُغلق {date}",
     cityLabels: {

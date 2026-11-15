@@ -70,7 +70,7 @@ export interface Job {
   _id: string;
   title: string;
   schoolId: string | { _id: string; name?: string };
-  school?: { name: string; logoUrl?: string };
+  school?: { name: string; logoUrl?: string; verified?: boolean };
   subjects: string[];
   gradeLevels: string[];
   employmentType: string;

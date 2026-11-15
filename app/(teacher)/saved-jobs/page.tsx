@@ -17,6 +17,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatDate, formatNumber } from "@/lib/i18n/format";
 import { ApplyJobModal } from "@/components/teacher/ApplyJobModal";
 import { SARSymbol } from "@/components/ui/sar-symbol";
+import { VerifiedSchoolBadge } from "@/components/teacher/VerifiedSchoolBadge";
 
 const PAGE_SIZE = 20;
 
@@ -261,7 +262,10 @@ function SavedJobCard({ job, isApplied, isApplying, isRemoving, onApply, onRemov
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-slate-900 leading-snug truncate">{job.title}</h3>
           {job.school?.name && (
-            <p className="text-xs text-slate-500 mt-0.5 truncate">{job.school.name}</p>
+            <p className="text-xs text-slate-500 mt-0.5 truncate flex items-center gap-1.5">
+              <span className="truncate">{job.school.name}</span>
+              <VerifiedSchoolBadge verified={job.school.verified} />
+            </p>
           )}
         </div>
         <span className="text-[11px] text-slate-400 shrink-0">{postedLabel(job.createdAt)}</span>

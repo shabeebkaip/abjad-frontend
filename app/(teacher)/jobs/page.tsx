@@ -19,6 +19,7 @@ import { useAuth } from "@/lib/auth/useAuth";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatDate, formatNumber } from "@/lib/i18n/format";
 import { ApplyJobModal } from "@/components/teacher/ApplyJobModal";
+import { VerifiedSchoolBadge } from "@/components/teacher/VerifiedSchoolBadge";
 
 // ── Constants (API values — canonical keys, never translated; display text
 // comes from t.teacher.jobs.*Labels at render time) ─────────────────────────
@@ -840,6 +841,12 @@ function JobListCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
               <Bookmark size={13} className={isSaved ? "fill-current" : ""} />
             </button>
           </div>
+          {(schoolName(job) || job.school?.verified) && (
+            <div className="flex items-center gap-1.5 mt-1 min-w-0">
+              {schoolName(job) && <span className="text-[11px] text-slate-500 truncate">{schoolName(job)}</span>}
+              <VerifiedSchoolBadge verified={job.school?.verified} />
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-2 text-[11px] text-slate-400">
             <span className="flex items-center gap-1"><MapPin size={10} />{tt.cityLabels[job.city] ?? job.city}</span>
             {job.subjects?.[0] && <span className="flex items-center gap-1"><BookOpen size={10} />{job.subjects[0]}</span>}
@@ -911,7 +918,10 @@ function JobGridCard({ job, isSelected, isSaved, isApplied, onSelect, onToggleSa
         {job.title}
       </h3>
       {job.school?.name && (
-        <p className="text-[11px] text-slate-400 truncate mb-3">{job.school.name}</p>
+        <div className="flex items-center gap-1.5 mb-3 min-w-0">
+          <p className="text-[11px] text-slate-400 truncate">{job.school.name}</p>
+          <VerifiedSchoolBadge verified={job.school.verified} />
+        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 mb-3">
@@ -966,9 +976,12 @@ function JobDetailPanel({ job, isSaved, isApplied, isApplying, onToggleSave, onA
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-800 truncate">
-              {schoolName(job) || tt.schoolFallback}
-            </p>
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="text-sm font-semibold text-slate-800 truncate">
+                {schoolName(job) || tt.schoolFallback}
+              </p>
+              <VerifiedSchoolBadge verified={job.school?.verified} size="md" />
+            </div>
             <p className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
               <MapPin size={10} className="shrink-0" />{tt.cityLabels[job.city] ?? job.city}
             </p>
