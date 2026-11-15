@@ -4,6 +4,7 @@ import Link from "@/components/MarketingLink";
 import Image from "next/image";
 import { Mail, MapPin } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { BILLING_UI_ENABLED } from "@/lib/billing-flags";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export function Footer() {
         { label: t.footerNav.forTeachers, href: "/teachers" },
         { label: t.footerNav.forSchools, href: "/schools" },
         { label: t.footerNav.howItWorks, href: "/#how-it-works" },
-        { label: t.footerNav.pricing, href: "/pricing" },
+        ...(BILLING_UI_ENABLED ? [{ label: t.footerNav.pricing, href: "/pricing" }] : []),
       ],
     },
     {

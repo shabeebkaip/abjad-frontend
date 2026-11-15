@@ -37,6 +37,7 @@ import { useAuth } from "@/lib/auth/useAuth";
 import { SARSymbol } from "@/components/ui/sar-symbol";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatDate, formatTime, formatNumber, type Locale } from "@/lib/i18n/format";
+import { BILLING_UI_ENABLED } from "@/lib/billing-flags";
 
 type TT = ReturnType<typeof useTranslation>["t"]["school"]["dashboard"];
 
@@ -288,7 +289,7 @@ export default function SchoolDashboardPage() {
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
 
       {/* ── Trial / subscription banner — hidden when paid ───────────── */}
-      <TrialBanner audience="school" plansHref="/school/billing/plans" />
+      {BILLING_UI_ENABLED && <TrialBanner audience="school" plansHref="/school/billing/plans" />}
 
       {/* ── Welcome header ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">

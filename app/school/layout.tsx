@@ -14,6 +14,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getSchoolNotificationUnreadCount } from "@/lib/api/school";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { BILLING_UI_ENABLED } from "@/lib/billing-flags";
 
 export default function SchoolLayout({ children }: { children: React.ReactNode }) {
   const pathname  = usePathname();
@@ -33,7 +34,7 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
     { href: "/school/offers",          icon: Gift,             label: t.school.layout.navOffers },
     { href: "/school/team",            icon: UserCog,          label: t.school.layout.navTeam },
     { href: "/school/profile",         icon: Building2,        label: t.school.layout.navProfile },
-    { href: "/school/billing",         icon: CreditCard,       label: t.school.layout.navBilling },
+    ...(BILLING_UI_ENABLED ? [{ href: "/school/billing", icon: CreditCard, label: t.school.layout.navBilling }] : []),
     { href: "/school/support",         icon: MessageSquare,    label: t.school.layout.navSupport },
   ];
 
@@ -82,7 +83,7 @@ export default function SchoolLayout({ children }: { children: React.ReactNode }
           </Link>
 
           <div className="flex items-center gap-2">
-            <PlanBadge billingHref="/school/billing" />
+            {BILLING_UI_ENABLED && <PlanBadge billingHref="/school/billing" />}
             <Link
               href="/school/notifications"
               className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"

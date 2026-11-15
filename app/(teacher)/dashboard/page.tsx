@@ -32,6 +32,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { formatCurrency, formatNumber, formatDate, formatTime, type Locale } from "@/lib/i18n/format";
 import { TrialBanner } from "@/components/billing/TrialBanner";
 import { PasswordPromptBanner } from "@/components/auth/PasswordPromptBanner";
+import { BILLING_UI_ENABLED } from "@/lib/billing-flags";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -300,7 +301,7 @@ export default function DashboardPage() {
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Premium upgrade banner — hidden when already subscribed */}
-      <TrialBanner audience="teacher_premium" plansHref="/billing/plans" />
+      {BILLING_UI_ENABLED && <TrialBanner audience="teacher_premium" plansHref="/billing/plans" />}
 
       {/* Welcome */}
       <div className="flex items-center justify-between">
