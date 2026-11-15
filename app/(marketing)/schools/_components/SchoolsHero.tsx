@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "@/components/MarketingLink";
-import { ArrowRight, MapPin, Star, CheckCircle2, Clock, Search, ArrowUpRight } from "lucide-react";
+import { ArrowRight, MapPin, CheckCircle2, Clock, Search, ArrowUpRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const CARD_STYLES = [
-  { bgColor: "var(--brand-accent)", rating: "4.9", tagBg: "rgba(16,185,129,0.15)", tagColor: "#34d399" },
-  { bgColor: "#7c3aed", rating: "4.8", tagBg: "rgba(245,158,11,0.15)", tagColor: "#f59e0b" },
-  { bgColor: "#0891b2", rating: "5.0", tagBg: "rgba(0,172,211,0.15)", tagColor: "var(--brand-accent)" },
+  { bgColor: "var(--brand-accent)", tagBg: "rgba(16,185,129,0.15)", tagColor: "#34d399" },
+  { bgColor: "#7c3aed", tagBg: "rgba(245,158,11,0.15)", tagColor: "#f59e0b" },
+  { bgColor: "#0891b2", tagBg: "rgba(0,172,211,0.15)", tagColor: "var(--brand-accent)" },
 ];
 
 // ponytail: initials derived from the localized name so Arabic names get Arabic initials
@@ -190,12 +190,8 @@ export default function SchoolsHero() {
                     </div>
                   </div>
 
-                  {/* Rating + action */}
+                  {/* Action (no ratings: Abjad has no rating system) */}
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="flex items-center gap-1">
-                      <Star size={11} className="fill-amber-400 text-amber-400" />
-                      <span className="text-xs font-bold text-white/70">{e.rating}</span>
-                    </div>
                     <button
                       className="text-xs font-bold px-4 py-1.5 rounded-full border border-white/20 text-white/60 hover:bg-white/10 transition-all group-hover:border-white/30"
                     >

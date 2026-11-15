@@ -35,10 +35,6 @@ export interface CommonTranslations {
     cta: { title: string; sub: string };
   };
   testimonial: { quote: string; name: string; role: string };
-  faq: {
-    label: string; headlinePre: string; headlineAccent: string; sub: string;
-    items: { q: string; a: string }[];
-  };
   about: {
     hero: {
       badgeLocation: string; kicker: string;
